@@ -4,120 +4,91 @@
     <meta charset="UTF-8">
     <title>DEMO - TOCI Tootmisplaan</title>
     <style>
-        /* DEMO ERISTUS: Punane stiil */
         :root { --primary: #c0392b; --accent: #e67e22; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); font-size: 12px; overflow: hidden; }
-        
-        /* Vesimärk taustal */
-        .demo-bg { position: fixed; top: 50%; left: 50%; font-size: 10vw; color: rgba(192, 57, 43, 0.05); transform: translate(-50%, -50%) rotate(-30deg); pointer-events: none; z-index: -1; font-weight: bold; white-space: nowrap; }
-        
+        .demo-bg { position: fixed; top: 50%; left: 50%; font-size: 8vw; color: rgba(192, 57, 43, 0.05); transform: translate(-50%, -50%) rotate(-30deg); pointer-events: none; z-index: -1; font-weight: bold; white-space: nowrap; }
         .top-bar { background: var(--primary); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; height: 50px; position: sticky; top: 0; z-index: 10000; }
         .tabs { display: flex; background: #2c3e50; border-bottom: 3px solid var(--accent); overflow-x: auto; height: 45px; position: sticky; top: 50px; z-index: 9000; }
         .tab-btn { padding: 0 18px; color: white; cursor: pointer; border: none; background: none; font-weight: bold; white-space: nowrap; height: 100%; opacity: 0.8; transition: 0.2s; }
         .tab-btn.active { opacity: 1; background: rgba(255,255,255,0.15); box-shadow: inset 0 -4px 0 var(--accent); }
         .content { height: calc(100vh - 95px); display: none; padding: 15px; box-sizing: border-box; }
         .content.active { display: block; }
-        
         .flex-view { display: none !important; flex-direction: column; height: calc(100vh - 95px); box-sizing: border-box; }
         .flex-view.active { display: flex !important; }
-
         .table-container { height: calc(100% - 60px); overflow: auto; background: white; border-radius: 8px; border: 1px solid #ddd; }
         .data-table { width: 100%; border-collapse: collapse; position: relative; }
         .data-table thead th { position: sticky; top: 0; background: #eee; z-index: 10; border-bottom: 2px solid #ccc; padding: 10px 5px; text-align: left; }
         .data-table td { border-bottom: 1px solid #eee; padding: 4px 5px; }
-        tr.status-ootel { background-color: #f8f9fa !important; }
-        tr.status-toos { background-color: #e3f2fd !important; }
         tr.status-valmis { background-color: #e8f5e9 !important; opacity: 0.8; }
-        
+        tr.status-toos { background-color: #e3f2fd !important; }
         .divider-right { border-right: 2px solid #95a5a6 !important; }
         .dept-header { background: #d5dde5 !important; text-align: center !important; }
-
-        .data-in { width: 100%; border: 1px solid transparent; padding: 4px; border-radius: 3px; background: transparent; font-size: 12px; }
-        .data-in:focus { border-color: var(--accent); outline: none; background: #fff; }
-        .data-in:disabled { color: #111; opacity: 1; background: transparent; border: none; appearance: none; cursor: default; }
-        
+        .data-in { width: 100%; border: 1px solid transparent; padding: 4px; border-radius: 3px; background: transparent; font-size: 11px; }
         .num-in { width: 38px; text-align: center; font-weight: bold; border: 1px solid #ccc; border-radius: 3px; padding: 4px; background: #fff; }
-        .num-in:disabled { background: #f0f2f5; border: 1px solid #dcdde1; color: #222; opacity: 1; appearance: none; cursor: default; }
-        .cap-num-in { width: 48px; text-align: center; font-weight: bold; border: 1px solid #ccc; border-radius: 3px; padding: 5px 2px; background: #fff; }
-
+        .cap-num-in { width: 48px; text-align: center; font-weight: bold; border: 1px solid #ccc; border-radius: 3px; padding: 5px 2px; }
         .prog-in { width: 38px; text-align: center; font-weight: bold; border: 1px solid #27ae60; border-radius: 3px; padding: 4px; background: #eafff0; color: #1b5e20; }
-        .prog-in:disabled { background: #eafff0; border: 1px solid #a5d6a7; color: #1b5e20; opacity: 1; appearance: none; cursor: default; }
-        
-        .status-select { padding: 4px; border-radius: 4px; border: 1px solid #999; font-weight: bold; font-size: 11px; cursor: pointer; background: white; }
-        .cell-flex { display: flex; gap: 3px; align-items: center; justify-content: center; }
-
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 10px; overflow-y: auto; height: 100%; }
-        .dash-card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 5px solid var(--accent); display: flex; flex-direction: column; justify-content: center; }
-
+        .cell-flex { display: flex; gap: 2px; align-items: center; justify-content: center; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; overflow-y: auto; height: 100%; }
+        .dash-card { background: white; border-radius: 8px; padding: 15px; border-left: 5px solid var(--accent); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .gantt-outer { height: 100%; display: flex; flex-direction: column; background: white; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; }
         .gantt-header-wrapper { display: flex; background: #f8f9fa; border-bottom: 2px solid #ccc; height: 75px; }
         .header-corner { width: 320px; min-width: 320px; background: #eee; border-right: 3px solid #bbb; display: flex; align-items: center; padding-left: 15px; font-weight: bold; position: sticky; left: 0; z-index: 2500; }
         .header-scroll { flex-grow: 1; overflow: hidden; }
         .header-grid { display: flex; width: max-content; }
-        .h-col { width: var(--cell-w); min-width: var(--cell-w); border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; }
+        .h-col { width: var(--cell-w); min-width: var(--cell-w); border-right: 1px solid #ddd; display: flex; flex-direction: column; }
         .h-week { height: 35px; background: #dfe4ea; border-bottom: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; }
         .h-day { height: 40px; display: flex; align-items: center; justify-content: center; font-size: 9px; }
         .gantt-body { flex-grow: 1; overflow: auto; } 
-        .gantt-row { display: flex; border-bottom: 1px solid #eee; min-height: 105px; width: max-content; }
-        .gantt-info { position: sticky !important; left: 0 !important; width: 320px; min-width: 320px; background: #fff !important; z-index: 1000 !important; border-right: 3px solid #bbb !important; padding: 10px 15px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
-        .gantt-info input[type="date"] { width: 100%; padding: 2px; font-size: 10px; border: 1px solid #ccc; border-radius:3px; }
-        
+        .gantt-row { display: flex; border-bottom: 1px solid #eee; min-height: 100px; width: max-content; }
+        .gantt-info { position: sticky !important; left: 0; width: 320px; min-width: 320px; background: #fff; z-index: 1000; border-right: 3px solid #bbb; padding: 10px; display: flex; flex-direction: column; justify-content: center; }
         .gantt-bars-area { position: relative; display: flex; background-color: #fff; background-image: repeating-linear-gradient(to right, transparent, transparent calc(var(--cell-w) - 1px), #f1f1f1 calc(var(--cell-w) - 1px), #f1f1f1 var(--cell-w)); }
         .today-line { position: absolute; top: 0; bottom: 0; width: 3px; background: var(--today); z-index: 500; pointer-events: none; }
-        .task-bar { position: absolute; height: 32px; top: 32px; border-radius: 5px; color: white; display: flex; align-items: center; padding: 0 10px; font-size: 11px; font-weight: bold; z-index: 100; cursor: help; overflow:hidden; white-space:nowrap;}
+        .task-bar { position: absolute; height: 32px; top: 32px; border-radius: 5px; color: white; display: flex; align-items: center; padding: 0 10px; font-size: 11px; font-weight: bold; z-index: 100; cursor: help; overflow:hidden; white-space:nowrap; }
         .progress-fill { position: absolute; left: 0; top: 0; height: 100%; background: rgba(0,0,0,0.3); border-right: 2px solid rgba(255,255,255,0.6); }
         .sub-bar { position: absolute; height: 12px; background: var(--sub-bg); opacity: 0.6; border-radius: 3px; z-index: 90; font-size: 8px; color: white; display: flex; align-items: center; justify-content: center; }
-
-        .daily-charts-container { height: 100%; overflow-y: auto; display: block; padding-bottom: 50px; }
-        .daily-chart-wrapper { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow-x: auto; margin-bottom: 40px; flex-shrink: 0; }
-        .daily-chart-area { display: flex; align-items: flex-end; height: 280px; min-height: 280px; gap: 4px; border-bottom: 2px solid #444; position: relative; margin-top: 40px; width: max-content; padding-right: 20px; }
+        .sub-pre { top: 18px; } .sub-post { top: 66px; }
+        .daily-charts-container { height: 100%; overflow-y: auto; padding-bottom: 50px; }
+        .daily-chart-wrapper { background: white; padding: 15px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .daily-chart-area { display: flex; align-items: flex-end; height: 250px; gap: 4px; border-bottom: 2px solid #444; position: relative; margin-top: 30px; width: max-content; padding-right: 20px; }
         .day-column { flex: 1; min-width: 55px; display: flex; flex-direction: column-reverse; position: relative; height: 100%; }
         .day-label { position: absolute; top: 100%; left: 0; width: 100%; text-align: center; font-size: 9px; padding-top: 5px; line-height: 1.2; }
-        .order-segment { width: 100%; border: 1px solid rgba(255,255,255,0.3); border-radius: 2px; display: flex; align-items: center; justify-content: center; overflow: hidden; color: white; font-size: 8px; font-weight: bold; cursor: help; }
-        .today-bg { background: rgba(255,71,87,0.05); }
-        .weekend-label { color: #999; }
         .holiday-bg { background: repeating-linear-gradient(45deg, #ffeeee, #ffebee 10px, #ffffff 10px, #ffffff 20px); border-bottom: 2px solid #e53935 !important; }
-        .holiday-text { color: #c62828 !important; font-weight: bold; }
+        .order-segment { width: 100%; border: 1px solid rgba(255,255,255,0.3); border-radius: 2px; display: flex; align-items: center; justify-content: center; overflow: hidden; color: white; font-size: 8px; font-weight: bold; }
     </style>
 </head>
 <body>
 <div class="demo-bg">DEMO KESKKOND</div>
-
 <div class="top-bar">
-    <div>⚠️ <strong>TOCI TOOTMISPLAAN (DEMO)</strong></div>
+    <div>⚠️ <strong>TOCI DEMO V96.0</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
-        <div id="syncStatus" style="background:var(--warning); color:black; padding:4px 10px; border-radius:4px; font-weight:bold;">Ühendan DEMOga...</div>
+        <div id="syncStatus" style="background:var(--warning); color:black; padding:4px 10px; border-radius:4px; font-weight:bold;">Ühendan...</div>
         <button id="modeToggleBtn" onclick="toggleMode()" style="background:#34495e; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">🔒 VAATAJA</button>
     </div>
 </div>
 <div class="tabs">
-    <button class="tab-btn active" onclick="openTab(event, 'main_view', 'active')">DEMO SISESTUS</button>
+    <button class="tab-btn active" onclick="openTab(event, 'main_view', 'active')">SISESTUS</button>
     <button class="tab-btn" onclick="openTab(event, 'main_view', 'archive')" style="color:#bdc3c7;">ARHIIV</button>
     <button class="tab-btn" onclick="openTab(event, 'dashboard_view', null)">📊 KOKKUVÕTE</button>
-    
-    <button class="tab-btn" onclick="openTab(event, 'gantt_in', null)" style="border-bottom: 3px solid #0097e6;">INS</button>
+    <button class="tab-btn" onclick="openTab(event, 'gantt_in', null)">INS</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_tr', null)">TREI</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_mk', null)">MUST KEEV</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_rk', null)">RV KEEV</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_ml', null)">MUST LUKK</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_rl', null)">RV LUKK</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_ko', null)">KOOSTE</button>
-    
-    <button class="tab-btn" onclick="openTab(event, 'paeva_koormus_graafik', null)" style="background:var(--accent)">📊 P. GRAAFIK</button>
-    <button class="tab-btn" onclick="openTab(event, 'paeva_koormus_tabel', null)" style="background:#2980b9">📅 P. TABEL</button>
-    
+    <button class="tab-btn" onclick="openTab(event, 'paeva_koormus_graafik', null)" style="background:var(--accent)">📊 GRAAFIK</button>
+    <button class="tab-btn" onclick="openTab(event, 'paeva_koormus_tabel', null)" style="background:#2980b9">📅 TABEL</button>
     <button class="tab-btn" onclick="openTab(event, 'voimekus_tab', null)" style="color:var(--warning)">⚙️ VÕIMEKUS</button>
-    <button class="tab-btn" style="background:var(--success)" onclick="fetchData()">🔄 VÄRSKENDA DEMO</button>
+    <button class="tab-btn" style="background:var(--success)" onclick="fetchData()">🔄 VÄRSKENDA</button>
 </div>
 
 <div id="dashboard_view" class="content"><div class="dashboard-grid" id="dashboard-container"></div></div>
 
 <div id="main_view" class="content active">
     <div style="margin-bottom:15px; display:flex; gap:10px; align-items:center;">
-        <button id="addOrderBtn" onclick="addNewRow()" style="padding:10px 20px; background:var(--success); color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; display:none;">+ LISA TEST TELLIMUS</button>
+        <button id="addOrderBtn" onclick="addNewRow()" style="padding:10px 20px; background:var(--success); color:white; border:none; border-radius:4px; font-weight:bold; display:none;">+ LISA TEST TELLIMUS</button>
         <input type="text" id="mtFilter" placeholder="Otsi demotabelist..." oninput="renderTable()" style="padding:8px; border-radius:4px; border:1px solid #ccc; width:200px;">
-        <div id="view-title" style="font-size:16px; font-weight:bold; color:var(--primary); margin-left:15px;">Aktiivsed testtööd</div>
     </div>
     <div class="table-container">
         <table class="data-table">
@@ -147,15 +118,15 @@
 <div id="paeva_koormus_tabel" class="content"><div id="daily-table-container" style="height:100%;"></div></div>
 
 <div id="voimekus_tab" class="content flex-view">
-    <div id="holiday-manager" style="margin-bottom: 20px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #ddd; flex-shrink: 0;">
-        <h3 style="margin-top:0; color:#c62828;">🏖️ Puhkused (DEMO)</h3>
-        <div class="admin-only" style="display:none; margin-bottom: 15px; gap: 10px; align-items: center;">
-            <input type="text" id="hol-name" placeholder="Püha nimi" style="padding:6px; border-radius:4px; border:1px solid #ccc;">
+    <div id="holiday-manager" style="margin-bottom: 20px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #ddd;">
+        <h3 style="margin-top:0; color:#c62828;">🏖️ Puhkused ja Riigipühad</h3>
+        <div class="admin-only" style="display:none; gap: 10px;">
+            <input type="text" id="hol-name" placeholder="Nimi" style="padding:6px; border-radius:4px; border:1px solid #ccc;">
             <input type="date" id="hol-start" style="padding:6px; border-radius:4px; border:1px solid #ccc;">
             <input type="date" id="hol-end" style="padding:6px; border-radius:4px; border:1px solid #ccc;">
-            <button onclick="addHoliday()" style="padding:7px 15px; background:var(--danger); color:white; border:none; border-radius:4px; cursor:pointer;">+ LISA</button>
+            <button onclick="addHoliday()" style="background:var(--danger); color:white; border:none; padding:7px 15px; border-radius:4px; cursor:pointer;">LISA</button>
         </div>
-        <div id="holidays-list" style="display:flex; flex-direction:column; gap:5px;"></div>
+        <div id="holidays-list" style="margin-top:10px; display:flex; flex-direction:column; gap:5px;"></div>
     </div>
     <div class="table-container" style="flex-grow: 1; overflow: auto;">
         <table class="data-table" id="cap-table" style="min-width: max-content; border-collapse: separate; border-spacing: 0;"></table>
@@ -164,11 +135,10 @@
 </div>
 
 <script>
-    // --- ASENDA SEE LINK OMA KOPIERITUD TEST-TABELI SCRIPTIGA! ---
     const API_URL = "https://script.google.com/macros/s/AKfycbwR7n2S7_jJYQive0wK7x8vPjjHG9cFWEc5mkbkDZviMbJqea-a4kCYF9ExLpY8kaO2/exec"; 
     
     let isAdmin = false; const ADMIN_PIN = "1234";
-    let saveTimeout; let isSaving = false; let hasPendingChanges = false;
+    let saveTimeout, isSaving = false, hasPendingChanges = false;
     const CONFIG = { 
         ins: {l:'Inseneeria', c:100, color:'#0097e6', order:0, p:'prog_ins'}, 
         trei: {l:'Treial', c:40, color:'#9b59b6', order:1, p:'prog_tr'},
@@ -179,17 +149,17 @@
         kooste: {l:'Kooste', c:80, color:'#27ae60', order:3, p:'prog_ko'} 
     };
     const START_VIEW = new Date("2026-01-01"), TODAY = new Date();
-    let orders = [], customCap = {holidays: []};
-    let currentMainTabFilter = 'active';
+    let orders = [], customCap = {holidays: []}, currentMainTabFilter = 'active';
 
     const f = (v) => parseFloat(v) || 0;
-    function getDayIndexUTC(target, base) { return Math.round((new Date(target).setHours(0,0,0,0) - new Date(base).setHours(0,0,0,0)) / 86400000); }
-    function safeISO(d) { return new Date(d).toISOString().split('T')[0]; }
+    function safeISO(d) { try { return new Date(d).toISOString().split('T')[0]; } catch(e) { return "2026-01-01"; } }
     function getWeek(d) { d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7)); return Math.ceil((((d - new Date(Date.UTC(d.getUTCFullYear(),0,1))) / 86400000) + 1)/7); }
-    
+    function getDayIndexUTC(target, base) { return Math.round((new Date(target).setHours(0,0,0,0) - new Date(base).setHours(0,0,0,0)) / 86400000); }
+
     function isHoliday(dateObj) {
+        if (!customCap.holidays) return false;
         let dTime = new Date(dateObj).setHours(0,0,0,0);
-        for(let h of (customCap.holidays || [])) {
+        for(let h of customCap.holidays) {
             if (dTime >= new Date(h.s).setHours(0,0,0,0) && dTime <= new Date(h.e).setHours(23,59,59)) return true;
         }
         return false;
@@ -225,9 +195,6 @@
         document.getElementById('saveCapBtn').style.display = isAdmin ? "block" : "none";
         document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? "flex" : "none");
         renderTable();
-        const activeTab = document.querySelector('.content.active').id;
-        if(activeTab.startsWith('gantt_')) renderGantt('out-'+activeTab.split('_')[1], activeTab.split('_')[1]==='in'?'ins':activeTab.split('_')[1]==='tr'?'trei':activeTab.split('_')[1]==='mk'?'must_k':activeTab.split('_')[1]==='rk'?'rv_k':activeTab.split('_')[1]==='ml'?'must_l':activeTab.split('_')[1]==='rl'?'rv_l':'kooste');
-        if(activeTab === 'voimekus_tab') { renderHolidays(); renderCapacity(); }
     }
 
     async function fetchData() {
@@ -243,47 +210,45 @@
         } catch(e) { updateSyncStatus("❌ Viga", "danger"); }
     }
 
-    function getPhaseDates(o, kKey, startView) {
+    function getPhaseDates(o, startView) {
         let sIdx = getDayIndexUTC(o.start, startView), eIdx = getDayIndexUTC(o.end, startView);
         if (eIdx < sIdx) eIdx = sIdx;
-        let ah1D = f(o.sub1), ah2D = f(o.sub2), insH = f(o.ins), lukkH = f(o.trei)+f(o.must_l)+f(o.rv_l), keevH = f(o.must_k)+f(o.rv_k), koosteH = f(o.kooste), totalH = insH+lukkH+keevH+koosteH;
-        let availDays = (eIdx-sIdx+1)-ah1D-ah2D; if(availDays<1) availDays=1;
-        let insDays=0, lukkDays=0, keevDays=0, koosteDays=0;
-        if(totalH>0){ insDays=Math.round((insH/totalH)*availDays); lukkDays=Math.round((lukkH/totalH)*availDays); keevDays=Math.round((keevH/totalH)*availDays); koosteDays=Math.round((koosteH/totalH)*availDays); }
-        let clamp = (v) => Math.max(sIdx, Math.min(eIdx, v));
-        let b = {
-            ins: {s:sIdx, e:sIdx+Math.max(0,insDays-1)}, ah1: {s:sIdx+insDays, e:sIdx+insDays+ah1D-1},
-            lukk: {s:sIdx+insDays+ah1D, e:sIdx+insDays+ah1D+Math.max(0,lukkDays-1)},
-            keev: {s:sIdx+insDays+ah1D+lukkDays, e:sIdx+insDays+ah1D+lukkDays+Math.max(0,keevDays-1)},
-            ah2: {s:eIdx-koosteDays-ah2D+1, e:eIdx-koosteDays}, kooste: {s:eIdx-Math.max(0,koosteDays-1), e:eIdx}
+        let insH = f(o.ins), lukkH = f(o.trei)+f(o.must_l)+f(o.rv_l), keevH = f(o.must_k)+f(o.rv_k), koosteH = f(o.kooste), totalH = insH+lukkH+keevH+koosteH;
+        let availDays = (eIdx-sIdx+1) - f(o.sub1) - f(o.sub2); if(availDays < 1) availDays = 1;
+        let iD = 0, lD = 0, kD = 0, koD = 0;
+        if(totalH > 0) {
+            iD = Math.round((insH/totalH)*availDays); lD = Math.round((lukkH/totalH)*availDays);
+            kD = Math.round((keevH/totalH)*availDays); koD = Math.round((koosteH/totalH)*availDays);
+        }
+        return {
+            ins: {s:sIdx, e:sIdx+Math.max(0,iD-1)}, ah1: {s:sIdx+iD, e:sIdx+iD+f(o.sub1)-1},
+            lukk: {s:sIdx+iD+f(o.sub1), e:sIdx+iD+f(o.sub1)+Math.max(0,lD-1)},
+            keev: {s:sIdx+iD+f(o.sub1)+lD, e:sIdx+iD+f(o.sub1)+lD+Math.max(0,kD-1)},
+            ah2: {s:eIdx-koD-f(o.sub2)+1, e:eIdx-koD}, kooste: {s:eIdx-Math.max(0,koD-1), e:eIdx}
         };
-        let res = b[kKey === 'trei' || kKey === 'must_l' || kKey === 'rv_l' ? 'lukk' : kKey === 'must_k' || kKey === 'rv_k' ? 'keev' : kKey];
-        if(!res) res = b.ins;
-        return {s:clamp(res.s), e:clamp(res.e), sDate: new Date(startView.getTime() + clamp(res.s)*86400000), eDate: new Date(startView.getTime() + clamp(res.e)*86400000), bnds: b};
     }
 
     function renderTable() {
         const b = document.getElementById('table-body'); b.innerHTML = '';
         orders.forEach((o, i) => {
             if ((currentMainTabFilter==='active' && o.status==='Valmis') || (currentMainTabFilter==='archive' && o.status!=='Valmis')) return;
-            const sCl = o.status==='Valmis'?'status-valmis':o.status==='Töös'?'status-toos':'status-ootel';
-            b.innerHTML += `<tr class="${sCl}">
+            b.innerHTML += `<tr class="${o.status==='Töös'?'status-toos':''}">
                 <td><input class="data-in" value="${o.mt}" onchange="u(${i},'mt',this.value)" ${isAdmin?'':'disabled'}></td>
                 <td><input class="data-in" value="${o.client}" onchange="u(${i},'client',this.value)" ${isAdmin?'':'disabled'}></td>
-                <td><input class="data-in" value="${o.kirjeldus}" onchange="u(${i},'kirjeldus',this.value)" ${isAdmin?'':'disabled'}></td>
+                <td><input class="data-in" value="${o.kirjeldus||''}" onchange="u(${i},'kirjeldus',this.value)" ${isAdmin?'':'disabled'}></td>
                 <td><input type="date" class="data-in" value="${safeISO(o.start)}" onchange="u(${i},'start',this.value)" ${isAdmin?'':'disabled'}></td>
                 <td><input type="date" class="data-in" value="${safeISO(o.end)}" onchange="u(${i},'end',this.value)" ${isAdmin?'':'disabled'}></td>
                 <td><input class="num-in" value="${o.sub1}" onchange="u(${i},'sub1',this.value)" ${isAdmin?'':'disabled'}></td>
-                <td><input class="num-in" value="${o.sub2}" onchange="u(${i},'sub2',this.value)" ${isAdmin?'':'disabled'}></td>
-                <td><input class="num-in" value="${o.ins}" onchange="u(${i},'ins',this.value)" ${isAdmin?'':'disabled'}></td>
-                <td><input class="num-in" value="${o.trei}" onchange="u(${i},'trei',this.value)" ${isAdmin?'':'disabled'}></td>
-                <td><input class="num-in" value="${o.must_k}" onchange="u(${i},'must_k',this.value)" ${isAdmin?'':'disabled'}></td>
-                <td><input class="num-in" value="${o.rv_k}" onchange="u(${i},'rv_k',this.value)" ${isAdmin?'':'disabled'}></td>
-                <td><input class="num-in" value="${o.must_l}" onchange="u(${i},'must_l',this.value)" ${isAdmin?'':'disabled'}></td>
-                <td><input class="num-in" value="${o.rv_l}" onchange="u(${i},'rv_l',this.value)" ${isAdmin?'':'disabled'}></td>
-                <td><input class="num-in" value="${o.kooste}" onchange="u(${i},'kooste',this.value)" ${isAdmin?'':'disabled'}></td>
+                <td class="divider-right"><input class="num-in" value="${o.sub2}" onchange="u(${i},'sub2',this.value)" ${isAdmin?'':'disabled'}></td>
+                <td class="divider-right"><div class="cell-flex"><input class="num-in" value="${o.ins}" onchange="u(${i},'ins',this.value)" ${isAdmin?'':'disabled'}><input class="prog-in" value="${o.prog_ins}" onchange="u(${i},'prog_ins',this.value)" ${isAdmin?'':'disabled'}></div></td>
+                <td class="divider-right"><div class="cell-flex"><input class="num-in" value="${o.trei}" onchange="u(${i},'trei',this.value)" ${isAdmin?'':'disabled'}><input class="prog-in" value="${o.prog_tr}" onchange="u(${i},'prog_tr',this.value)" ${isAdmin?'':'disabled'}></div></td>
+                <td class="divider-right"><div class="cell-flex"><input class="num-in" value="${o.must_k}" onchange="u(${i},'must_k',this.value)" ${isAdmin?'':'disabled'}><input class="prog-in" value="${o.prog_mk}" onchange="u(${i},'prog_mk',this.value)" ${isAdmin?'':'disabled'}></div></td>
+                <td class="divider-right"><div class="cell-flex"><input class="num-in" value="${o.rv_k}" onchange="u(${i},'rv_k',this.value)" ${isAdmin?'':'disabled'}><input class="prog-in" value="${o.prog_rk}" onchange="u(${i},'prog_rk',this.value)" ${isAdmin?'':'disabled'}></div></td>
+                <td class="divider-right"><div class="cell-flex"><input class="num-in" value="${o.must_l}" onchange="u(${i},'must_l',this.value)" ${isAdmin?'':'disabled'}><input class="prog-in" value="${o.prog_ml}" onchange="u(${i},'prog_ml',this.value)" ${isAdmin?'':'disabled'}></div></td>
+                <td class="divider-right"><div class="cell-flex"><input class="num-in" value="${o.rv_l}" onchange="u(${i},'rv_l',this.value)" ${isAdmin?'':'disabled'}><input class="prog-in" value="${o.prog_rl}" onchange="u(${i},'prog_rl',this.value)" ${isAdmin?'':'disabled'}></div></td>
+                <td class="divider-right"><div class="cell-flex"><input class="num-in" value="${o.kooste}" onchange="u(${i},'kooste',this.value)" ${isAdmin?'':'disabled'}><input class="prog-in" value="${o.prog_ko}" onchange="u(${i},'prog_ko',this.value)" ${isAdmin?'':'disabled'}></div></td>
                 <td style="text-align:center;">${o.progress}%</td>
-                <td><select class="status-select" onchange="u(${i},'status',this.value);renderTable()" ${isAdmin?'':'disabled'}><option ${o.status==='Ootel'?'selected':''}>Ootel</option><option ${o.status==='Töös'?'selected':''}>Töös</option><option ${o.status==='Valmis'?'selected':''}>Valmis</option></select></td>
+                <td><select onchange="u(${i},'status',this.value);renderTable()" ${isAdmin?'':'disabled'}><option ${o.status==='Ootel'?'selected':''}>Ootel</option><option ${o.status==='Töös'?'selected':''}>Töös</option><option ${o.status==='Valmis'?'selected':''}>Valmis</option></select></td>
                 <td class="admin-only" style="${isAdmin?'':'display:none'}"><button onclick="del(${i})">🗑️</button></td>
             </tr>`;
         });
@@ -297,16 +262,17 @@
             return `<div class="h-col"><div class="h-week">${d%7===0?'W'+getWeek(cur):''}</div><div class="h-day" style="${d===tIdx?'color:red':''}">${cur.getDate()}.${cur.getMonth()+1}</div></div>`
         }).join('')}</div>`;
         let rows = orders.filter(o => o[key]>0 && o.status==='Töös').map(o => {
-            let p = getPhaseDates(o, key, START_VIEW);
-            let ah1Dur = p.bnds.ah1.e - p.bnds.ah1.s + 1;
-            let ah2Dur = p.bnds.ah2.e - p.bnds.ah2.s + 1;
+            let p = getPhaseDates(o, START_VIEW);
+            let myP = p[key==='trei'||key==='must_l'||key==='rv_l'?'lukk':key==='must_k'||key==='rv_k'?'keev':key];
+            let ah1Dur = p.ah1.e - p.ah1.s + 1;
+            let ah2Dur = p.ah2.e - p.ah2.s + 1;
             return `<div class="gantt-row">
                 <div class="gantt-info"><b>${o.mt}</b><small>${o.client}</small></div>
                 <div class="gantt-bars-area" style="width:${365*45}px">
                     <div class="today-line" style="left:${tIdx*45}px"></div>
-                    ${f(o.sub1)>0?`<div class="sub-bar" style="left:${p.bnds.ah1.s*45}px; width:${ah1Dur*45-2}px">AH1</div>`:''}
-                    <div class="task-bar" style="left:${p.s*45}px; width:${(p.e-p.s+1)*45-5}px; background:${CONFIG[key].color}">${o.mt}</div>
-                    ${f(o.sub2)>0?`<div class="sub-bar" style="left:${p.bnds.ah2.s*45}px; width:${ah2Dur*45-2}px">AH2</div>`:''}
+                    ${f(o.sub1)>0?`<div class="sub-bar" style="left:${p.ah1.s*45}px; width:${ah1Dur*45-2}px">AH1</div>`:''}
+                    <div class="task-bar" style="left:${myP.s*45}px; width:${(myP.e-myP.s+1)*45-5}px; background:${CONFIG[key].color}">${o.mt}</div>
+                    ${f(o.sub2)>0?`<div class="sub-bar" style="left:${p.ah2.s*45}px; width:${ah2Dur*45-2}px">AH2</div>`:''}
                 </div>
             </div>`;
         }).join('');
@@ -351,17 +317,18 @@
     }
     
     function u(i, k, v) { orders[i][k] = v; orders[i].progress = calcOverallProgress(orders[i]); save(); }
-    function del(i) { if(confirm("Kustuta DEMO rida?")) { orders.splice(i,1); save(); renderTable(); } }
-    function addNewRow() { orders.unshift({mt:"UUS", start:safeISO(new Date()), end:safeISO(new Date()), status:'Ootel'}); renderTable(); save(); }
+    function del(i) { if(confirm("Kustuta rida?")) { orders.splice(i,1); save(); renderTable(); } }
+    function addNewRow() { orders.unshift({mt:"UUS", client:"", start:safeISO(new Date()), end:safeISO(new Date()), status:'Ootel'}); renderTable(); save(); }
 
     function openTab(e, viewId, filterType) {
         document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         e.currentTarget.classList.add('active'); document.getElementById(viewId).classList.add('active');
         if (viewId === 'main_view') { currentMainTabFilter = filterType; renderTable(); }
-        applyUIMode();
+        if (viewId.startsWith('gantt_')) renderGantt('out-'+viewId.split('_')[1], viewId.split('_')[1]==='in'?'ins':viewId.split('_')[1]==='tr'?'trei':viewId.split('_')[1]==='mk'?'must_k':viewId.split('_')[1]==='rk'?'rv_k':viewId.split('_')[1]==='ml'?'must_l':viewId.split('_')[1]==='rl'?'rv_l':'kooste');
+        if (viewId === 'voimekus_tab') { renderHolidays(); renderCapacity(); }
     }
-    
+
     fetchData();
 </script>
 </body>
