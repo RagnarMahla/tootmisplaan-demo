@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>DEMO - TOCI Tootmisplaan V100</title>
+    <title>DEMO - TOCI Tootmisplaan V101</title>
     <style>
         :root { --primary: #c0392b; --accent: #e67e22; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -47,7 +47,6 @@
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 10px; overflow-y: auto; height: 100%; }
         .dash-card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 5px solid var(--accent); display: flex; flex-direction: column; justify-content: center; }
 
-        /* RAPORTI MODAALAKEN */
         .modal { display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(3px); }
         .modal-content { background-color: #fff; margin: 10vh auto; padding: 25px; border-radius: 12px; width: 400px; max-width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .m-close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; margin-top:-10px; }
@@ -56,7 +55,6 @@
         .raport-table th { background: #f4f7f6; padding: 10px; text-align: left; border-bottom: 2px solid #ddd; }
         .raport-table td { padding: 10px; border-bottom: 1px solid #eee; }
 
-        /* GANTT */
         .gantt-outer { height: 100%; display: flex; flex-direction: column; background: white; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; }
         .gantt-header-wrapper { display: flex; background: #f8f9fa; border-bottom: 2px solid #ccc; height: 75px; }
         .header-corner { width: 320px; min-width: 320px; background: #eee; border-right: 3px solid #bbb; display: flex; align-items: center; padding-left: 15px; font-weight: bold; position: sticky; left: 0; z-index: 2500; }
@@ -96,11 +94,13 @@
 </div>
 
 <div class="top-bar">
-    <div>⚠️ <strong>TOCI DEMO V100.0 (Otsing & Excel Eksport)</strong></div>
+    <div>⚠️ <strong>TOCI DEMO V101.0 (Tark Eksport)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         
-        <div id="syncStatus" style="background:var(--warning); color:black; padding:4px 10px; border-radius:4px; font-weight:bold; transition: 0.3s;">Ühendan DEMOga...</div>
+        <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;" title="Ekspordib selle vaate, kus sa parajasti oled">📥 EKSPORDI VAADE</button>
+
+        <div id="syncStatus" style="background:var(--warning); color:black; padding:4px 10px; border-radius:4px; font-weight:bold; transition: 0.3s;">Ühendan...</div>
         <button id="modeToggleBtn" onclick="toggleMode()" style="background:#34495e; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">🔒 VAATAJA</button>
     </div>
 </div>
@@ -127,8 +127,6 @@
 <div id="main_view" class="content active">
     <div style="margin-bottom:15px; display:flex; gap:10px; align-items:center;">
         <button id="addOrderBtn" onclick="addNewRow()" style="padding:8px 15px; background:var(--success); color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; display:none;">+ LISA TEST TELLIMUS</button>
-        <button onclick="exportExcel()" style="padding:8px 15px; background:#16a085; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">📥 EKSPORDI (Excel/CSV)</button>
-        
         <select id="monthFilter" onchange="applyUIMode()" style="padding:8px; border-radius:4px; border:1px solid #ccc;">
             <option value="">Kõik kuud</option>
             <option value="-01-">Jaanuar</option><option value="-02-">Veebruar</option><option value="-03-">Märts</option><option value="-04-">Aprill</option><option value="-05-">Mai</option><option value="-06-">Juuni</option><option value="-07-">Juuli</option><option value="-08-">August</option><option value="-09-">September</option><option value="-10-">Oktoober</option><option value="-11-">November</option><option value="-12-">Detsember</option>
@@ -269,31 +267,75 @@
         return Math.round((totalActual / totalPlanned) * 100);
     }
 
-    // UUS! Exceli / CSV eksport funktsioon (Filtreeritud vaate põhjal)
-    function exportExcel() {
+    // TARK EKSPORT - Arvutab aktiivse vahekaardi põhjal, mida eksportida!
+    function smartExport() {
+        const activeTab = document.querySelector('.content.active').id;
         const gV = document.getElementById('globalFilter').value.toLowerCase();
-        const mV = document.getElementById('monthFilter').value;
         
-        let csv = "MT;Klient;Kirjeldus;Algus;Lõpp;AH1(p);AH2(p);INS Plaan;INS Tehtud;TR Plaan;TR Tehtud;MK Plaan;MK Tehtud;RK Plaan;RK Tehtud;ML Plaan;ML Tehtud;RL Plaan;RL Tehtud;KO Plaan;KO Tehtud;Üld %;Staatus\n";
+        let filteredOrders = orders.filter(o => o.mt !== 'SYS_SETTINGS');
         
-        orders.forEach(o => {
-            if (o.mt === 'SYS_SETTINGS') return;
-            if (currentMainTabFilter === 'active' && o.status === 'Valmis') return;
-            if (currentMainTabFilter === 'archive' && o.status !== 'Valmis') return;
-            
-            let matchText = (!gV || (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
-            if ((!mV || safeISO(o.start).includes(mV)) && matchText) {
-                // Eemaldame jutumärgid/reavahetused, mis võiksid CSV katki teha
-                const clean = str => `"${String(str || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`;
+        if (activeTab === 'main_view') {
+            const mV = document.getElementById('monthFilter').value;
+            filteredOrders = filteredOrders.filter(o => {
+                if (currentMainTabFilter === 'active' && o.status === 'Valmis') return false;
+                if (currentMainTabFilter === 'archive' && o.status !== 'Valmis') return false;
+                if (mV && !safeISO(o.start).includes(mV)) return false;
+                return true;
+            });
+        } else if (activeTab.startsWith('gantt_')) {
+            filteredOrders = filteredOrders.filter(o => o.status === 'Töös');
+        } else {
+            alert("Seda vaadet ei saa tabelina eksportida. Vali Sisestus või mõni Gantti graafik!");
+            return;
+        }
+
+        if (gV) {
+            filteredOrders = filteredOrders.filter(o => (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
+        }
+
+        let csv = "\uFEFF"; 
+        const clean = str => `"${String(str || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`;
+
+        if (activeTab === 'main_view') {
+            csv += "MT;Klient;Kirjeldus;Algus;Lõpp;AH1(p);AH2(p);INS Plaan;INS Tehtud;TR Plaan;TR Tehtud;MK Plaan;MK Tehtud;RK Plaan;RK Tehtud;ML Plaan;ML Tehtud;RL Plaan;RL Tehtud;KO Plaan;KO Tehtud;Üld %;Staatus\n";
+            filteredOrders.forEach(o => {
                 csv += `${clean(o.mt)};${clean(o.client)};${clean(o.kirjeldus)};${safeISO(o.start)};${safeISO(o.end)};${o.sub1};${o.sub2};${o.ins};${o.prog_ins};${o.trei};${o.prog_tr};${o.must_k};${o.prog_mk};${o.rv_k};${o.prog_rk};${o.must_l};${o.prog_ml};${o.rv_l};${o.prog_rl};${o.kooste};${o.prog_ko};${o.progress}%;${o.status}\n`;
-            }
-        });
-        
-        // Lisame BOM-i, et Excel avaks eesti tähed (õäöü) õigesti
-        let blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+            });
+        } else if (activeTab === 'gantt_all') {
+            csv += "MT;Klient;INS Algus;INS Lõpp;AH1 Algus;AH1 Lõpp;LUKK/TREI Algus;LUKK/TREI Lõpp;KEEV Algus;KEEV Lõpp;AH2 Algus;AH2 Lõpp;KOOSTE Algus;KOOSTE Lõpp\n";
+            filteredOrders.forEach(o => {
+                let p = getPhaseDates(o, START_VIEW);
+                const fd = (bnd) => bnd.sDate ? safeISO(bnd.sDate) : '';
+                csv += `${clean(o.mt)};${clean(o.client)};${fd(p.ins)};${safeISO(p.ins.eDate)};${fd(p.ah1)};${safeISO(p.ah1.eDate)};${fd(p.lukk)};${safeISO(p.lukk.eDate)};${fd(p.keev)};${safeISO(p.keev.eDate)};${fd(p.ah2)};${safeISO(p.ah2.eDate)};${fd(p.kooste)};${safeISO(p.kooste.eDate)}\n`;
+            });
+        } else if (activeTab.startsWith('gantt_')) {
+            let key = activeTab.split('_')[1];
+            let realKey = key === 'in' ? 'ins' : key === 'tr' ? 'trei' : key === 'mk' ? 'must_k' : key === 'rk' ? 'rv_k' : key === 'ml' ? 'must_l' : key === 'rl' ? 'rv_l' : 'kooste';
+            
+            csv += `MT;Klient;${CONFIG[realKey].l} Algus;${CONFIG[realKey].l} Lõpp;Kestvus (tööpäevi);Plaanitud (h);Tehtud (h);Eelarve Täituvus %\n`;
+            
+            filteredOrders = filteredOrders.filter(o => f(o[realKey]) > 0);
+            filteredOrders.forEach(o => {
+                let p = getPhaseDates(o, START_VIEW);
+                let myBnd;
+                if (CONFIG[realKey].order === 0) myBnd = p.ins;
+                else if (CONFIG[realKey].order === 1) myBnd = p.lukk;
+                else if (CONFIG[realKey].order === 2) myBnd = p.keev;
+                else if (CONFIG[realKey].order === 3) myBnd = p.kooste;
+                
+                let wDays = getWorkingDays(myBnd.sDate, myBnd.eDate);
+                let pH = f(o[realKey]), aH = f(o[CONFIG[realKey].p]);
+                let prog = pH > 0 ? Math.round((aH/pH)*100) : 0;
+
+                csv += `${clean(o.mt)};${clean(o.client)};${safeISO(myBnd.sDate)};${safeISO(myBnd.eDate)};${wDays};${pH};${aH};${prog}%\n`;
+            });
+        }
+
+        let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         let link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = `TOCI_Plaan_${new Date().toISOString().split('T')[0]}.csv`;
+        let titleName = activeTab === 'main_view' ? 'KoguPlaan' : activeTab.toUpperCase();
+        link.download = `TOCI_${titleName}_${new Date().toISOString().split('T')[0]}.csv`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
