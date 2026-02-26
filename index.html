@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>DEMO - TOCI Tootmisplaan</title>
+    <title>DEMO - TOCI Tootmisplaan V100</title>
     <style>
         :root { --primary: #c0392b; --accent: #e67e22; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -96,8 +96,10 @@
 </div>
 
 <div class="top-bar">
-    <div>⚠️ <strong>TOCI DEMO V99.0 (ÜLD GANTT & RAPORTID)</strong></div>
+    <div>⚠️ <strong>TOCI DEMO V100.0 (Otsing & Excel Eksport)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
+        <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
+        
         <div id="syncStatus" style="background:var(--warning); color:black; padding:4px 10px; border-radius:4px; font-weight:bold; transition: 0.3s;">Ühendan DEMOga...</div>
         <button id="modeToggleBtn" onclick="toggleMode()" style="background:#34495e; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">🔒 VAATAJA</button>
     </div>
@@ -106,9 +108,7 @@
     <button class="tab-btn active" onclick="openTab(event, 'main_view', 'active')">DEMO SISESTUS</button>
     <button class="tab-btn" onclick="openTab(event, 'main_view', 'archive')" style="color:#bdc3c7;">ARHIIV</button>
     <button class="tab-btn" onclick="openTab(event, 'dashboard_view', null)">📊 KOKKUVÕTE</button>
-    
     <button class="tab-btn" onclick="openTab(event, 'gantt_all', null)" style="border-bottom: 3px solid #8e44ad;">ÜLD GANTT</button>
-    
     <button class="tab-btn" onclick="openTab(event, 'gantt_in', null)" style="border-bottom: 3px solid #0097e6;">INS</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_tr', null)">TREI</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_mk', null)">MUST KEEV</button>
@@ -116,7 +116,6 @@
     <button class="tab-btn" onclick="openTab(event, 'gantt_ml', null)">MUST LUKK</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_rl', null)">RV LUKK</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_ko', null)">KOOSTE</button>
-    
     <button class="tab-btn" onclick="openTab(event, 'paeva_koormus_graafik', null)" style="background:var(--accent)">📊 P. GRAAFIK</button>
     <button class="tab-btn" onclick="openTab(event, 'paeva_koormus_tabel', null)" style="background:#2980b9">📅 P. TABEL</button>
     <button class="tab-btn" onclick="openTab(event, 'voimekus_tab', null)" style="color:var(--warning)">⚙️ VÕIMEKUS</button>
@@ -127,9 +126,10 @@
 
 <div id="main_view" class="content active">
     <div style="margin-bottom:15px; display:flex; gap:10px; align-items:center;">
-        <button id="addOrderBtn" onclick="addNewRow()" style="padding:10px 20px; background:var(--success); color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; display:none;">+ LISA TEST TELLIMUS</button>
-        <input type="text" id="mtFilter" placeholder="Otsi demotabelist..." oninput="renderTable()" style="padding:8px; border-radius:4px; border:1px solid #ccc; width:200px;">
-        <select id="monthFilter" onchange="renderTable()" style="padding:8px; border-radius:4px; border:1px solid #ccc;">
+        <button id="addOrderBtn" onclick="addNewRow()" style="padding:8px 15px; background:var(--success); color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; display:none;">+ LISA TEST TELLIMUS</button>
+        <button onclick="exportExcel()" style="padding:8px 15px; background:#16a085; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">📥 EKSPORDI (Excel/CSV)</button>
+        
+        <select id="monthFilter" onchange="applyUIMode()" style="padding:8px; border-radius:4px; border:1px solid #ccc;">
             <option value="">Kõik kuud</option>
             <option value="-01-">Jaanuar</option><option value="-02-">Veebruar</option><option value="-03-">Märts</option><option value="-04-">Aprill</option><option value="-05-">Mai</option><option value="-06-">Juuni</option><option value="-07-">Juuli</option><option value="-08-">August</option><option value="-09-">September</option><option value="-10-">Oktoober</option><option value="-11-">November</option><option value="-12-">Detsember</option>
         </select>
@@ -267,6 +267,36 @@
         if (totalPlanned === 0) return 0;
         let totalActual = f(o.prog_ins) + f(o.prog_tr) + f(o.prog_mk) + f(o.prog_rk) + f(o.prog_ml) + f(o.prog_rl) + f(o.prog_ko);
         return Math.round((totalActual / totalPlanned) * 100);
+    }
+
+    // UUS! Exceli / CSV eksport funktsioon (Filtreeritud vaate põhjal)
+    function exportExcel() {
+        const gV = document.getElementById('globalFilter').value.toLowerCase();
+        const mV = document.getElementById('monthFilter').value;
+        
+        let csv = "MT;Klient;Kirjeldus;Algus;Lõpp;AH1(p);AH2(p);INS Plaan;INS Tehtud;TR Plaan;TR Tehtud;MK Plaan;MK Tehtud;RK Plaan;RK Tehtud;ML Plaan;ML Tehtud;RL Plaan;RL Tehtud;KO Plaan;KO Tehtud;Üld %;Staatus\n";
+        
+        orders.forEach(o => {
+            if (o.mt === 'SYS_SETTINGS') return;
+            if (currentMainTabFilter === 'active' && o.status === 'Valmis') return;
+            if (currentMainTabFilter === 'archive' && o.status !== 'Valmis') return;
+            
+            let matchText = (!gV || (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
+            if ((!mV || safeISO(o.start).includes(mV)) && matchText) {
+                // Eemaldame jutumärgid/reavahetused, mis võiksid CSV katki teha
+                const clean = str => `"${String(str || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`;
+                csv += `${clean(o.mt)};${clean(o.client)};${clean(o.kirjeldus)};${safeISO(o.start)};${safeISO(o.end)};${o.sub1};${o.sub2};${o.ins};${o.prog_ins};${o.trei};${o.prog_tr};${o.must_k};${o.prog_mk};${o.rv_k};${o.prog_rk};${o.must_l};${o.prog_ml};${o.rv_l};${o.prog_rl};${o.kooste};${o.prog_ko};${o.progress}%;${o.status}\n`;
+            }
+        });
+        
+        // Lisame BOM-i, et Excel avaks eesti tähed (õäöü) õigesti
+        let blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+        let link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `TOCI_Plaan_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     function toggleMode() {
@@ -442,7 +472,9 @@
     }
 
     function renderTable() {
-        const mV = document.getElementById('monthFilter').value, mtV = document.getElementById('mtFilter').value.toLowerCase(), b = document.getElementById('table-body'); b.innerHTML = '';
+        const gV = document.getElementById('globalFilter').value.toLowerCase();
+        const mV = document.getElementById('monthFilter').value;
+        const b = document.getElementById('table-body'); b.innerHTML = '';
         let disAttr = isAdmin ? "" : "disabled"; let hideTrash = isAdmin ? "display:table-cell;" : "display:none;";
         let todayTime = new Date(); todayTime.setHours(23, 59, 59, 999);
         
@@ -450,7 +482,7 @@
             if (o.mt === 'SYS_SETTINGS') return; 
             if (currentMainTabFilter === 'active' && o.status === 'Valmis') return;
             if (currentMainTabFilter === 'archive' && o.status !== 'Valmis') return;
-            let matchText = (!mtV || (o.mt && String(o.mt).toLowerCase().includes(mtV)) || (o.client && String(o.client).toLowerCase().includes(mtV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(mtV)));
+            let matchText = (!gV || (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
             if ((!mV || safeISO(o.start).includes(mV)) && matchText) {
                 const sCl = o.status === 'Valmis' ? 'status-valmis' : o.status === 'Töös' ? 'status-toos' : 'status-ootel';
                 
@@ -485,13 +517,15 @@
     }
 
     function renderDashboard() {
+        const gV = document.getElementById('globalFilter').value.toLowerCase();
         let activeTotal = 0; let overdueTotal = 0;
         let remH = { ins:0, trei:0, must_k:0, rv_k:0, must_l:0, rv_l:0, kooste:0 };
         let todayTime = new Date(); todayTime.setHours(23, 59, 59, 999);
 
         orders.forEach(o => {
             if (o.mt === 'SYS_SETTINGS') return; 
-            if (o.status === 'Töös' || o.status === 'Ootel') {
+            let matchText = (!gV || (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
+            if (matchText && (o.status === 'Töös' || o.status === 'Ootel')) {
                 activeTotal++;
                 let endD = new Date(o.end); endD.setHours(23, 59, 59, 999);
                 if (o.status === 'Töös' && endD.getTime() < todayTime.getTime()) overdueTotal++;
@@ -507,20 +541,20 @@
         });
 
         document.getElementById('dashboard-container').innerHTML = `
-            <div class="dash-card" style="border-left-color:var(--success);"><h3>Aktiivsed Tööd</h3><div class="value">${activeTotal}</div><div class="sub-text">Ootel või Töös staatusega tellimused</div></div>
-            <div class="dash-card ${overdueTotal > 0 ? 'danger' : ''}" style="${overdueTotal === 0 ? 'border-left-color:#ccc;' : ''}"><h3 style="${overdueTotal > 0 ? 'color:var(--danger);' : ''}">Tähtaeg Ületatud</h3><div class="value" style="${overdueTotal > 0 ? 'color:var(--danger);' : 'color:#999;'}">${overdueTotal}</div><div class="sub-text">"Töös" olevad tellimused, mille lõppkuupäev on möödas</div></div>
-            <div class="dash-card" style="border-left-color:${CONFIG.ins.color};"><h3>Inseneeria</h3><div class="value">${remH.ins.toFixed(1)} h</div><div class="sub-text">Reaalselt tegemata jäänud töötunnid</div></div>
-            <div class="dash-card" style="border-left-color:${CONFIG.trei.color};"><h3>Treial</h3><div class="value">${remH.trei.toFixed(1)} h</div><div class="sub-text">Reaalselt tegemata jäänud töötunnid</div></div>
-            <div class="dash-card" style="border-left-color:${CONFIG.must_k.color};"><h3>Must Keevitus</h3><div class="value">${remH.must_k.toFixed(1)} h</div><div class="sub-text">Reaalselt tegemata jäänud töötunnid</div></div>
-            <div class="dash-card" style="border-left-color:${CONFIG.rv_k.color};"><h3>RV Keevitus</h3><div class="value">${remH.rv_k.toFixed(1)} h</div><div class="sub-text">Reaalselt tegemata jäänud töötunnid</div></div>
-            <div class="dash-card" style="border-left-color:${CONFIG.must_l.color};"><h3>Must Lukksepp</h3><div class="value">${remH.must_l.toFixed(1)} h</div><div class="sub-text">Reaalselt tegemata jäänud töötunnid</div></div>
-            <div class="dash-card" style="border-left-color:${CONFIG.rv_l.color};"><h3>RV Lukksepp</h3><div class="value">${remH.rv_l.toFixed(1)} h</div><div class="sub-text">Reaalselt tegemata jäänud töötunnid</div></div>
-            <div class="dash-card" style="border-left-color:${CONFIG.kooste.color};"><h3>Kooste</h3><div class="value">${remH.kooste.toFixed(1)} h</div><div class="sub-text">Reaalselt tegemata jäänud töötunnid</div></div>
+            <div class="dash-card" style="border-left-color:var(--success);"><h3>Aktiivsed Tööd</h3><div class="value">${activeTotal}</div><div class="sub-text">Filtreeritud ootel/töös tellimused</div></div>
+            <div class="dash-card ${overdueTotal > 0 ? 'danger' : ''}" style="${overdueTotal === 0 ? 'border-left-color:#ccc;' : ''}"><h3 style="${overdueTotal > 0 ? 'color:var(--danger);' : ''}">Tähtaeg Ületatud</h3><div class="value" style="${overdueTotal > 0 ? 'color:var(--danger);' : 'color:#999;'}">${overdueTotal}</div><div class="sub-text">Filtreeritud tellimused, mille lõppkuupäev on möödas</div></div>
+            <div class="dash-card" style="border-left-color:${CONFIG.ins.color};"><h3>Inseneeria</h3><div class="value">${remH.ins.toFixed(1)} h</div><div class="sub-text">Filtreeritud järelejäänud tunnid</div></div>
+            <div class="dash-card" style="border-left-color:${CONFIG.trei.color};"><h3>Treial</h3><div class="value">${remH.trei.toFixed(1)} h</div><div class="sub-text">Filtreeritud järelejäänud tunnid</div></div>
+            <div class="dash-card" style="border-left-color:${CONFIG.must_k.color};"><h3>Must Keevitus</h3><div class="value">${remH.must_k.toFixed(1)} h</div><div class="sub-text">Filtreeritud järelejäänud tunnid</div></div>
+            <div class="dash-card" style="border-left-color:${CONFIG.rv_k.color};"><h3>RV Keevitus</h3><div class="value">${remH.rv_k.toFixed(1)} h</div><div class="sub-text">Filtreeritud järelejäänud tunnid</div></div>
+            <div class="dash-card" style="border-left-color:${CONFIG.must_l.color};"><h3>Must Lukksepp</h3><div class="value">${remH.must_l.toFixed(1)} h</div><div class="sub-text">Filtreeritud järelejäänud tunnid</div></div>
+            <div class="dash-card" style="border-left-color:${CONFIG.rv_l.color};"><h3>RV Lukksepp</h3><div class="value">${remH.rv_l.toFixed(1)} h</div><div class="sub-text">Filtreeritud järelejäänud tunnid</div></div>
+            <div class="dash-card" style="border-left-color:${CONFIG.kooste.color};"><h3>Kooste</h3><div class="value">${remH.kooste.toFixed(1)} h</div><div class="sub-text">Filtreeritud järelejäänud tunnid</div></div>
         `;
     }
 
-    // UUS! ÜLDINE KASKAADI GANTT (Kõik osakonnad ühes reas)
     function renderMasterGantt(containerId) {
+        const gV = document.getElementById('globalFilter').value.toLowerCase();
         const outer = document.getElementById(containerId); if(!outer) return;
         const dayCount = 365; const tIdx = getDayIndexUTC(TODAY, START_VIEW);
         let headerCols = "";
@@ -529,8 +563,11 @@
             headerCols += `<div class="h-col"><div class="h-week">${d%7===0?'W'+getWeek(cur):''}</div><div class="h-day" style="${d===tIdx?'color:red;font-weight:bold;':''}">${cur.getDate()}.${cur.getMonth()+1}</div></div>`;
         }
         let bodyHtml = `<div class="gantt-body" id="b-scroll-all">`;
+        
         let filteredOrders = orders.filter(o => o.status === 'Töös' && o.mt !== 'SYS_SETTINGS');
-        if (filteredOrders.length === 0) bodyHtml += `<div class="empty-state">ℹ️ Hetkel ei ole ühtegi tellimust 'Töös' staatusega.</div>`;
+        if (gV) filteredOrders = filteredOrders.filter(o => (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
+        
+        if (filteredOrders.length === 0) bodyHtml += `<div class="empty-state">ℹ️ Ühtegi filtriga sobivat 'Töös' tellimust ei leitud.</div>`;
 
         let disAttr = isAdmin ? "" : "disabled";
 
@@ -541,7 +578,7 @@
             bodyHtml += `<div class="gantt-row">
                 <div class="gantt-info">
                     <b>${o.mt}</b><small>${o.client}</small><small style="color:#777; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${o.kirjeldus||''}">${o.kirjeldus||''}</small>
-                    <div style="display:flex;gap:3px;"><input type="date" title="Algus" value="${safeISO(o.start)}" onchange="u(${gIdx},'start',this.value);renderMasterGantt('${containerId}')" ${disAttr}><input type="date" title="Lõpp" value="${safeISO(o.end)}" onchange="u(${gIdx},'end',this.value);renderMasterGantt('${containerId}')" ${disAttr}></div>
+                    <div style="display:flex;gap:3px;"><input type="date" title="Algus" value="${safeISO(o.start)}" onchange="u(${gIdx},'start',this.value);applyUIMode()" ${disAttr}><input type="date" title="Lõpp" value="${safeISO(o.end)}" onchange="u(${gIdx},'end',this.value);applyUIMode()" ${disAttr}></div>
                 </div>
                 <div class="gantt-bars-area" style="width:calc(var(--cell-w) * ${dayCount});">
                     <div class="today-line" style="left:${tIdx * 45}px"></div>`;
@@ -550,7 +587,7 @@
                 let dur = bnd.e - bnd.s + 1;
                 if(dur < 1) return ''; 
                 let left = bnd.s * 45;
-                let width = dur * 45 - 1; // Jätab 1px vahe, et klotsid ei sulaks kokku
+                let width = dur * 45 - 1; 
                 return `<div class="task-bar" title="${titleText}" style="left:${left}px; width:${width}px; background:${color}; font-size:10px; justify-content:center; padding:0; border-radius:3px; box-shadow:inset 0 0 0 1px rgba(0,0,0,0.1);">${dur > 1 ? label : label[0]}</div>`;
             };
 
@@ -571,6 +608,7 @@
     }
 
     function renderGantt(containerId, key) {
+        const gV = document.getElementById('globalFilter').value.toLowerCase();
         const outer = document.getElementById(containerId); if(!outer) return;
         const dayCount = 365; const tIdx = getDayIndexUTC(TODAY, START_VIEW);
         let headerCols = "";
@@ -579,8 +617,11 @@
             headerCols += `<div class="h-col"><div class="h-week">${d%7===0?'W'+getWeek(cur):''}</div><div class="h-day" style="${d===tIdx?'color:red;font-weight:bold;':''}">${cur.getDate()}.${cur.getMonth()+1}</div></div>`;
         }
         let bodyHtml = `<div class="gantt-body" id="b-scroll-${key}">`;
+        
         let filteredOrders = orders.filter(o => o[key] > 0 && o.status === 'Töös' && o.mt !== 'SYS_SETTINGS');
-        if (filteredOrders.length === 0) bodyHtml += `<div class="empty-state">ℹ️ Hetkel ei ole ühtegi tellimust "${CONFIG[key].l}" osakonnas 'Töös' staatusega.</div>`;
+        if (gV) filteredOrders = filteredOrders.filter(o => (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
+        
+        if (filteredOrders.length === 0) bodyHtml += `<div class="empty-state">ℹ️ Ühtegi filtriga sobivat tellimust "${CONFIG[key].l}" osakonnas ei leitud.</div>`;
 
         let disAttr = isAdmin ? "" : "disabled";
 
@@ -606,7 +647,7 @@
             bodyHtml += `<div class="gantt-row">
                 <div class="gantt-info">
                     <b>${o.mt}</b><small>${o.client}</small><small style="color:#777; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${o.kirjeldus||''}">${o.kirjeldus||''}</small>
-                    <div style="display:flex;gap:3px;"><input type="date" title="Algus" value="${safeISO(o.start)}" onchange="u(${gIdx},'start',this.value);renderGantt('${containerId}','${key}')" ${disAttr}><input type="date" title="Lõpp" value="${safeISO(o.end)}" onchange="u(${gIdx},'end',this.value);renderGantt('${containerId}','${key}')" ${disAttr}></div>
+                    <div style="display:flex;gap:3px;"><input type="date" title="Algus" value="${safeISO(o.start)}" onchange="u(${gIdx},'start',this.value);applyUIMode()" ${disAttr}><input type="date" title="Lõpp" value="${safeISO(o.end)}" onchange="u(${gIdx},'end',this.value);applyUIMode()" ${disAttr}></div>
                 </div>
                 <div class="gantt-bars-area" style="width:calc(var(--cell-w) * ${dayCount});">
                     <div class="today-line" style="left:${tIdx * 45}px"></div>`;
@@ -641,6 +682,7 @@
     }
 
     function renderDailyCharts() {
+        const gV = document.getElementById('globalFilter').value.toLowerCase();
         const container = document.getElementById('daily-load-container'); container.innerHTML = "";
         const daysToShow = 365, startDate = new Date(TODAY); startDate.setDate(startDate.getDate() - 2);
         const SCALE = 4;
@@ -656,8 +698,10 @@
                 else if (CONFIG[k].order === 3) myBnd = bnds.kooste;
                 
                 let workDays = getWorkingDays(myBnd.sDate, myBnd.eDate);
-                return { mt: o.mt, kirjeldus: o.kirjeldus, sTime: myBnd.sDate.getTime(), eTime: myBnd.eDate.getTime(), hPerDay: o[k] / workDays };
+                return { mt: o.mt, client: o.client, kirjeldus: o.kirjeldus, sTime: myBnd.sDate.getTime(), eTime: myBnd.eDate.getTime(), hPerDay: o[k] / workDays };
             });
+            // Filtreerime andmed
+            if(gV) activeStats[k] = activeStats[k].filter(os => (os.mt && String(os.mt).toLowerCase().includes(gV)) || (os.client && String(os.client).toLowerCase().includes(gV)) || (os.kirjeldus && String(os.kirjeldus).toLowerCase().includes(gV)));
         });
 
         Object.keys(CONFIG).forEach(k => {
@@ -689,6 +733,7 @@
     }
 
     function renderDailyTable() {
+        const gV = document.getElementById('globalFilter').value.toLowerCase();
         const container = document.getElementById('daily-table-container'); 
         const daysToShow = 365; 
         const startDate = new Date(TODAY); startDate.setDate(startDate.getDate() - 2);
@@ -702,8 +747,9 @@
                 else if (CONFIG[k].order === 1) myBnd = bnds.lukk;
                 else if (CONFIG[k].order === 2) myBnd = bnds.keev;
                 else if (CONFIG[k].order === 3) myBnd = bnds.kooste;
-                return { sTime: myBnd.sDate.getTime(), eTime: myBnd.eDate.getTime(), hPerDay: o[k] / getWorkingDays(myBnd.sDate, myBnd.eDate) };
+                return { mt: o.mt, client: o.client, kirjeldus: o.kirjeldus, sTime: myBnd.sDate.getTime(), eTime: myBnd.eDate.getTime(), hPerDay: o[k] / getWorkingDays(myBnd.sDate, myBnd.eDate) };
             });
+            if(gV) activeStats[k] = activeStats[k].filter(os => (os.mt && String(os.mt).toLowerCase().includes(gV)) || (os.client && String(os.client).toLowerCase().includes(gV)) || (os.kirjeldus && String(os.kirjeldus).toLowerCase().includes(gV)));
         });
 
         let html = `<div style="background:white; border-radius:8px; padding:0; box-shadow:0 4px 15px rgba(0,0,0,0.05); overflow:auto; height:100%;">
@@ -860,7 +906,7 @@
         if(!isAdmin) return; 
         orders.unshift({mt:"UUS", client:"", kirjeldus:"", start:new Date().toISOString().split('T')[0], end:new Date().toISOString().split('T')[0], sub1:0, sub2:0, ins:0, trei:0, must_k:0, rv_k:0, must_l:0, rv_l:0, kooste:0, prog_ins:0, prog_tr:0, prog_mk:0, prog_rk:0, prog_ml:0, prog_rl:0, prog_ko:0, progress:0, status:'Ootel'}); 
         currentMainTabFilter = 'active';
-        document.getElementById('view-title').innerText = "Aktiivsed tööd (Ootel/Töös)";
+        document.getElementById('view-title').innerText = "Aktiivsed testtööd";
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelector('.tab-btn').classList.add('active'); 
         renderTable(); save();
@@ -876,7 +922,7 @@
             currentMainTabFilter = filterType;
             document.getElementById('view-title').innerText = filterType === 'active' ? "Aktiivsed testtööd" : "Arhiiv (Lõpetatud tööd)";
             document.getElementById('addOrderBtn').style.display = (isAdmin && filterType === 'active') ? "block" : "none";
-            renderTable();
+            applyUIMode();
         }
         
         if (viewId === 'dashboard_view') renderDashboard();
