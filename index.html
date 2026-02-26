@@ -43,8 +43,12 @@
         .cap-num-in { width: 48px; text-align: center; font-weight: bold; border: 1px solid #ccc; border-radius: 3px; padding: 5px 2px; background: #fff; }
         .cap-num-in:disabled { background: #f0f2f5; color: #222; border: 1px solid #ddd; }
 
-        .prog-in { width: 38px; text-align: center; font-weight: bold; border: 1px solid #27ae60; border-radius: 3px; padding: 4px; background: #eafff0; color: #1b5e20; }
+        .prog-in { width: 38px; text-align: center; font-weight: bold; border: 1px solid #27ae60; border-radius: 3px; padding: 4px; background: #eafff0; color: #1b5e20; transition: 0.2s; }
         .prog-in:disabled { background: #eafff0; border: 1px solid #a5d6a7; color: #1b5e20; opacity: 1; -webkit-appearance: none; appearance: none; cursor: default; }
+        
+        /* UUS: EELARVE LÕHKI STIILID */
+        .overbudget { background-color: #ffebee !important; color: #c62828 !important; border-color: #ef5350 !important; }
+        .overbudget-tot { background-color: #c62828 !important; color: white !important; border-color: #b71c1c !important; }
         
         .status-select { padding: 4px; border-radius: 4px; border: 1px solid #999; font-weight: bold; font-size: 11px; cursor: pointer; background: white; }
         .status-select:disabled { border: none; background: transparent; color: #111; opacity: 1; -webkit-appearance: none; appearance: none; cursor: default; }
@@ -97,7 +101,7 @@
 <div class="demo-bg">DEMO KESKKOND</div>
 
 <div class="top-bar">
-    <div>⚠️ <strong>TOCI TOOTMISPLAAN (DEMO) V96.0</strong></div>
+    <div>⚠️ <strong>TOCI DEMO V97.0 (Eelarve ja Tehtud Tunnid)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <div id="syncStatus" style="background:var(--warning); color:black; padding:4px 10px; border-radius:4px; font-weight:bold; transition: 0.3s;">Ühendan DEMOga...</div>
         <button id="modeToggleBtn" onclick="toggleMode()" style="background:#34495e; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">🔒 VAATAJA</button>
@@ -134,7 +138,7 @@
             <option value="-01-">Jaanuar</option><option value="-02-">Veebruar</option><option value="-03-">Märts</option><option value="-04-">Aprill</option><option value="-05-">Mai</option><option value="-06-">Juuni</option><option value="-07-">Juuli</option><option value="-08-">August</option><option value="-09-">September</option><option value="-10-">Oktoober</option><option value="-11-">November</option><option value="-12-">Detsember</option>
         </select>
         <div id="view-title" style="font-size:16px; font-weight:bold; color:var(--primary); margin-left:15px;">Aktiivsed testtööd</div>
-        <div style="font-size:11px; color:#666; margin-left:auto;">💡 Hall kast = Tunnid | Roheline kast = Valmis % | Sinine = Üld %</div>
+        <div style="font-size:12px; color:#666; margin-left:auto;">💡 <b>P</b> = Plaanitud tunnid | <b>T</b> = Reaalselt tehtud tunnid <span style="color:#c62828;">(Punane = eelarve lõhki!)</span></div>
     </div>
     <div class="table-container">
         <table class="data-table">
@@ -147,14 +151,14 @@
                     <th class="divider-right">Lõpp</th>
                     <th title="Allhange enne (p)">AH1</th>
                     <th class="divider-right" title="Allhange peale (p)">AH2</th>
-                    <th class="dept-header divider-right" title="Inseneeria (tunnid | %)" style="background:#b3e5fc !important;">INS (h | %)</th>
-                    <th class="dept-header divider-right" title="Treial (tunnid | %)">TR (h | %)</th>
-                    <th class="dept-header divider-right" title="Must Keevitus (tunnid | %)">MK (h | %)</th>
-                    <th class="dept-header divider-right" title="RV Keevitus (tunnid | %)">RK (h | %)</th>
-                    <th class="dept-header divider-right" title="Must Lukksepp (tunnid | %)">ML (h | %)</th>
-                    <th class="dept-header divider-right" title="RV Lukksepp (tunnid | %)">RL (h | %)</th>
-                    <th class="dept-header divider-right" title="Kooste (tunnid | %)">KO (h | %)</th>
-                    <th class="divider-right" title="Kogu tellimuse automaatselt arvutatud valmisolek (Tundide kaalutud keskmine)">Üld %</th>
+                    <th class="dept-header divider-right" title="Inseneeria (Plaanitud h | Tehtud h)" style="background:#b3e5fc !important;">INS (P | T)</th>
+                    <th class="dept-header divider-right" title="Treial (Plaanitud h | Tehtud h)">TR (P | T)</th>
+                    <th class="dept-header divider-right" title="Must Keevitus (Plaanitud h | Tehtud h)">MK (P | T)</th>
+                    <th class="dept-header divider-right" title="RV Keevitus (Plaanitud h | Tehtud h)">RK (P | T)</th>
+                    <th class="dept-header divider-right" title="Must Lukksepp (Plaanitud h | Tehtud h)">ML (P | T)</th>
+                    <th class="dept-header divider-right" title="RV Lukksepp (Plaanitud h | Tehtud h)">RL (P | T)</th>
+                    <th class="dept-header divider-right" title="Kooste (Plaanitud h | Tehtud h)">KO (P | T)</th>
+                    <th class="divider-right" title="Kogu tellimuse valmisolek (Tehtud tunnid / Plaanitud tunnid)">Üld %</th>
                     <th>Staatus</th>
                     <th class="admin-only" style="display:none;">🗑️</th>
                 </tr>
@@ -197,7 +201,6 @@
 </div>
 
 <script>
-    // --- UUS DEMO API URL ---
     const API_URL = "https://script.google.com/macros/s/AKfycbwR7n2S7_jJYQive0wK7x8vPjjHG9cFWEc5mkbkDZviMbJqea-a4kCYF9ExLpY8kaO2/exec";
     
     let isAdmin = false;
@@ -215,7 +218,6 @@
     };
     
     const START_VIEW = new Date("2026-01-01"), TODAY = new Date();
-    // Kasutame demos eraldi brauseri mälu, et mitte segada päris andmeid!
     let orders = [], customCap = JSON.parse(localStorage.getItem('prod_cap_demo')) || {};
     if (!customCap.holidays) customCap.holidays = [];
     
@@ -262,11 +264,12 @@
         else { el.style.background = "var(--warning)"; el.style.color = "black"; }
     }
 
+    // V97 UUS: Arvutab tunde, mitte protsente! (Tehtud tunnid / Plaanitud tunnid)
     function calcOverallProgress(o) {
-        let totalH = f(o.ins) + f(o.trei) + f(o.must_k) + f(o.rv_k) + f(o.must_l) + f(o.rv_l) + f(o.kooste);
-        if (totalH === 0) return 0;
-        let doneH = (f(o.ins)*f(o.prog_ins) + f(o.trei)*f(o.prog_tr) + f(o.must_k)*f(o.prog_mk) + f(o.rv_k)*f(o.prog_rk) + f(o.must_l)*f(o.prog_ml) + f(o.rv_l)*f(o.prog_rl) + f(o.kooste)*f(o.prog_ko)) / 100;
-        return Math.round((doneH / totalH) * 100);
+        let totalPlanned = f(o.ins) + f(o.trei) + f(o.must_k) + f(o.rv_k) + f(o.must_l) + f(o.rv_l) + f(o.kooste);
+        if (totalPlanned === 0) return 0;
+        let totalActual = f(o.prog_ins) + f(o.prog_tr) + f(o.prog_mk) + f(o.prog_rk) + f(o.prog_ml) + f(o.prog_rl) + f(o.prog_ko);
+        return Math.round((totalActual / totalPlanned) * 100);
     }
 
     function toggleMode() {
@@ -308,7 +311,6 @@
             if(Array.isArray(rawData)) {
                 let cleanedData = []; let seenMt = new Set(); let duplicatesFound = 0;
                 
-                // UUS: Otsime "Süsteemi Seadete" rida (Puhkused ja võimekus) pilvest!
                 let sysRow = rawData.find(o => o.mt === 'SYS_SETTINGS');
                 if (sysRow && sysRow.kirjeldus) {
                     try { customCap = JSON.parse(sysRow.kirjeldus); } catch(e) {}
@@ -317,7 +319,7 @@
 
                 rawData.forEach(o => {
                     let cleanMt = String(o.mt).trim();
-                    if (cleanMt === "SYS_SETTINGS") { cleanedData.push(o); return; } // Säilitame süsteemi rea!
+                    if (cleanMt === "SYS_SETTINGS") { cleanedData.push(o); return; }
                     cleanMt = cleanMt.toLowerCase();
                     if (cleanMt === "uus" || cleanMt === "") { cleanedData.push(o); } 
                     else if (!seenMt.has(cleanMt)) { seenMt.add(cleanMt); cleanedData.push(o); } 
@@ -325,7 +327,7 @@
                 });
 
                 orders = cleanedData.map(o => {
-                    if (o.mt === "SYS_SETTINGS") return o; // Süsteemi rida ei muudeta andmeteks
+                    if (o.mt === "SYS_SETTINGS") return o; 
                     let obj = {...o, kirjeldus: o.kirjeldus||'', 
                         ins:f(o.ins), trei:f(o.trei), must_k:f(o.must_k), rv_k:f(o.rv_k), must_l:f(o.must_l), rv_l:f(o.rv_l), kooste:f(o.kooste), 
                         prog_ins:f(o.prog_ins), prog_tr:f(o.prog_tr), prog_mk:f(o.prog_mk), prog_rk:f(o.prog_rk), prog_ml:f(o.prog_ml), prog_rl:f(o.prog_rl), prog_ko:f(o.prog_ko),
@@ -399,13 +401,23 @@
         return bounds;
     }
 
+    // V97 UUS: Abifunktsioon plaan vs tehtud kasti joonistamiseks (muudab värvi, kui läheb üle eelarve)
+    const makeCell = (k, pK, i, o, dis) => {
+        let p = f(o[k]), a = f(o[pK]);
+        let over = (a > p && p > 0) ? 'overbudget' : '';
+        return `<div class="cell-flex">
+            <input class="num-in" title="Plaanitud: ${o[k]}h" value="${o[k]}" onchange="u(${i},'${k}',this.value)" ${dis}>
+            <input class="prog-in ${over}" title="Tehtud: ${o[pK]}h" value="${o[pK]}" onchange="u(${i},'${pK}',this.value)" ${dis}>
+        </div>`;
+    };
+
     function renderTable() {
         const mV = document.getElementById('monthFilter').value, mtV = document.getElementById('mtFilter').value.toLowerCase(), b = document.getElementById('table-body'); b.innerHTML = '';
         let disAttr = isAdmin ? "" : "disabled"; let hideTrash = isAdmin ? "display:table-cell;" : "display:none;";
         let todayTime = new Date(); todayTime.setHours(23, 59, 59, 999);
         
         orders.forEach((o, i) => {
-            if (o.mt === 'SYS_SETTINGS') return; // Süsteemi rida peidetakse tabelist
+            if (o.mt === 'SYS_SETTINGS') return; 
             if (currentMainTabFilter === 'active' && o.status === 'Valmis') return;
             if (currentMainTabFilter === 'archive' && o.status !== 'Valmis') return;
             let matchText = (!mtV || (o.mt && String(o.mt).toLowerCase().includes(mtV)) || (o.client && String(o.client).toLowerCase().includes(mtV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(mtV)));
@@ -414,25 +426,28 @@
                 let isOverdue = false;
                 if (o.status === 'Töös') { let endD = new Date(o.end); endD.setHours(23, 59, 59, 999); if (endD.getTime() < todayTime.getTime()) isOverdue = true; }
                 let overStyle = isOverdue ? 'background-color:#ffebee; color:#c62828; font-weight:bold; border:1px solid #c62828;' : '';
-                let overTitle = isOverdue ? '⚠️ TÄHTAEG MÖÖDAS!' : 'Lõppkuupäev';
+                
+                // UUS: Kui kogu projekti % on üle 100, teeme kasti punaseks
+                let totOver = o.progress > 100 ? 'overbudget-tot' : '';
 
                 b.innerHTML += `<tr class="${sCl}">
                     <td><input class="data-in" value="${o.mt}" onchange="u(${i},'mt',this.value)" ${disAttr}></td>
                     <td><input class="data-in" value="${o.client}" onchange="u(${i},'client',this.value)" ${disAttr}></td>
                     <td><input class="data-in" value="${o.kirjeldus||''}" placeholder="${isAdmin?'Töö sisu...':''}" onchange="u(${i},'kirjeldus',this.value)" ${disAttr}></td>
                     <td><input type="date" class="data-in" value="${safeISO(o.start)}" onchange="u(${i},'start',this.value)" ${disAttr}></td>
-                    <td class="divider-right"><input type="date" class="data-in" title="${overTitle}" style="${overStyle}" value="${safeISO(o.end)}" onchange="u(${i},'end',this.value)" ${disAttr}></td>
+                    <td class="divider-right"><input type="date" class="data-in" style="${overStyle}" value="${safeISO(o.end)}" onchange="u(${i},'end',this.value)" ${disAttr}></td>
                     <td><input class="num-in" title="AH1" value="${o.sub1}" onchange="u(${i},'sub1',this.value)" ${disAttr}></td>
                     <td class="divider-right"><input class="num-in" title="AH2" value="${o.sub2}" onchange="u(${i},'sub2',this.value)" ${disAttr}></td>
                     
-                    <td class="divider-right" style="background:#e1f5fe;"><div class="cell-flex"><input class="num-in" title="INS (tunnid)" value="${o.ins}" onchange="u(${i},'ins',this.value)" ${disAttr}><input class="prog-in" title="INS (%)" value="${o.prog_ins}" onchange="u(${i},'prog_ins',this.value)" ${disAttr}></div></td>
-                    <td class="divider-right"><div class="cell-flex"><input class="num-in" title="TR (tunnid)" value="${o.trei}" onchange="u(${i},'trei',this.value)" ${disAttr}><input class="prog-in" title="TR (%)" value="${o.prog_tr}" onchange="u(${i},'prog_tr',this.value)" ${disAttr}></div></td>
-                    <td class="divider-right"><div class="cell-flex"><input class="num-in" title="MK (tunnid)" value="${o.must_k}" onchange="u(${i},'must_k',this.value)" ${disAttr}><input class="prog-in" title="MK (%)" value="${o.prog_mk}" onchange="u(${i},'prog_mk',this.value)" ${disAttr}></div></td>
-                    <td class="divider-right"><div class="cell-flex"><input class="num-in" title="RK (tunnid)" value="${o.rv_k}" onchange="u(${i},'rv_k',this.value)" ${disAttr}><input class="prog-in" title="RK (%)" value="${o.prog_rk}" onchange="u(${i},'prog_rk',this.value)" ${disAttr}></div></td>
-                    <td class="divider-right"><div class="cell-flex"><input class="num-in" title="ML (tunnid)" value="${o.must_l}" onchange="u(${i},'must_l',this.value)" ${disAttr}><input class="prog-in" title="ML (%)" value="${o.prog_ml}" onchange="u(${i},'prog_ml',this.value)" ${disAttr}></div></td>
-                    <td class="divider-right"><div class="cell-flex"><input class="num-in" title="RL (tunnid)" value="${o.rv_l}" onchange="u(${i},'rv_l',this.value)" ${disAttr}><input class="prog-in" title="RL (%)" value="${o.prog_rl}" onchange="u(${i},'prog_rl',this.value)" ${disAttr}></div></td>
-                    <td class="divider-right"><div class="cell-flex"><input class="num-in" title="KO (tunnid)" value="${o.kooste}" onchange="u(${i},'kooste',this.value)" ${disAttr}><input class="prog-in" title="KO (%)" value="${o.prog_ko}" onchange="u(${i},'prog_ko',this.value)" ${disAttr}></div></td>
-                    <td class="divider-right" style="text-align:center;"><div id="prog_tot_${i}" style="background:#e3f2fd; color:#0277bd; border:1px solid #0288d1; border-radius:3px; padding:4px; font-weight:bold; font-size:11px; width:40px; margin:auto;" title="Kogu tellimuse automaatne valmisolek">${o.progress}%</div></td>
+                    <td class="divider-right" style="background:#e1f5fe;">${makeCell('ins', 'prog_ins', i, o, disAttr)}</td>
+                    <td class="divider-right">${makeCell('trei', 'prog_tr', i, o, disAttr)}</td>
+                    <td class="divider-right">${makeCell('must_k', 'prog_mk', i, o, disAttr)}</td>
+                    <td class="divider-right">${makeCell('rv_k', 'prog_rk', i, o, disAttr)}</td>
+                    <td class="divider-right">${makeCell('must_l', 'prog_ml', i, o, disAttr)}</td>
+                    <td class="divider-right">${makeCell('rv_l', 'prog_rl', i, o, disAttr)}</td>
+                    <td class="divider-right">${makeCell('kooste', 'prog_ko', i, o, disAttr)}</td>
+                    
+                    <td class="divider-right" style="text-align:center;"><div id="prog_tot_${i}" class="${totOver}" style="background:#e3f2fd; color:#0277bd; border:1px solid #0288d1; border-radius:3px; padding:4px; font-weight:bold; font-size:11px; width:40px; margin:auto;" title="Tehtud tunnid / Plaanitud tunnid">${o.progress}%</div></td>
                     <td><select class="status-select" onchange="u(${i},'status',this.value);renderTable()" ${disAttr}><option ${o.status==='Ootel'?'selected':''}>Ootel</option><option ${o.status==='Töös'?'selected':''}>Töös</option><option ${o.status==='Valmis'?'selected':''}>Valmis</option></select></td>
                     <td class="admin-only" style="${hideTrash}"><button onclick="del(${i})" style="border:none; background:none; cursor:pointer;">🗑️</button></td>
                 </tr>`;
@@ -446,18 +461,20 @@
         let todayTime = new Date(); todayTime.setHours(23, 59, 59, 999);
 
         orders.forEach(o => {
-            if (o.mt === 'SYS_SETTINGS') return; // Jäta vahele
+            if (o.mt === 'SYS_SETTINGS') return; 
             if (o.status === 'Töös' || o.status === 'Ootel') {
                 activeTotal++;
                 let endD = new Date(o.end); endD.setHours(23, 59, 59, 999);
                 if (o.status === 'Töös' && endD.getTime() < todayTime.getTime()) overdueTotal++;
-                remH.ins += f(o.ins) * (1 - f(o.prog_ins)/100);
-                remH.trei += f(o.trei) * (1 - f(o.prog_tr)/100);
-                remH.must_k += f(o.must_k) * (1 - f(o.prog_mk)/100);
-                remH.rv_k += f(o.rv_k) * (1 - f(o.prog_rk)/100);
-                remH.must_l += f(o.must_l) * (1 - f(o.prog_ml)/100);
-                remH.rv_l += f(o.rv_l) * (1 - f(o.prog_rl)/100);
-                remH.kooste += f(o.kooste) * (1 - f(o.prog_ko)/100);
+                
+                // V97 UUS: Arvutame reaalselt järelejäänud tunde! Ei lase numbrit miinusesse.
+                remH.ins += Math.max(0, f(o.ins) - f(o.prog_ins));
+                remH.trei += Math.max(0, f(o.trei) - f(o.prog_tr));
+                remH.must_k += Math.max(0, f(o.must_k) - f(o.prog_mk));
+                remH.rv_k += Math.max(0, f(o.rv_k) - f(o.prog_rk));
+                remH.must_l += Math.max(0, f(o.must_l) - f(o.prog_ml));
+                remH.rv_l += Math.max(0, f(o.rv_l) - f(o.prog_rl));
+                remH.kooste += Math.max(0, f(o.kooste) - f(o.prog_ko));
             }
         });
 
@@ -500,7 +517,13 @@
 
             let finalLeft = myBnd.s * 45; 
             let taskDur = Math.max(1, myBnd.e - myBnd.s + 1);
-            let curProg = o[CONFIG[key].p] || 0; 
+            
+            // V97 UUS: Arvutame täituvuse protsendi ja punase "üle eelarve" värvi Ganttis
+            let plannedH = f(o[key]);
+            let actualH = f(o[CONFIG[key].p]);
+            let curProg = plannedH > 0 ? Math.round((actualH / plannedH) * 100) : 0;
+            let fillW = Math.min(100, curProg);
+            let overBg = curProg > 100 ? 'background: rgba(231, 76, 60, 0.7); border-right: 2px solid #c0392b;' : '';
 
             bodyHtml += `<div class="gantt-row">
                 <div class="gantt-info">
@@ -515,8 +538,8 @@
                 bodyHtml += `<div class="sub-bar sub-pre" style="left:${bnds.ah1.s*45}px; width:${a1Dur*45 - 2}px">AH1</div>`;
             }
             
-            bodyHtml += `<div class="task-bar" title="MT: ${o.mt}\nKlient: ${o.client}\n${CONFIG[key].l}: ${o[key]}h\nValmis: ${curProg}%\nSisu: ${o.kirjeldus||'-'}" style="left:${finalLeft}px; width:${taskDur * 45 - 5}px; background:${CONFIG[key].color}">
-                <div class="progress-fill" style="width:${curProg}%"></div>
+            bodyHtml += `<div class="task-bar" title="MT: ${o.mt}\nKlient: ${o.client}\n${CONFIG[key].l}: ${actualH}h / ${plannedH}h tehtud (${curProg}%)\nSisu: ${o.kirjeldus||'-'}" style="left:${finalLeft}px; width:${taskDur * 45 - 5}px; background:${CONFIG[key].color}">
+                <div class="progress-fill" style="width:${fillW}%; ${overBg}"></div>
                 <span style="position:relative; padding-left:5px; z-index:10;">${o.mt} (${curProg}%)</span>
             </div>`;
             
@@ -693,13 +716,11 @@
 
     function delHoliday(idx) { if(!isAdmin) return; customCap.holidays.splice(idx, 1); saveCapacity(); }
 
-    // PILVE SÜNKROON PUHKUSTELE JA VÕIMEKUSELE
     function saveCapacity() {
         if(!isAdmin) return;
         document.querySelectorAll('.cap-num-in').forEach(i => { if(!customCap[i.dataset.k]) customCap[i.dataset.k] = {}; customCap[i.dataset.k][i.dataset.w] = parseInt(i.value); });
         localStorage.setItem('prod_cap_demo', JSON.stringify(customCap)); 
         
-        // Loome/uuendame pilvesüsteemi rida
         let sysRow = orders.find(o => o.mt === 'SYS_SETTINGS');
         if(!sysRow) {
             sysRow = {mt:"SYS_SETTINGS", client:"SYSTEM", kirjeldus:"", start:safeISO(new Date()), end:safeISO(new Date()), sub1:0, sub2:0, ins:0, trei:0, must_k:0, rv_k:0, must_l:0, rv_l:0, kooste:0, prog_ins:0, prog_tr:0, prog_mk:0, prog_rk:0, prog_ml:0, prog_rl:0, prog_ko:0, progress:0, status:'Valmis'};
@@ -709,7 +730,7 @@
 
         alert("Puhkused ja võimekus salvestatud PILVE (kõik kolleegid näevad nüüd samu andmeid)!"); 
         applyUIMode(); 
-        save(); // Saadame info andmebaasi
+        save(); 
     }
 
     function save() { 
