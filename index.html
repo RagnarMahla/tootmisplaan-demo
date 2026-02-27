@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>DEMO - TOCI Tootmisplaan V104</title>
+    <title>DEMO - TOCI Tootmisplaan V105</title>
     <style>
         :root { --primary: #c0392b; --accent: #e67e22; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -42,19 +42,21 @@
         .overbudget { background-color: #ffebee !important; color: #c62828 !important; border-color: #ef5350 !important; }
         .overbudget-tot { background-color: #c62828 !important; color: white !important; border-color: #b71c1c !important; }
         .status-select { padding: 4px; border-radius: 4px; border: 1px solid #999; font-weight: bold; font-size: 11px; cursor: pointer; background: white; }
-        .cell-flex { display: flex; gap: 3px; align-items: center; justify-content: center; }
+        .cell-flex { display: flex; gap: 3px; align-items: center; justify-content: center; transition: 0.3s; }
 
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 10px; overflow-y: auto; height: 100%; }
         .dash-card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 5px solid var(--accent); display: flex; flex-direction: column; justify-content: center; }
 
+        /* RAPORTI MODAALAKEN */
         .modal { display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(3px); }
-        .modal-content { background-color: #fff; margin: 10vh auto; padding: 25px; border-radius: 12px; width: 400px; max-width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .modal-content { background-color: #fff; margin: 10vh auto; padding: 25px; border-radius: 12px; width: 450px; max-width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .m-close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; margin-top:-10px; }
         .m-close:hover { color: #333; }
-        .raport-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .raport-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
         .raport-table th { background: #f4f7f6; padding: 10px; text-align: left; border-bottom: 2px solid #ddd; }
         .raport-table td { padding: 10px; border-bottom: 1px solid #eee; }
 
+        /* GANTT */
         .gantt-outer { height: 100%; display: flex; flex-direction: column; background: white; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; }
         .gantt-header-wrapper { display: flex; background: #f8f9fa; border-bottom: 2px solid #ccc; height: 75px; }
         .header-corner { width: 340px; min-width: 340px; background: #eee; border-right: 3px solid #bbb; display: flex; align-items: center; padding-left: 15px; font-weight: bold; position: sticky; left: 0; z-index: 2500; }
@@ -80,6 +82,8 @@
         .day-label { position: absolute; top: 100%; left: 0; width: 100%; text-align: center; font-size: 9px; padding-top: 5px; line-height: 1.2; }
         .order-segment { width: 100%; border: 1px solid rgba(255,255,255,0.3); border-radius: 2px; display: flex; align-items: center; justify-content: center; overflow: hidden; color: white; font-size: 8px; font-weight: bold; cursor: help; }
         .holiday-bg { background: repeating-linear-gradient(45deg, #ffeeee, #ffebee 10px, #ffffff 10px, #ffffff 20px); border-bottom: 2px solid #e53935 !important; }
+        
+        .valmis-check { cursor: pointer; width: 16px; height: 16px; accent-color: var(--success); }
     </style>
 </head>
 <body>
@@ -94,7 +98,7 @@
 </div>
 
 <div class="top-bar">
-    <div>⚠️ <strong>TOCI DEMO V104.0 (Gantt sisestus & Parandatud Tasandus)</strong></div>
+    <div>⚠️ <strong>TOCI DEMO V105.0 (Osakondade "Valmis" Nupp)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;" title="Ekspordib selle vaate, kus sa parajasti oled">📥 EKSPORDI VAADE</button>
@@ -130,7 +134,7 @@
             <option value="-01-">Jaanuar</option><option value="-02-">Veebruar</option><option value="-03-">Märts</option><option value="-04-">Aprill</option><option value="-05-">Mai</option><option value="-06-">Juuni</option><option value="-07-">Juuli</option><option value="-08-">August</option><option value="-09-">September</option><option value="-10-">Oktoober</option><option value="-11-">November</option><option value="-12-">Detsember</option>
         </select>
         <div id="view-title" style="font-size:16px; font-weight:bold; color:var(--primary); margin-left:15px;">Aktiivsed testtööd</div>
-        <div style="font-size:12px; color:#666; margin-left:auto;">💡 <b>P</b> = Plaanitud | <b>T</b> = Tehtud h <span style="color:#c62828;">(Punane = eelarve lõhki!)</span> | <b>🔍 = Raport</b></div>
+        <div style="font-size:12px; color:#666; margin-left:auto;">💡 <b>P</b> = Plaanitud | <b>T</b> = Tehtud h | <b>☑️ = Osakond valmis!</b> | <b>🔍 = Raport</b></div>
     </div>
     <div class="table-container">
         <table class="data-table">
@@ -143,13 +147,13 @@
                     <th class="divider-right">Lõpp</th>
                     <th title="Allhange enne (p)">AH1</th>
                     <th class="divider-right" title="Allhange peale (p)">AH2</th>
-                    <th class="dept-header divider-right" title="Inseneeria (Plaanitud h | Tehtud h)" style="background:#b3e5fc !important;">INS (P | T)</th>
-                    <th class="dept-header divider-right" title="Treial (Plaanitud h | Tehtud h)">TR (P | T)</th>
-                    <th class="dept-header divider-right" title="Must Keevitus (Plaanitud h | Tehtud h)">MK (P | T)</th>
-                    <th class="dept-header divider-right" title="RV Keevitus (Plaanitud h | Tehtud h)">RK (P | T)</th>
-                    <th class="dept-header divider-right" title="Must Lukksepp (Plaanitud h | Tehtud h)">ML (P | T)</th>
-                    <th class="dept-header divider-right" title="RV Lukksepp (Plaanitud h | Tehtud h)">RL (P | T)</th>
-                    <th class="dept-header divider-right" title="Kooste (Plaanitud h | Tehtud h)">KO (P | T)</th>
+                    <th class="dept-header divider-right" title="Inseneeria (Plaan | Tehtud | Valmis)" style="background:#b3e5fc !important;">INS (P|T|☑️)</th>
+                    <th class="dept-header divider-right" title="Treial (Plaan | Tehtud | Valmis)">TR (P|T|☑️)</th>
+                    <th class="dept-header divider-right" title="Must Keevitus (Plaan | Tehtud | Valmis)">MK (P|T|☑️)</th>
+                    <th class="dept-header divider-right" title="RV Keevitus (Plaan | Tehtud | Valmis)">RK (P|T|☑️)</th>
+                    <th class="dept-header divider-right" title="Must Lukksepp (Plaan | Tehtud | Valmis)">ML (P|T|☑️)</th>
+                    <th class="dept-header divider-right" title="RV Lukksepp (Plaan | Tehtud | Valmis)">RL (P|T|☑️)</th>
+                    <th class="dept-header divider-right" title="Kooste (Plaan | Tehtud | Valmis)">KO (P|T|☑️)</th>
                     <th class="divider-right" title="Kogu tellimuse valmisolek (Tehtud tunnid / Plaanitud tunnid)">Üld %</th>
                     <th>Staatus</th>
                     <th class="admin-only" style="display:none;">🗑️</th>
@@ -200,13 +204,13 @@
     let saveTimeout; let isSaving = false; let hasPendingChanges = false;
     
     const CONFIG = { 
-        ins:    {l:'Inseneeria', c:100, color:'#0097e6', order:0, p:'prog_ins'}, 
-        trei:   {l:'Treial',   c:40,  color:'#9b59b6', order:1, p:'prog_tr'},
-        must_k: {l:'Must Keev',c:240, color:'#e67e22', order:2, p:'prog_mk'}, 
-        rv_k:   {l:'RV Keev',  c:120, color:'#f39c12', order:2, p:'prog_rk'}, 
-        must_l: {l:'Must Lukk',c:120, color:'#3498db', order:1, p:'prog_ml'}, 
-        rv_l:   {l:'RV Lukk',  c:40,  color:'#2980b9', order:1, p:'prog_rl'}, 
-        kooste: {l:'Kooste',   c:80,  color:'#27ae60', order:3, p:'prog_ko'} 
+        ins:    {l:'Inseneeria', c:100, color:'#0097e6', order:0, p:'prog_ins', d:'done_ins'}, 
+        trei:   {l:'Treial',   c:40,  color:'#9b59b6', order:1, p:'prog_tr',  d:'done_tr'},
+        must_k: {l:'Must Keev',c:240, color:'#e67e22', order:2, p:'prog_mk',  d:'done_mk'}, 
+        rv_k:   {l:'RV Keev',  c:120, color:'#f39c12', order:2, p:'prog_rk',  d:'done_rk'}, 
+        must_l: {l:'Must Lukk',c:120, color:'#3498db', order:1, p:'prog_ml',  d:'done_ml'}, 
+        rv_l:   {l:'RV Lukk',  c:40,  color:'#2980b9', order:1, p:'prog_rl',  d:'done_rl'}, 
+        kooste: {l:'Kooste',   c:80,  color:'#27ae60', order:3, p:'prog_ko',  d:'done_ko'} 
     };
     
     const START_VIEW = new Date("2026-01-01"), TODAY = new Date();
@@ -294,9 +298,10 @@
         const clean = str => `"${String(str || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`;
 
         if (activeTab === 'main_view') {
-            csv += "MT;Klient;Kirjeldus;Algus;Lõpp;AH1(p);AH2(p);INS Plaan;INS Tehtud;TR Plaan;TR Tehtud;MK Plaan;MK Tehtud;RK Plaan;RK Tehtud;ML Plaan;ML Tehtud;RL Plaan;RL Tehtud;KO Plaan;KO Tehtud;Üld %;Staatus\n";
+            csv += "MT;Klient;Kirjeldus;Algus;Lõpp;AH1(p);AH2(p);INS Plaan;INS Tehtud;INS Valmis;TR Plaan;TR Tehtud;TR Valmis;MK Plaan;MK Tehtud;MK Valmis;RK Plaan;RK Tehtud;RK Valmis;ML Plaan;ML Tehtud;ML Valmis;RL Plaan;RL Tehtud;RL Valmis;KO Plaan;KO Tehtud;KO Valmis;Üld %;Staatus\n";
+            const isD = (v) => String(v)==='true' ? 'JAH' : 'EI';
             filteredOrders.forEach(o => {
-                csv += `${clean(o.mt)};${clean(o.client)};${clean(o.kirjeldus)};${safeISO(o.start)};${safeISO(o.end)};${o.sub1};${o.sub2};${o.ins};${o.prog_ins};${o.trei};${o.prog_tr};${o.must_k};${o.prog_mk};${o.rv_k};${o.prog_rk};${o.must_l};${o.prog_ml};${o.rv_l};${o.prog_rl};${o.kooste};${o.prog_ko};${o.progress}%;${o.status}\n`;
+                csv += `${clean(o.mt)};${clean(o.client)};${clean(o.kirjeldus)};${safeISO(o.start)};${safeISO(o.end)};${o.sub1};${o.sub2};${o.ins};${o.prog_ins};${isD(o.done_ins)};${o.trei};${o.prog_tr};${isD(o.done_tr)};${o.must_k};${o.prog_mk};${isD(o.done_mk)};${o.rv_k};${o.prog_rk};${isD(o.done_rk)};${o.must_l};${o.prog_ml};${isD(o.done_ml)};${o.rv_l};${o.prog_rl};${isD(o.done_rl)};${o.kooste};${o.prog_ko};${isD(o.done_ko)};${o.progress}%;${o.status}\n`;
             });
         } else if (activeTab === 'gantt_all') {
             csv += "MT;Klient;INS Algus;INS Lõpp;AH1 Algus;AH1 Lõpp;LUKK/TREI Algus;LUKK/TREI Lõpp;KEEV Algus;KEEV Lõpp;AH2 Algus;AH2 Lõpp;KOOSTE Algus;KOOSTE Lõpp\n";
@@ -451,12 +456,18 @@
         return bounds;
     }
 
-    const makeCell = (k, pK, i, o, dis) => {
+    // UUS! MakeCell loob nüüd lisaks sisestustele ka väikese check-boxi
+    const makeCell = (k, pK, dK, i, o, dis) => {
         let p = f(o[k]), a = f(o[pK]);
         let over = (a > p && p > 0) ? 'overbudget' : '';
-        return `<div class="cell-flex">
+        let isDone = String(o[dK]) === 'true';
+        let checkedAttr = isDone ? "checked" : "";
+        let opacityStyle = isDone ? "opacity:0.4; filter:grayscale(1);" : "";
+        
+        return `<div class="cell-flex" style="${opacityStyle}">
             <input class="num-in" title="Plaanitud: ${o[k]}h" value="${o[k]}" onchange="u(${i},'${k}',this.value)" ${dis}>
             <input class="prog-in ${over}" title="Tehtud: ${o[pK]}h" value="${o[pK]}" onchange="u(${i},'${pK}',this.value)" ${dis}>
+            <input type="checkbox" class="valmis-check" title="Märgi osakond valmiks" onchange="u(${i},'${dK}',this.checked)" ${checkedAttr} ${dis}>
         </div>`;
     };
 
@@ -477,23 +488,26 @@
         </div>`;
         
         html += `<table class="raport-table">
-            <tr><th>Osakond</th><th>Plaan</th><th>Tehtud</th><th>Vahe</th></tr>`;
+            <tr><th>Osakond</th><th>Plaan</th><th>Tehtud</th><th>Olek</th><th>Vahe</th></tr>`;
             
         let depts = [
-            {k:'ins', p:'prog_ins', l:'Inseneeria'}, {k:'trei', p:'prog_tr', l:'Treial'}, {k:'must_k', p:'prog_mk', l:'Must Keevitus'},
-            {k:'rv_k', p:'prog_rk', l:'RV Keevitus'}, {k:'must_l', p:'prog_ml', l:'Must Lukksepp'},
-            {k:'rv_l', p:'prog_rl', l:'RV Lukksepp'}, {k:'kooste', p:'prog_ko', l:'Kooste'}
+            {k:'ins', p:'prog_ins', d:'done_ins', l:'Inseneeria'}, {k:'trei', p:'prog_tr', d:'done_tr', l:'Treial'}, 
+            {k:'must_k', p:'prog_mk', d:'done_mk', l:'Must Keevitus'}, {k:'rv_k', p:'prog_rk', d:'done_rk', l:'RV Keevitus'}, 
+            {k:'must_l', p:'prog_ml', d:'done_ml', l:'Must Lukksepp'}, {k:'rv_l', p:'prog_rl', d:'done_rl', l:'RV Lukksepp'}, 
+            {k:'kooste', p:'prog_ko', d:'done_ko', l:'Kooste'}
         ];
         
         let tP=0, tA=0;
         depts.forEach(d => {
             let p = f(o[d.k]), a = f(o[d.p]), diff = a - p;
+            let isD = String(o[d.d]) === 'true';
             tP += p; tA += a;
             if(p > 0 || a > 0) {
                 let dColor = diff > 0 ? 'color:#c62828; font-weight:bold;' : 'color:#27ae60;';
                 let dText = diff > 0 ? `+${diff}h üle!` : `${Math.abs(diff)}h varu`;
                 if(diff === 0) dText = 'Täpselt';
-                html += `<tr><td><b>${d.l}</b></td><td>${p}h</td><td>${a}h</td><td style="${dColor}">${dText}</td></tr>`;
+                let dStatus = isD ? '☑️ Valmis' : '⏳ Töös';
+                html += `<tr><td><b>${d.l}</b></td><td>${p}h</td><td>${a}h</td><td>${dStatus}</td><td style="${dColor}">${dText}</td></tr>`;
             }
         });
         
@@ -503,7 +517,7 @@
         if(tDiff === 0) tText = 'Täpselt eelarves';
 
         html += `<tr style="background:#eee; font-size:14px;">
-            <td><b>KOKKU:</b></td><td><b>${tP}h</b></td><td><b>${tA}h</b></td><td style="${tColor}">${tText}</td>
+            <td><b>KOKKU:</b></td><td><b>${tP}h</b></td><td><b>${tA}h</b></td><td></td><td style="${tColor}">${tText}</td>
         </tr></table>`;
         
         document.getElementById('m-body').innerHTML = html;
@@ -540,13 +554,13 @@
                     <td class="divider-right" style="vertical-align: top; padding-top: 6px;"><input type="date" class="data-in" style="${overStyle}" value="${safeISO(o.end)}" onchange="u(${i},'end',this.value)" ${disAttr}>${overBadge}</td>
                     <td><input class="num-in" title="AH1" value="${o.sub1}" onchange="u(${i},'sub1',this.value)" ${disAttr}></td>
                     <td class="divider-right"><input class="num-in" title="AH2" value="${o.sub2}" onchange="u(${i},'sub2',this.value)" ${disAttr}></td>
-                    <td class="divider-right" style="background:#e1f5fe;">${makeCell('ins', 'prog_ins', i, o, disAttr)}</td>
-                    <td class="divider-right">${makeCell('trei', 'prog_tr', i, o, disAttr)}</td>
-                    <td class="divider-right">${makeCell('must_k', 'prog_mk', i, o, disAttr)}</td>
-                    <td class="divider-right">${makeCell('rv_k', 'prog_rk', i, o, disAttr)}</td>
-                    <td class="divider-right">${makeCell('must_l', 'prog_ml', i, o, disAttr)}</td>
-                    <td class="divider-right">${makeCell('rv_l', 'prog_rl', i, o, disAttr)}</td>
-                    <td class="divider-right">${makeCell('kooste', 'prog_ko', i, o, disAttr)}</td>
+                    <td class="divider-right" style="background:#e1f5fe;">${makeCell('ins', 'prog_ins', 'done_ins', i, o, disAttr)}</td>
+                    <td class="divider-right">${makeCell('trei', 'prog_tr', 'done_tr', i, o, disAttr)}</td>
+                    <td class="divider-right">${makeCell('must_k', 'prog_mk', 'done_mk', i, o, disAttr)}</td>
+                    <td class="divider-right">${makeCell('rv_k', 'prog_rk', 'done_rk', i, o, disAttr)}</td>
+                    <td class="divider-right">${makeCell('must_l', 'prog_ml', 'done_ml', i, o, disAttr)}</td>
+                    <td class="divider-right">${makeCell('rv_l', 'prog_rl', 'done_rl', i, o, disAttr)}</td>
+                    <td class="divider-right">${makeCell('kooste', 'prog_ko', 'done_ko', i, o, disAttr)}</td>
                     <td class="divider-right" style="text-align:center; vertical-align:middle;"><div id="prog_tot_${i}" class="${totOver}" style="background:#e3f2fd; color:#0277bd; border:1px solid #0288d1; border-radius:3px; padding:4px; font-weight:bold; font-size:11px; width:40px; margin:auto;" title="Tehtud tunnid / Plaanitud tunnid">${o.progress}%</div></td>
                     <td style="vertical-align:middle;"><select class="status-select" onchange="u(${i},'status',this.value);renderTable()" ${disAttr}><option ${o.status==='Ootel'?'selected':''}>Ootel</option><option ${o.status==='Töös'?'selected':''}>Töös</option><option ${o.status==='Valmis'?'selected':''}>Valmis</option></select></td>
                     <td class="admin-only" style="${hideTrash}; vertical-align:middle;"><button onclick="del(${i})" style="border:none; background:none; cursor:pointer;">🗑️</button></td>
@@ -569,13 +583,14 @@
                 let endD = new Date(o.end); endD.setHours(23, 59, 59, 999);
                 if (o.status === 'Töös' && endD.getTime() < todayTime.getTime()) overdueTotal++;
                 
-                remH.ins += Math.max(0, f(o.ins) - f(o.prog_ins));
-                remH.trei += Math.max(0, f(o.trei) - f(o.prog_tr));
-                remH.must_k += Math.max(0, f(o.must_k) - f(o.prog_mk));
-                remH.rv_k += Math.max(0, f(o.rv_k) - f(o.prog_rk));
-                remH.must_l += Math.max(0, f(o.must_l) - f(o.prog_ml));
-                remH.rv_l += Math.max(0, f(o.rv_l) - f(o.prog_rl));
-                remH.kooste += Math.max(0, f(o.kooste) - f(o.prog_ko));
+                // UUS: Kui osakond on märgitud "done", siis see ei lähe enam armatuurlauale järelejäänud tundidena kirja!
+                if(String(o.done_ins) !== 'true') remH.ins += Math.max(0, f(o.ins) - f(o.prog_ins));
+                if(String(o.done_tr) !== 'true') remH.trei += Math.max(0, f(o.trei) - f(o.prog_tr));
+                if(String(o.done_mk) !== 'true') remH.must_k += Math.max(0, f(o.must_k) - f(o.prog_mk));
+                if(String(o.done_rk) !== 'true') remH.rv_k += Math.max(0, f(o.rv_k) - f(o.prog_rk));
+                if(String(o.done_ml) !== 'true') remH.must_l += Math.max(0, f(o.must_l) - f(o.prog_ml));
+                if(String(o.done_rl) !== 'true') remH.rv_l += Math.max(0, f(o.rv_l) - f(o.prog_rl));
+                if(String(o.done_ko) !== 'true') remH.kooste += Math.max(0, f(o.kooste) - f(o.prog_ko));
             }
         });
 
@@ -630,14 +645,15 @@
                 return `<div class="task-bar" title="${titleText}" style="left:${left}px; width:${width}px; background:${color}; font-size:10px; justify-content:center; padding:0; border-radius:3px; box-shadow:inset 0 0 0 1px rgba(0,0,0,0.1);">${dur > 1 ? label : label[0]}</div>`;
             };
 
-            if(f(o.ins) > 0) bodyHtml += drawSeg(bnds.ins, CONFIG.ins.color, 'INS', 'Inseneeria');
+            // UUS: Joonistab Üld-Ganttis ainult neid lahtreid, mis EI OLE valmis
+            if(f(o.ins) > 0 && String(o.done_ins) !== 'true') bodyHtml += drawSeg(bnds.ins, CONFIG.ins.color, 'INS', 'Inseneeria');
             if(f(o.sub1) > 0) bodyHtml += drawSeg(bnds.ah1, '#95a5a6', 'AH1', 'Esimene allhange (AH1)');
             let lukkH = f(o.trei) + f(o.must_l) + f(o.rv_l);
-            if(lukkH > 0) bodyHtml += drawSeg(bnds.lukk, CONFIG.must_l.color, 'LUKK', 'Lukksepp / Treial');
+            if(lukkH > 0 && !(String(o.done_tr)==='true' && String(o.done_ml)==='true' && String(o.done_rl)==='true')) bodyHtml += drawSeg(bnds.lukk, CONFIG.must_l.color, 'LUKK', 'Lukksepp / Treial');
             let keevH = f(o.must_k) + f(o.rv_k);
-            if(keevH > 0) bodyHtml += drawSeg(bnds.keev, CONFIG.must_k.color, 'KEEV', 'Keevitus');
+            if(keevH > 0 && !(String(o.done_mk)==='true' && String(o.done_rk)==='true')) bodyHtml += drawSeg(bnds.keev, CONFIG.must_k.color, 'KEEV', 'Keevitus');
             if(f(o.sub2) > 0) bodyHtml += drawSeg(bnds.ah2, '#95a5a6', 'AH2', 'Teine allhange (AH2)');
-            if(f(o.kooste) > 0) bodyHtml += drawSeg(bnds.kooste, CONFIG.kooste.color, 'KOOSTE', 'Kooste');
+            if(f(o.kooste) > 0 && String(o.done_ko) !== 'true') bodyHtml += drawSeg(bnds.kooste, CONFIG.kooste.color, 'KOOSTE', 'Kooste');
             
             bodyHtml += `</div></div>`; 
         });
@@ -657,10 +673,11 @@
         }
         let bodyHtml = `<div class="gantt-body" id="b-scroll-${key}">`;
         
-        let filteredOrders = orders.filter(o => o[key] > 0 && o.status === 'Töös' && o.mt !== 'SYS_SETTINGS');
+        // UUS: Filtreerib välja tellimused, mis on selles osakonnas märgitud 'done'
+        let filteredOrders = orders.filter(o => o[key] > 0 && o.status === 'Töös' && o.mt !== 'SYS_SETTINGS' && String(o[CONFIG[key].d]) !== 'true');
         if (gV) filteredOrders = filteredOrders.filter(o => (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
         
-        if (filteredOrders.length === 0) bodyHtml += `<div class="empty-state">ℹ️ Ühtegi filtriga sobivat tellimust "${CONFIG[key].l}" osakonnas ei leitud.</div>`;
+        if (filteredOrders.length === 0) bodyHtml += `<div class="empty-state">ℹ️ Selles osakonnas pole ühtegi töös tellimust.</div>`;
 
         let disAttr = isAdmin ? "" : "disabled";
 
@@ -683,6 +700,9 @@
             let fillW = Math.min(100, curProg);
             let overBg = curProg > 100 ? 'background: rgba(231, 76, 60, 0.7); border-right: 2px solid #c0392b;' : '';
             let inputOverClass = curProg > 100 ? 'overbudget' : '';
+            
+            let isDone = String(o[CONFIG[key].d]) === 'true';
+            let checkAttr = isDone ? 'checked' : '';
 
             bodyHtml += `<div class="gantt-row">
                 <div class="gantt-info">
@@ -691,11 +711,16 @@
                             <b>${o.mt}</b>
                             <small>${o.client}</small>
                         </div>
-                        <div style="display:flex; align-items:center; gap:4px; background:#f4f7f6; padding:3px 6px; border-radius:4px; border:1px solid #ccc; flex-shrink:0;">
-                            <span style="font-size:10px; color:#555;" title="Plaanitud tunnid">P: <b>${plannedH}h</b></span>
-                            <span style="font-size:10px; color:#aaa;">|</span>
-                            <span style="font-size:10px; color:#27ae60; font-weight:bold;" title="Tehtud tunnid">T:</span>
-                            <input type="number" class="prog-in ${inputOverClass}" value="${actualH}" onchange="u(${gIdx},'${CONFIG[key].p}',this.value);applyUIMode()" ${disAttr} style="width:42px; height:20px; padding:0 2px; font-size:11px; margin:0;">
+                        <div style="display:flex; flex-direction:column; align-items:flex-end;">
+                            <div style="display:flex; align-items:center; gap:4px; background:#f4f7f6; padding:3px 6px; border-radius:4px; border:1px solid #ccc; flex-shrink:0;">
+                                <span style="font-size:10px; color:#555;" title="Plaanitud tunnid">P: <b>${plannedH}h</b></span>
+                                <span style="font-size:10px; color:#aaa;">|</span>
+                                <span style="font-size:10px; color:#27ae60; font-weight:bold;" title="Tehtud tunnid">T:</span>
+                                <input type="number" class="prog-in ${inputOverClass}" value="${actualH}" onchange="u(${gIdx},'${CONFIG[key].p}',this.value);applyUIMode()" ${disAttr} style="width:42px; height:20px; padding:0 2px; font-size:11px; margin:0;">
+                            </div>
+                            <label style="font-size:10px; cursor:pointer; display:flex; align-items:center; gap:2px; margin-top:3px; background:#e8f5e9; padding:2px 5px; border-radius:3px; border:1px solid #a5d6a7; color:#2e7d32;">
+                                <input type="checkbox" onchange="u(${gIdx},'${CONFIG[key].d}',this.checked);applyUIMode()" ${checkAttr} ${disAttr} style="margin:0;"> ✅ Valmis
+                            </label>
                         </div>
                     </div>
                     <small style="color:#777; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${o.kirjeldus||''}">${o.kirjeldus||''}</small>
@@ -736,6 +761,7 @@
         });
     }
 
+    // TARK TASANDAJA
     function calculateSmartDailyLoad(ordersToProcess) {
         let dailyLoadTracker = {}; 
         Object.keys(CONFIG).forEach(k => dailyLoadTracker[k] = {});
@@ -755,8 +781,9 @@
                 let startT = myBnd.sDate.getTime();
                 let endT = myBnd.eDate.getTime();
                 let totalH = f(o[k]);
+                let isDone = String(o[CONFIG[k].d]) === 'true'; // UUS: Ei koorma, kui valmis!
 
-                if (totalH > 0) {
+                if (totalH > 0 && !isDone) {
                     allocs.depts[k] = {};
                     let workDaysList = [];
                     let curT = startT;
@@ -1012,7 +1039,13 @@
     
     function addNewRow() { 
         if(!isAdmin) return; 
-        orders.unshift({mt:"UUS", client:"", kirjeldus:"", start:new Date().toISOString().split('T')[0], end:new Date().toISOString().split('T')[0], sub1:0, sub2:0, ins:0, trei:0, must_k:0, rv_k:0, must_l:0, rv_l:0, kooste:0, prog_ins:0, prog_tr:0, prog_mk:0, prog_rk:0, prog_ml:0, prog_rl:0, prog_ko:0, progress:0, status:'Ootel'}); 
+        orders.unshift({
+            mt:"UUS", client:"", kirjeldus:"", start:new Date().toISOString().split('T')[0], end:new Date().toISOString().split('T')[0], 
+            sub1:0, sub2:0, ins:0, trei:0, must_k:0, rv_k:0, must_l:0, rv_l:0, kooste:0, 
+            prog_ins:0, prog_tr:0, prog_mk:0, prog_rk:0, prog_ml:0, prog_rl:0, prog_ko:0, 
+            done_ins:false, done_tr:false, done_mk:false, done_rk:false, done_ml:false, done_rl:false, done_ko:false,
+            progress:0, status:'Ootel'
+        }); 
         currentMainTabFilter = 'active';
         document.getElementById('view-title').innerText = "Aktiivsed testtööd";
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
