@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>DEMO - TOCI Tootmisplaan V102</title>
+    <title>DEMO - TOCI Tootmisplaan V103</title>
     <style>
         :root { --primary: #c0392b; --accent: #e67e22; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -94,7 +94,7 @@
 </div>
 
 <div class="top-bar">
-    <div>⚠️ <strong>TOCI DEMO V102.0 (Otse Ganttis Muutmine)</strong></div>
+    <div>⚠️ <strong>TOCI DEMO V103.0 (Tark Koormuse Tasandus)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;" title="Ekspordib selle vaate, kus sa parajasti oled">📥 EKSPORDI VAADE</button>
@@ -684,7 +684,6 @@
             let overBg = curProg > 100 ? 'background: rgba(231, 76, 60, 0.7); border-right: 2px solid #c0392b;' : '';
             let inputOverClass = curProg > 100 ? 'overbudget' : '';
 
-            // V102 UUS: Uuendatud gantt-info, et näidata ja MÄRKIDA tehtud tunde otse siit!
             bodyHtml += `<div class="gantt-row">
                 <div class="gantt-info">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
@@ -737,28 +736,97 @@
         });
     }
 
+    // --- UUS: TARK KOORMUSE TASANDAMISE ALGORITM (SMART LEVELING) ---
+    function calculateSmartDailyLoad(ordersToProcess) {
+        let dailyLoadTracker = {}; 
+        Object.keys(CONFIG).forEach(k => dailyLoadTracker[k] = {});
+        let orderAllocations = []; 
+
+        ordersToProcess.forEach(o => {
+            let bnds = getPhaseDates(o, START_VIEW);
+            let allocs = { mt: o.mt, client: o.client, kirjeldus: o.kirjeldus, depts: {} };
+
+            Object.keys(CONFIG).forEach(k => {
+                let myBnd;
+                if (CONFIG[k].order === 0) myBnd = bnds.ins;
+                else if (CONFIG[k].order === 1) myBnd = bnds.lukk;
+                else if (CONFIG[k].order === 2) myBnd = bnds.keev;
+                else if (CONFIG[k].order === 3) myBnd = bnds.kooste;
+
+                let startT = myBnd.sDate.getTime();
+                let endT = myBnd.eDate.getTime();
+                let totalH = f(o[k]);
+
+                if (totalH > 0) {
+                    allocs.depts[k] = {};
+                    let workDaysList = [];
+                    let curT = startT;
+                    while(curT <= endT) {
+                        let cD = new Date(curT);
+                        if(cD.getDay() !== 0 && cD.getDay() !== 6 && !isHoliday(cD)) {
+                            workDaysList.push(curT);
+                        }
+                        curT += 86400000;
+                    }
+                    if (workDaysList.length === 0) workDaysList.push(startT);
+
+                    let myAllocs = {};
+                    workDaysList.forEach(t => myAllocs[t] = totalH / workDaysList.length);
+
+                    // 5-Iteratsiooniline tasandaja: tõstab "üle ääre" läinud tunnid tühjematele päevadele!
+                    for(let iter=0; iter<5; iter++) {
+                        let excessH = 0;
+                        let receivers = [];
+                        
+                        workDaysList.forEach(t => {
+                            let wNo = getWeek(new Date(t));
+                            let cap = (customCap[k] && customCap[k][wNo]) ? customCap[k][wNo] / 5 : CONFIG[k].c / 5;
+                            let currentOthers = dailyLoadTracker[k][t] || 0;
+                            let totalHere = currentOthers + myAllocs[t];
+                            
+                            if (totalHere > cap && myAllocs[t] > 0) {
+                                let over = totalHere - cap;
+                                let shiftable = Math.min(over, myAllocs[t]);
+                                if (shiftable > 0.05) { 
+                                    excessH += shiftable;
+                                    myAllocs[t] -= shiftable;
+                                }
+                            } else if (totalHere < cap - 0.05) {
+                                receivers.push(t);
+                            }
+                        });
+                        
+                        if (excessH <= 0.05 || receivers.length === 0) break;
+                        
+                        let addPerDay = excessH / receivers.length;
+                        receivers.forEach(t => myAllocs[t] += addPerDay);
+                    }
+                    
+                    workDaysList.forEach(t => {
+                        allocs.depts[k][t] = myAllocs[t];
+                        dailyLoadTracker[k][t] = (dailyLoadTracker[k][t] || 0) + myAllocs[t];
+                    });
+                }
+            });
+            orderAllocations.push(allocs);
+        });
+
+        return { tracker: dailyLoadTracker, allocs: orderAllocations };
+    }
+
     function renderDailyCharts() {
         const gV = document.getElementById('globalFilter').value.toLowerCase();
         const container = document.getElementById('daily-load-container'); container.innerHTML = "";
         const daysToShow = 365, startDate = new Date(TODAY); startDate.setDate(startDate.getDate() - 2);
         const SCALE = 4;
         
-        let activeStats = {};
-        Object.keys(CONFIG).forEach(k => {
-            activeStats[k] = orders.filter(o => o.status === 'Töös' && o[k] > 0 && o.mt !== 'SYS_SETTINGS').map(o => {
-                let bnds = getPhaseDates(o, START_VIEW);
-                let myBnd;
-                if (CONFIG[k].order === 0) myBnd = bnds.ins;
-                else if (CONFIG[k].order === 1) myBnd = bnds.lukk;
-                else if (CONFIG[k].order === 2) myBnd = bnds.keev;
-                else if (CONFIG[k].order === 3) myBnd = bnds.kooste;
-                
-                let workDays = getWorkingDays(myBnd.sDate, myBnd.eDate);
-                return { mt: o.mt, client: o.client, kirjeldus: o.kirjeldus, sTime: myBnd.sDate.getTime(), eTime: myBnd.eDate.getTime(), hPerDay: o[k] / workDays };
-            });
-            // Filtreerime andmed
-            if(gV) activeStats[k] = activeStats[k].filter(os => (os.mt && String(os.mt).toLowerCase().includes(gV)) || (os.client && String(os.client).toLowerCase().includes(gV)) || (os.kirjeldus && String(os.kirjeldus).toLowerCase().includes(gV)));
-        });
+        let validOrders = orders.filter(o => o.status === 'Töös' && o.mt !== 'SYS_SETTINGS');
+        if (gV) validOrders = validOrders.filter(o => (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
+        
+        // Järjestame alguskuupäeva järgi, et vanemad tellimused saaksid "esimesena ruumi"
+        validOrders.sort((a, b) => new Date(a.start) - new Date(b.start));
+
+        let smartLoad = calculateSmartDailyLoad(validOrders);
 
         Object.keys(CONFIG).forEach(k => {
             let chartHtml = `<div class="daily-chart-wrapper" onscroll="syncDailyScroll(event)"><h3>${CONFIG[k].l} (Päeva koormus)</h3><div class="daily-chart-area">`;
@@ -771,9 +839,11 @@
                 let dailyCap = (customCap[k] && customCap[k][wNo]) ? customCap[k][wNo] / 5 : CONFIG[k].c / 5;
                 
                 if (!isRestDay) {
-                    activeStats[k].forEach(os => {
-                        if(curTime >= os.sTime && curTime <= os.eTime) {
-                            totalH += os.hPerDay; segmentsHtml += `<div class="order-segment" style="height:${os.hPerDay * SCALE}px; background:${CONFIG[k].color};" title="${os.mt} (${os.kirjeldus||''})\nKoormus: ${os.hPerDay.toFixed(1)}h">${os.hPerDay > 0.5 ? os.mt : ''}</div>`;
+                    smartLoad.allocs.forEach(os => {
+                        let hHere = os.depts[k] ? (os.depts[k][curTime] || 0) : 0;
+                        if(hHere > 0) {
+                            totalH += hHere; 
+                            segmentsHtml += `<div class="order-segment" style="height:${hHere * SCALE}px; background:${CONFIG[k].color};" title="${os.mt} (${os.kirjeldus||''})\nKoormus: ${hHere.toFixed(1)}h">${hHere > 0.5 ? os.mt : ''}</div>`;
                         }
                     });
                 }
@@ -782,7 +852,7 @@
                 let bgClass = isHol ? 'holiday-bg' : (isToday ? 'today-bg' : '');
                 let labelClass = isHol ? 'holiday-text' : (isWeekend ? 'weekend-label' : '');
                 
-                chartHtml += `<div class="day-column ${bgClass}"> ${limitLineHtml} ${segmentsHtml} <div class="day-label ${labelClass}"><strong>${curDate.getDate()}.${curDate.getMonth()+1}</strong><br>${['P','E','T','K','N','R','L'][curDate.getDay()]}<br><span style="color:${totalH > dailyCap ? 'red' : '#666'}">${totalH > 0 ? totalH.toFixed(1)+'h' : ''}</span></div></div>`;
+                chartHtml += `<div class="day-column ${bgClass}"> ${limitLineHtml} ${segmentsHtml} <div class="day-label ${labelClass}"><strong>${curDate.getDate()}.${curDate.getMonth()+1}</strong><br>${['P','E','T','K','N','R','L'][curDate.getDay()]}<br><span style="color:${totalH > dailyCap + 0.1 ? 'red' : '#666'}">${totalH > 0.1 ? totalH.toFixed(1)+'h' : ''}</span></div></div>`;
             }
             container.innerHTML += chartHtml + `</div></div>`;
         });
@@ -794,19 +864,11 @@
         const daysToShow = 365; 
         const startDate = new Date(TODAY); startDate.setDate(startDate.getDate() - 2);
         
-        let activeStats = {};
-        Object.keys(CONFIG).forEach(k => {
-            activeStats[k] = orders.filter(o => o.status === 'Töös' && o[k] > 0 && o.mt !== 'SYS_SETTINGS').map(o => {
-                let bnds = getPhaseDates(o, START_VIEW);
-                let myBnd;
-                if (CONFIG[k].order === 0) myBnd = bnds.ins;
-                else if (CONFIG[k].order === 1) myBnd = bnds.lukk;
-                else if (CONFIG[k].order === 2) myBnd = bnds.keev;
-                else if (CONFIG[k].order === 3) myBnd = bnds.kooste;
-                return { mt: o.mt, client: o.client, kirjeldus: o.kirjeldus, sTime: myBnd.sDate.getTime(), eTime: myBnd.eDate.getTime(), hPerDay: o[k] / getWorkingDays(myBnd.sDate, myBnd.eDate) };
-            });
-            if(gV) activeStats[k] = activeStats[k].filter(os => (os.mt && String(os.mt).toLowerCase().includes(gV)) || (os.client && String(os.client).toLowerCase().includes(gV)) || (os.kirjeldus && String(os.kirjeldus).toLowerCase().includes(gV)));
-        });
+        let validOrders = orders.filter(o => o.status === 'Töös' && o.mt !== 'SYS_SETTINGS');
+        if (gV) validOrders = validOrders.filter(o => (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
+        
+        validOrders.sort((a, b) => new Date(a.start) - new Date(b.start));
+        let smartLoad = calculateSmartDailyLoad(validOrders);
 
         let html = `<div style="background:white; border-radius:8px; padding:0; box-shadow:0 4px 15px rgba(0,0,0,0.05); overflow:auto; height:100%;">
             <table class="data-table" style="min-width:max-content; border-collapse: separate; border-spacing: 0;">
@@ -825,17 +887,13 @@
                 let curDate = new Date(startDate.getTime() + i*86400000), curTime = curDate.getTime(), wNo = getWeek(curDate), isWeekend = curDate.getDay() === 0 || curDate.getDay() === 6, isToday = curDate.toDateString() === TODAY.toDateString();
                 let isHol = isHoliday(curDate);
                 let dailyCap = (customCap[k] && customCap[k][wNo]) ? customCap[k][wNo] / 5 : CONFIG[k].c / 5;
-                let totalH = 0;
                 
-                if (!isWeekend && !isHol) {
-                    activeStats[k].forEach(os => {
-                        if(curTime >= os.sTime && curTime <= os.eTime) totalH += os.hPerDay;
-                    });
-                }
+                let totalH = smartLoad.tracker[k][curTime] || 0;
                 
-                let isOver = totalH > dailyCap, cellStyle = isHol ? "background:#ffebee; color:#c62828;" : (isWeekend ? "background:#eee;" : (isOver ? "background:#ffebee; color:#c62828; font-weight:bold;" : (totalH > 0 ? "background:#e8f5e9; color:#2e7d32; font-weight:bold;" : "background:#fff;")));
+                let isOver = totalH > dailyCap + 0.1;
+                let cellStyle = isHol ? "background:#ffebee; color:#c62828;" : (isWeekend ? "background:#eee;" : (isOver ? "background:#ffebee; color:#c62828; font-weight:bold;" : (totalH > 0.1 ? "background:#e8f5e9; color:#2e7d32; font-weight:bold;" : "background:#fff;")));
                 if(isToday) cellStyle += " border-left:2px solid var(--today); border-right:2px solid var(--today);";
-                html += `<td style="text-align:center; border-right:1px solid #eee; border-bottom:1px solid #eee; ${cellStyle}">${totalH > 0 ? totalH.toFixed(1) : (isHol ? 'P' : '')}</td>`;
+                html += `<td style="text-align:center; border-right:1px solid #eee; border-bottom:1px solid #eee; ${cellStyle}">${totalH > 0.1 ? totalH.toFixed(1) : (isHol ? 'P' : '')}</td>`;
             }
             html += `</tr>`;
         });
