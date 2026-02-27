@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>DEMO - TOCI Tootmisplaan V101</title>
+    <title>DEMO - TOCI Tootmisplaan V102</title>
     <style>
         :root { --primary: #c0392b; --accent: #e67e22; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -57,7 +57,7 @@
 
         .gantt-outer { height: 100%; display: flex; flex-direction: column; background: white; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; }
         .gantt-header-wrapper { display: flex; background: #f8f9fa; border-bottom: 2px solid #ccc; height: 75px; }
-        .header-corner { width: 320px; min-width: 320px; background: #eee; border-right: 3px solid #bbb; display: flex; align-items: center; padding-left: 15px; font-weight: bold; position: sticky; left: 0; z-index: 2500; }
+        .header-corner { width: 340px; min-width: 340px; background: #eee; border-right: 3px solid #bbb; display: flex; align-items: center; padding-left: 15px; font-weight: bold; position: sticky; left: 0; z-index: 2500; }
         .header-scroll { flex-grow: 1; overflow: hidden; }
         .header-grid { display: flex; width: max-content; }
         .h-col { width: var(--cell-w); min-width: var(--cell-w); border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; }
@@ -65,7 +65,7 @@
         .h-day { height: 40px; display: flex; align-items: center; justify-content: center; font-size: 9px; }
         .gantt-body { flex-grow: 1; overflow: auto; } 
         .gantt-row { display: flex; border-bottom: 1px solid #eee; min-height: 105px; width: max-content; }
-        .gantt-info { position: sticky !important; left: 0 !important; width: 320px; min-width: 320px; background: #fff !important; z-index: 1000 !important; border-right: 3px solid #bbb !important; padding: 10px 15px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+        .gantt-info { position: sticky !important; left: 0 !important; width: 340px; min-width: 340px; background: #fff !important; z-index: 1000 !important; border-right: 3px solid #bbb !important; padding: 10px 15px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
         .gantt-info input[type="date"] { width: 100%; padding: 2px; font-size: 10px; border: 1px solid #ccc; border-radius:3px; }
         .gantt-bars-area { position: relative; display: flex; background-color: #fff; background-image: repeating-linear-gradient(to right, transparent, transparent calc(var(--cell-w) - 1px), #f1f1f1 calc(var(--cell-w) - 1px), #f1f1f1 var(--cell-w)); }
         .today-line { position: absolute; top: 0; bottom: 0; width: 3px; background: var(--today); z-index: 500; pointer-events: none; }
@@ -94,12 +94,10 @@
 </div>
 
 <div class="top-bar">
-    <div>⚠️ <strong>TOCI DEMO V101.0 (Tark Eksport)</strong></div>
+    <div>⚠️ <strong>TOCI DEMO V102.0 (Otse Ganttis Muutmine)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
-        
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;" title="Ekspordib selle vaate, kus sa parajasti oled">📥 EKSPORDI VAADE</button>
-
         <div id="syncStatus" style="background:var(--warning); color:black; padding:4px 10px; border-radius:4px; font-weight:bold; transition: 0.3s;">Ühendan...</div>
         <button id="modeToggleBtn" onclick="toggleMode()" style="background:#34495e; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">🔒 VAATAJA</button>
     </div>
@@ -267,7 +265,6 @@
         return Math.round((totalActual / totalPlanned) * 100);
     }
 
-    // TARK EKSPORT - Arvutab aktiivse vahekaardi põhjal, mida eksportida!
     function smartExport() {
         const activeTab = document.querySelector('.content.active').id;
         const gV = document.getElementById('globalFilter').value.toLowerCase();
@@ -685,11 +682,28 @@
             let curProg = plannedH > 0 ? Math.round((actualH / plannedH) * 100) : 0;
             let fillW = Math.min(100, curProg);
             let overBg = curProg > 100 ? 'background: rgba(231, 76, 60, 0.7); border-right: 2px solid #c0392b;' : '';
+            let inputOverClass = curProg > 100 ? 'overbudget' : '';
 
+            // V102 UUS: Uuendatud gantt-info, et näidata ja MÄRKIDA tehtud tunde otse siit!
             bodyHtml += `<div class="gantt-row">
                 <div class="gantt-info">
-                    <b>${o.mt}</b><small>${o.client}</small><small style="color:#777; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${o.kirjeldus||''}">${o.kirjeldus||''}</small>
-                    <div style="display:flex;gap:3px;"><input type="date" title="Algus" value="${safeISO(o.start)}" onchange="u(${gIdx},'start',this.value);applyUIMode()" ${disAttr}><input type="date" title="Lõpp" value="${safeISO(o.end)}" onchange="u(${gIdx},'end',this.value);applyUIMode()" ${disAttr}></div>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div style="display:flex; flex-direction:column; overflow:hidden;">
+                            <b>${o.mt}</b>
+                            <small>${o.client}</small>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:4px; background:#f4f7f6; padding:3px 6px; border-radius:4px; border:1px solid #ccc; flex-shrink:0;">
+                            <span style="font-size:10px; color:#555;" title="Plaanitud tunnid">P: <b>${plannedH}h</b></span>
+                            <span style="font-size:10px; color:#aaa;">|</span>
+                            <span style="font-size:10px; color:#27ae60; font-weight:bold;" title="Tehtud tunnid">T:</span>
+                            <input type="number" class="prog-in ${inputOverClass}" value="${actualH}" onchange="u(${gIdx},'${CONFIG[key].p}',this.value);applyUIMode()" ${disAttr} style="width:42px; height:20px; padding:0 2px; font-size:11px; margin:0;">
+                        </div>
+                    </div>
+                    <small style="color:#777; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${o.kirjeldus||''}">${o.kirjeldus||''}</small>
+                    <div style="display:flex;gap:3px; margin-top:2px;">
+                        <input type="date" title="Algus" value="${safeISO(o.start)}" onchange="u(${gIdx},'start',this.value);applyUIMode()" ${disAttr}>
+                        <input type="date" title="Lõpp" value="${safeISO(o.end)}" onchange="u(${gIdx},'end',this.value);applyUIMode()" ${disAttr}>
+                    </div>
                 </div>
                 <div class="gantt-bars-area" style="width:calc(var(--cell-w) * ${dayCount});">
                     <div class="today-line" style="left:${tIdx * 45}px"></div>`;
