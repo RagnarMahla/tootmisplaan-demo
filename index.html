@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>DEMO - TOCI Tootmisplaan V103</title>
+    <title>DEMO - TOCI Tootmisplaan V104</title>
     <style>
         :root { --primary: #c0392b; --accent: #e67e22; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -94,7 +94,7 @@
 </div>
 
 <div class="top-bar">
-    <div>⚠️ <strong>TOCI DEMO V103.0 (Tark Koormuse Tasandus)</strong></div>
+    <div>⚠️ <strong>TOCI DEMO V104.0 (Gantt sisestus & Parandatud Tasandus)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;" title="Ekspordib selle vaate, kus sa parajasti oled">📥 EKSPORDI VAADE</button>
@@ -736,7 +736,6 @@
         });
     }
 
-    // --- UUS: TARK KOORMUSE TASANDAMISE ALGORITM (SMART LEVELING) ---
     function calculateSmartDailyLoad(ordersToProcess) {
         let dailyLoadTracker = {}; 
         Object.keys(CONFIG).forEach(k => dailyLoadTracker[k] = {});
@@ -764,16 +763,15 @@
                     while(curT <= endT) {
                         let cD = new Date(curT);
                         if(cD.getDay() !== 0 && cD.getDay() !== 6 && !isHoliday(cD)) {
-                            workDaysList.push(curT);
+                            workDaysList.push(safeISO(cD));
                         }
                         curT += 86400000;
                     }
-                    if (workDaysList.length === 0) workDaysList.push(startT);
+                    if (workDaysList.length === 0) workDaysList.push(safeISO(new Date(startT)));
 
                     let myAllocs = {};
                     workDaysList.forEach(t => myAllocs[t] = totalH / workDaysList.length);
 
-                    // 5-Iteratsiooniline tasandaja: tõstab "üle ääre" läinud tunnid tühjematele päevadele!
                     for(let iter=0; iter<5; iter++) {
                         let excessH = 0;
                         let receivers = [];
@@ -797,7 +795,6 @@
                         });
                         
                         if (excessH <= 0.05 || receivers.length === 0) break;
-                        
                         let addPerDay = excessH / receivers.length;
                         receivers.forEach(t => myAllocs[t] += addPerDay);
                     }
@@ -810,7 +807,6 @@
             });
             orderAllocations.push(allocs);
         });
-
         return { tracker: dailyLoadTracker, allocs: orderAllocations };
     }
 
@@ -822,8 +818,6 @@
         
         let validOrders = orders.filter(o => o.status === 'Töös' && o.mt !== 'SYS_SETTINGS');
         if (gV) validOrders = validOrders.filter(o => (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
-        
-        // Järjestame alguskuupäeva järgi, et vanemad tellimused saaksid "esimesena ruumi"
         validOrders.sort((a, b) => new Date(a.start) - new Date(b.start));
 
         let smartLoad = calculateSmartDailyLoad(validOrders);
@@ -831,7 +825,7 @@
         Object.keys(CONFIG).forEach(k => {
             let chartHtml = `<div class="daily-chart-wrapper" onscroll="syncDailyScroll(event)"><h3>${CONFIG[k].l} (Päeva koormus)</h3><div class="daily-chart-area">`;
             for(let i=0; i<daysToShow; i++) {
-                let curDate = new Date(startDate.getTime() + i*86400000), curTime = curDate.getTime(), wNo = getWeek(curDate), isToday = curDate.toDateString() === TODAY.toDateString();
+                let curDate = new Date(startDate.getTime() + i*86400000), dateStr = safeISO(curDate), wNo = getWeek(curDate), isToday = curDate.toDateString() === TODAY.toDateString();
                 let isHol = isHoliday(curDate);
                 let isWeekend = curDate.getDay() === 0 || curDate.getDay() === 6;
                 let isRestDay = isWeekend || isHol;
@@ -840,7 +834,7 @@
                 
                 if (!isRestDay) {
                     smartLoad.allocs.forEach(os => {
-                        let hHere = os.depts[k] ? (os.depts[k][curTime] || 0) : 0;
+                        let hHere = os.depts[k] ? (os.depts[k][dateStr] || 0) : 0;
                         if(hHere > 0) {
                             totalH += hHere; 
                             segmentsHtml += `<div class="order-segment" style="height:${hHere * SCALE}px; background:${CONFIG[k].color};" title="${os.mt} (${os.kirjeldus||''})\nKoormus: ${hHere.toFixed(1)}h">${hHere > 0.5 ? os.mt : ''}</div>`;
@@ -866,8 +860,8 @@
         
         let validOrders = orders.filter(o => o.status === 'Töös' && o.mt !== 'SYS_SETTINGS');
         if (gV) validOrders = validOrders.filter(o => (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
-        
         validOrders.sort((a, b) => new Date(a.start) - new Date(b.start));
+
         let smartLoad = calculateSmartDailyLoad(validOrders);
 
         let html = `<div style="background:white; border-radius:8px; padding:0; box-shadow:0 4px 15px rgba(0,0,0,0.05); overflow:auto; height:100%;">
@@ -884,11 +878,11 @@
         Object.keys(CONFIG).forEach(k => {
             html += `<tr><td style="position:sticky; left:0; background:#f4f7f6; font-weight:bold; border-right:2px solid #ccc; z-index:10; color:${CONFIG[k].color};">${CONFIG[k].l}</td>`;
             for(let i=0; i<daysToShow; i++) {
-                let curDate = new Date(startDate.getTime() + i*86400000), curTime = curDate.getTime(), wNo = getWeek(curDate), isWeekend = curDate.getDay() === 0 || curDate.getDay() === 6, isToday = curDate.toDateString() === TODAY.toDateString();
+                let curDate = new Date(startDate.getTime() + i*86400000), dateStr = safeISO(curDate), wNo = getWeek(curDate), isWeekend = curDate.getDay() === 0 || curDate.getDay() === 6, isToday = curDate.toDateString() === TODAY.toDateString();
                 let isHol = isHoliday(curDate);
                 let dailyCap = (customCap[k] && customCap[k][wNo]) ? customCap[k][wNo] / 5 : CONFIG[k].c / 5;
                 
-                let totalH = smartLoad.tracker[k][curTime] || 0;
+                let totalH = smartLoad.tracker[k][dateStr] || 0;
                 
                 let isOver = totalH > dailyCap + 0.1;
                 let cellStyle = isHol ? "background:#ffebee; color:#c62828;" : (isWeekend ? "background:#eee;" : (isOver ? "background:#ffebee; color:#c62828; font-weight:bold;" : (totalH > 0.1 ? "background:#e8f5e9; color:#2e7d32; font-weight:bold;" : "background:#fff;")));
