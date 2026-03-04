@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V110</title>
+    <title>TOCI Tootmisplaan V111</title>
     <style>
         /* AMETLIK LIVE STIIL */
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
@@ -145,7 +145,7 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V110.0 (Multi-Dispetšer & Tark Gantt)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V111.0 (Dünaamilised Töökohad)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;" title="Ekspordib selle vaate, kus sa parajasti oled">📥 EKSPORDI VAADE</button>
@@ -260,17 +260,25 @@
 <div id="paeva_koormus_tabel" class="content"><div id="daily-table-container" style="height:100%;"></div></div>
 
 <div id="voimekus_tab" class="content flex-view">
-    <div id="holiday-manager" style="margin-bottom: 20px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #ddd; flex-shrink: 0;">
-        <h3 style="margin-top:0; color:#c62828;">🏖️ Puhkused ja Riigipühad</h3>
-        <p style="font-size:11px; color:#666; margin-top:-5px;">Määratud pühade päevadel jaotatakse koormus automaatselt ümber ja neid ei loeta tööpäevadeks.</p>
-        <div class="admin-only" style="display:none; margin-bottom: 15px; gap: 10px; align-items: center;">
-            <input type="text" id="hol-name" placeholder="Nimetus (nt. Suvepuhkus)" style="padding:6px; border-radius:4px; border:1px solid #ccc; width:200px;">
-            <input type="date" id="hol-start" style="padding:6px; border-radius:4px; border:1px solid #ccc;">
-            <span style="font-weight:bold;">kuni</span>
-            <input type="date" id="hol-end" title="Jäta tühjaks, kui on ainult 1 päev" style="padding:6px; border-radius:4px; border:1px solid #ccc;">
-            <button onclick="addHoliday()" style="padding:7px 15px; background:var(--danger); color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">+ LISA PUHKUS</button>
+    <div style="display:flex; gap:20px; margin-bottom: 20px; flex-shrink: 0; flex-wrap: wrap;">
+        <div id="holiday-manager" style="flex:1; min-width:300px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #ddd;">
+            <h3 style="margin-top:0; color:#c62828;">🏖️ Puhkused ja Riigipühad</h3>
+            <p style="font-size:11px; color:#666; margin-top:-5px;">Määratud pühade päevadel jaotatakse koormus automaatselt ümber ja neid ei loeta tööpäevadeks.</p>
+            <div class="admin-only" style="display:none; margin-bottom: 15px; gap: 10px; align-items: center;">
+                <input type="text" id="hol-name" placeholder="Nimetus (nt. Suvepuhkus)" style="padding:6px; border-radius:4px; border:1px solid #ccc; width:150px;">
+                <input type="date" id="hol-start" style="padding:6px; border-radius:4px; border:1px solid #ccc;">
+                <span style="font-weight:bold;">kuni</span>
+                <input type="date" id="hol-end" title="Jäta tühjaks, kui on ainult 1 päev" style="padding:6px; border-radius:4px; border:1px solid #ccc;">
+                <button onclick="addHoliday()" style="padding:7px 15px; background:var(--danger); color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">+ LISA</button>
+            </div>
+            <div id="holidays-list" style="display:flex; flex-direction:column; gap:5px; max-height: 100px; overflow-y: auto;"></div>
         </div>
-        <div id="holidays-list" style="display:flex; flex-direction:column; gap:5px; max-height: 100px; overflow-y: auto;"></div>
+
+        <div id="ws-manager" style="width:350px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #ddd;">
+            <h3 style="margin-top:0; color:#2980b9;">🏭 Töökohtade arv (Dispetšer)</h3>
+            <p style="font-size:11px; color:#666; margin-top:-5px;">Määra, mitu paralleelset töökohta igas osakonnas tabelisse joonistatakse.</p>
+            <div id="ws-list" style="display:flex; flex-direction:column; gap:5px;"></div>
+        </div>
     </div>
 
     <div class="table-container" style="flex-grow: 1; overflow: auto; min-height: 0; padding: 0;">
@@ -301,6 +309,7 @@
     const START_VIEW = new Date("2026-01-01"), TODAY = new Date();
     let orders = [], customCap = JSON.parse(localStorage.getItem('prod_cap_live')) || {};
     if (!customCap.holidays) customCap.holidays = [];
+    if (!customCap.wsCounts) customCap.wsCounts = {}; // UUS: Dünaamiliste töökohtade hoidla
     
     let currentMainTabFilter = 'active'; 
 
@@ -385,13 +394,10 @@
                 let p = getPhaseDates(o, START_VIEW);
                 const fd = (bnd) => bnd && bnd.sDate ? safeISO(bnd.sDate) : '';
                 const fde = (bnd) => bnd && bnd.eDate ? safeISO(bnd.eDate) : '';
-                
-                // Rakendame ekspordis sama "Gantti üle-kirjutamise" loogikat!
                 let mIns = getGroupManualDates(o, ['ins']); if(mIns) p.ins = mIns;
                 let mLukk = getGroupManualDates(o, ['trei', 'must_l', 'rv_l']); if(mLukk) p.lukk = mLukk;
                 let mKeev = getGroupManualDates(o, ['must_k', 'rv_k']); if(mKeev) p.keev = mKeev;
                 let mKooste = getGroupManualDates(o, ['kooste']); if(mKooste) p.kooste = mKooste;
-
                 csv += `${clean(o.mt)};${clean(o.client)};${fd(p.ins)};${fde(p.ins)};${fd(p.ah1)};${fde(p.ah1)};${fd(p.lukk)};${fde(p.lukk)};${fd(p.keev)};${fde(p.keev)};${fd(p.ah2)};${fde(p.ah2)};${fd(p.kooste)};${fde(p.kooste)}\n`;
             });
         } else if (activeTab.startsWith('gantt_') && activeTab !== 'gantt_all') {
@@ -403,7 +409,6 @@
                 let p = getPhaseDates(o, START_VIEW);
                 let myBnd = CONFIG[realKey].order === 0 ? p.ins : (CONFIG[realKey].order === 1 ? p.lukk : (CONFIG[realKey].order === 2 ? p.keev : p.kooste));
                 let mBnd = getGroupManualDates(o, [realKey]); if (mBnd) myBnd = mBnd;
-                
                 let wDays = getWorkingDays(myBnd.sDate, myBnd.eDate);
                 let pH = f(o[realKey]), aH = f(o[CONFIG[realKey].p]);
                 let prog = pH > 0 ? Math.round((aH/pH)*100) : 0;
@@ -445,7 +450,7 @@
         }
         if(activeTab === 'paeva_koormus_graafik') renderDailyCharts();
         if(activeTab === 'paeva_koormus_tabel') renderDailyTable();
-        if(activeTab === 'voimekus_tab') { renderHolidays(); renderCapacity(); }
+        if(activeTab === 'voimekus_tab') { renderHolidays(); renderWSManager(); renderCapacity(); }
         if(activeTab === 'dashboard_view') renderDashboard();
         if(activeTab === 'dispatcher_view') renderDispatcher();
     }
@@ -460,6 +465,7 @@
                 let sysRow = rawData.find(o => o.mt === 'SYS_SETTINGS');
                 if (sysRow && sysRow.kirjeldus) { try { customCap = JSON.parse(sysRow.kirjeldus); } catch(e) {} }
                 if (!customCap.holidays) customCap.holidays = [];
+                if (!customCap.wsCounts) customCap.wsCounts = {};
 
                 rawData.forEach(o => {
                     let cleanMt = String(o.mt).trim();
@@ -518,7 +524,6 @@
         return bounds;
     }
 
-    // UUS! See otsib manuaalsete klotside äärmised kuupäevad, et Gantti joon saaks nende järgi paika venida
     function getGroupManualDates(o, deptsArray) {
         let dates = [];
         deptsArray.forEach(dept => {
@@ -581,188 +586,6 @@
         let tDiff = tA - tP; let tColor = tDiff > 0 ? 'color:#c62828; font-weight:bold;' : 'color:#27ae60; font-weight:bold;'; let tText = tDiff > 0 ? `+${tDiff}h lõhki!` : `${Math.abs(tDiff)}h varu`; if(tDiff === 0) tText = 'Täpselt eelarves';
         html += `<tr style="background:#eee; font-size:14px;"><td><b>KOKKU:</b></td><td><b>${tP}h</b></td><td><b>${tA}h</b></td><td></td><td style="${tColor}">${tText}</td></tr></table>`;
         document.getElementById('m-body').innerHTML = html; document.getElementById('orderModal').style.display = 'block';
-    }
-
-    // DISPETŠER JA PINTSEL LOGIKA
-    function resetBrushAndRender() { activeBrushIdx = null; renderDispatcher(); }
-    function toggleBrush(idx) {
-        if(!isAdmin) { alert("Ainult Administraator saab Pintsli režiimi kasutada!"); return; }
-        if (activeBrushIdx === idx) activeBrushIdx = null; else activeBrushIdx = idx;
-        renderDispatcher();
-    }
-    function getAllocated(o, dept) {
-        let allocated = 0;
-        if(o.allocs && o.allocs[dept]) Object.values(o.allocs[dept]).forEach(day => { Object.values(day).forEach(h => allocated += f(h)); });
-        return allocated;
-    }
-
-    // Tükeldatud klikk: Klotsi sisu peal klikkimine
-    window.handleInnerBlockClick = function(e, dept, dateStr, wsName, oIdx, h) {
-        e.stopPropagation(); // See on tähtis, et tabelilahtri (tausta) klikk samal ajal ei käivituks!
-        if(!isAdmin) return;
-        if (activeBrushIdx !== null) {
-            if (activeBrushIdx === oIdx) {
-                deleteAllocationDirect(dept, dateStr, wsName, oIdx); // Pintsli "Kummigumm" režiim samale projektile
-            } else {
-                handleCellClick(dept, dateStr, wsName); // Pintsli peale trükkimine uue projektina
-            }
-        } else {
-            openAllocModal(dept, dateStr, wsName, oIdx, h); // Avab muutmiseks selle täpse projekti
-        }
-    };
-
-    // Lahtri taustal / tühjusel klikkimine
-    window.handleCellClick = function(dept, dateStr, wsName) {
-        if(!isAdmin) return;
-        if (activeBrushIdx !== null) {
-            let o = orders[activeBrushIdx];
-            let remaining = f(o[dept]) - getAllocated(o, dept);
-            if (remaining <= 0) { alert("Selle projekti kõik tunnid on juba laiali jagatud!"); return; }
-            
-            let totalCellH = 0;
-            orders.forEach(ord => { if(ord.allocs && ord.allocs[dept] && ord.allocs[dept][dateStr] && ord.allocs[dept][dateStr][wsName]) { totalCellH += f(ord.allocs[dept][dateStr][wsName]); } });
-            let room = 8 - totalCellH;
-            if (room <= 0) { alert("See töökoht on sel päeval juba 8h täis planeeritud!"); return; }
-            
-            let paintH = Math.min(room, remaining);
-            saveAllocationDirect(dept, dateStr, wsName, activeBrushIdx, paintH, true);
-        }
-    };
-
-    function saveAllocationDirect(dept, dateStr, wsName, oIdx, h, append = false) {
-        let o = orders[oIdx];
-        if(!o.allocs) o.allocs = {}; if(!o.allocs[dept]) o.allocs[dept] = {}; if(!o.allocs[dept][dateStr]) o.allocs[dept][dateStr] = {};
-        
-        if (append) {
-            let existing = f(o.allocs[dept][dateStr][wsName]);
-            o.allocs[dept][dateStr][wsName] = existing + h;
-        } else {
-            o.allocs[dept][dateStr][wsName] = h;
-        }
-        save(); renderDispatcher();
-    }
-    
-    function deleteAllocationDirect(dept, dateStr, wsName, oIdx) {
-        if(orders[oIdx].allocs && orders[oIdx].allocs[dept] && orders[oIdx].allocs[dept][dateStr]) {
-            delete orders[oIdx].allocs[dept][dateStr][wsName];
-        }
-        save(); renderDispatcher();
-    }
-
-    function renderDispatcher() {
-        let k = document.getElementById('disp-dept').value; 
-        let sDateStr = document.getElementById('disp-start').value || safeISO(TODAY); let sDate = new Date(sDateStr);
-        let gV = document.getElementById('globalFilter').value.toLowerCase();
-        let bankHtml = ""; let allocOptions = `<option value="">-- Vali tellimus --</option>`;
-        
-        let validBankOrders = orders.filter((o, i) => {
-            if(o.mt === 'SYS_SETTINGS' || o.status === 'Valmis' || String(o[CONFIG[k].d]) === 'true') return false;
-            let matchText = (!gV || (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)));
-            if (!matchText) return false;
-            let planned = f(o[k]); if(planned === 0) return false;
-            return true;
-        });
-
-        validBankOrders.forEach(o => {
-            let i = orders.indexOf(o); let planned = f(o[k]); let allocated = getAllocated(o, k); let remaining = planned - allocated;
-            let rColor = remaining < 0 ? 'red' : (remaining === 0 ? 'var(--success)' : '#333');
-            let isBrush = activeBrushIdx === i;
-            
-            bankHtml += `<div class="disp-bank-item ${isBrush ? 'brush-active' : ''}" style="border-left:5px solid ${remaining === 0 ? 'var(--success)' : CONFIG[k].color}; opacity:${remaining===0 && !isBrush ? 0.5 : 1};" onclick="toggleBrush(${i})">
-                <div style="font-weight:bold; font-size:14px; margin-bottom:4px;">${o.mt}</div>
-                <div style="color:#666; font-size:10px; margin-bottom:6px;">${o.client || '-'}</div>
-                <div style="display:flex; justify-content:space-between; font-size:11px;"><span>Plaan: <b>${planned}h</b></span><span>Jagatud: <b>${allocated}h</b></span></div>
-                <div style="margin-top:5px; font-size:12px; text-align:right;">Jääk: <b style="color:${rColor}; font-size:14px;">${remaining}h</b></div>
-            </div>`;
-            if (remaining > -999) allocOptions += `<option value="${i}">${o.mt} (Jääk: ${remaining}h)</option>`;
-        });
-        
-        if(bankHtml === "") bankHtml = "<div style='color:#777; padding:10px;'>Ühtegi planeerimist vajavat tööd ei leitud.</div>";
-        document.getElementById('disp-bank').innerHTML = bankHtml;
-        window.currentAllocOptions = allocOptions;
-
-        let bStatus = document.getElementById('brush-status');
-        if(activeBrushIdx !== null) { bStatus.innerHTML = `Pintsel: <b style="color:var(--danger)">${orders[activeBrushIdx].mt}</b> (Vajuta uuesti, et tühistada)`; } else { bStatus.innerHTML = `Pintsel: <b style="color:#999">VÄLJAS</b>`; }
-
-        let daysToShow = 30;
-        let gridHtml = `<thead><tr><th style="position:sticky; left:0; top:0; z-index:30; background:#2c3e50; color:white; min-width:80px; padding:10px;">Töökoht</th>`;
-        for(let d=0; d<daysToShow; d++) {
-            let dObj = new Date(sDate.getTime() + d*86400000); let isW = dObj.getDay()===0||dObj.getDay()===6;
-            gridHtml += `<th style="position:sticky; top:0; z-index:20; background:${isW?'#34495e':'#2c3e50'}; color:white; min-width:80px; font-size:10px; text-align:center;">${dObj.getDate()}.${dObj.getMonth()+1}<br>${['P','E','T','K','N','R','L'][dObj.getDay()]}</th>`;
-        }
-        gridHtml += `</tr></thead><tbody class="${activeBrushIdx !== null ? 'grid-brush-mode' : ''}">`;
-        
-        let wsCount = CONFIG[k].ws || 3;
-        for(let w=1; w<=wsCount; w++) {
-            let wsName = `${CONFIG[k].prefix}-${w}`;
-            gridHtml += `<tr><td style="position:sticky; left:0; background:#f4f7f6; font-weight:bold; border-right:2px solid #ccc; z-index:10; text-align:center;">${wsName}</td>`;
-            
-            for(let d=0; d<daysToShow; d++) {
-                let dObj = new Date(sDate.getTime() + d*86400000); let dStr = safeISO(dObj);
-                
-                // UUS: Otsib k6ik tellimused, mis on siia lahtrisse planeeritud!
-                let cellContent = ""; let totalCellH = 0; let cellAllocs = [];
-                orders.forEach((o, i) => {
-                    if(o.allocs && o.allocs[k] && o.allocs[k][dStr] && o.allocs[k][dStr][wsName]) {
-                        let h = f(o.allocs[k][dStr][wsName]);
-                        if(h > 0) { cellAllocs.push({idx: i, mt: o.mt, client: o.client, h: h}); totalCellH += h; }
-                    }
-                });
-                
-                if(cellAllocs.length > 0) {
-                    cellContent = `<div style="display:flex; flex-direction:column; gap:2px; padding:2px; height:100%; min-height:40px;">`;
-                    cellAllocs.forEach(al => {
-                        let opacity = (activeBrushIdx !== null && activeBrushIdx !== al.idx) ? "0.4" : "1";
-                        cellContent += `<div class="disp-alloc" style="background:${CONFIG[k].color}; opacity:${opacity};" title="${al.client}" onclick="handleInnerBlockClick(event, '${k}', '${dStr}', '${wsName}', ${al.idx}, ${al.h})">${al.mt}<br>${al.h}h</div>`;
-                    });
-                    if(totalCellH < 8) cellContent += `<div style="color:#ccc; font-size:10px;">+</div>`;
-                    cellContent += `</div>`;
-                } else {
-                    cellContent = `<div style="color:#eee; font-size:16px; margin-top:2px;">+</div>`;
-                }
-                
-                let cellStyle = (dObj.getDay()===0||dObj.getDay()===6) ? "background:#fafafa;" : "background:#fff;";
-                if(totalCellH > 8) cellStyle += " border: 2px solid var(--danger); box-shadow: inset 0 0 5px rgba(231,76,60,0.5);";
-                
-                gridHtml += `<td class="disp-cell" style="${cellStyle}" onclick="handleCellClick('${k}', '${dStr}', '${wsName}')" ondblclick="openAllocModal('${k}', '${dStr}', '${wsName}', -1, 8)">${cellContent}</td>`;
-            }
-            gridHtml += `</tr>`;
-        }
-        gridHtml += `</tbody>`;
-        document.getElementById('disp-grid').innerHTML = gridHtml;
-    }
-
-    function openAllocModal(dept, dateStr, wsName, currentOIdx, currentH) {
-        if(!isAdmin) { alert("Ainult Administraator saab töökohti planeerida!"); return; }
-        let dObj = new Date(dateStr); let estDate = dObj.getDate() + "." + (dObj.getMonth()+1) + "." + dObj.getFullYear();
-        document.getElementById('alloc-title').innerText = `${wsName} | ${estDate}`;
-        document.getElementById('alloc-dept').value = dept; document.getElementById('alloc-date').value = dateStr; document.getElementById('alloc-ws').value = wsName;
-        document.getElementById('alloc-old-idx').value = currentOIdx >= 0 ? currentOIdx : "";
-        
-        let sel = document.getElementById('alloc-mt'); sel.innerHTML = window.currentAllocOptions;
-        if (currentOIdx >= 0) {
-            sel.value = currentOIdx; document.getElementById('alloc-h').value = currentH; document.getElementById('alloc-del-btn').style.display = 'block';
-        } else {
-            sel.value = ""; document.getElementById('alloc-h').value = 8; document.getElementById('alloc-del-btn').style.display = 'none';
-        }
-        document.getElementById('allocModal').style.display = 'block';
-    }
-    
-    function saveAllocationModal() {
-        let dept = document.getElementById('alloc-dept').value; let dateStr = document.getElementById('alloc-date').value;
-        let wsName = document.getElementById('alloc-ws').value; let newIdx = document.getElementById('alloc-mt').value;
-        let oldIdx = document.getElementById('alloc-old-idx').value; let h = parseFloat(document.getElementById('alloc-h').value);
-        
-        if (oldIdx !== "") deleteAllocationDirect(dept, dateStr, wsName, parseInt(oldIdx));
-        if (newIdx !== "" && h > 0) saveAllocationDirect(dept, dateStr, wsName, parseInt(newIdx), h, false);
-        document.getElementById('allocModal').style.display = 'none';
-    }
-    
-    function deleteAllocationModal() {
-        let dept = document.getElementById('alloc-dept').value; let dateStr = document.getElementById('alloc-date').value; let wsName = document.getElementById('alloc-ws').value;
-        let oldIdx = document.getElementById('alloc-old-idx').value;
-        if (oldIdx !== "") deleteAllocationDirect(dept, dateStr, wsName, parseInt(oldIdx));
-        document.getElementById('allocModal').style.display = 'none';
     }
 
     function renderTable() {
@@ -864,8 +687,6 @@
 
         filteredOrders.forEach((o) => {
             let gIdx = orders.indexOf(o); let bnds = getPhaseDates(o, START_VIEW);
-
-            // UUS! Gantt kohandab end manuaalselt joonistatud "Pintsli" klotside järgi!
             let mIns = getGroupManualDates(o, ['ins']); if(mIns) bnds.ins = mIns;
             let mLukk = getGroupManualDates(o, ['trei', 'must_l', 'rv_l']); if(mLukk) bnds.lukk = mLukk;
             let mKeev = getGroupManualDates(o, ['must_k', 'rv_k']); if(mKeev) bnds.keev = mKeev;
@@ -926,8 +747,6 @@
         filteredOrders.forEach((o) => {
             let gIdx = orders.indexOf(o); let bnds = getPhaseDates(o, START_VIEW);
             let myBnd = CONFIG[key].order === 0 ? bnds.ins : (CONFIG[key].order === 1 ? bnds.lukk : (CONFIG[key].order === 2 ? bnds.keev : bnds.kooste));
-            
-            // UUS! Muudab üksiku osakonna Gantti kuju vastavalt dispetšerile!
             let mBnd = getGroupManualDates(o, [key]); if (mBnd) myBnd = mBnd;
 
             let finalLeft = myBnd.s * 45; let taskDur = Math.max(1, myBnd.e - myBnd.s + 1);
@@ -967,6 +786,181 @@
         if(bS && hS) { bS.onscroll = () => { hS.scrollLeft = bS.scrollLeft; }; setTimeout(() => { bS.scrollLeft = (tIdx * 45) - 160; }, 100); }
     }
 
+    window.handleInnerBlockClick = function(e, dept, dateStr, wsName, oIdx, h) {
+        e.stopPropagation(); 
+        if(!isAdmin) return;
+        if (activeBrushIdx !== null) {
+            if (activeBrushIdx === oIdx) deleteAllocationDirect(dept, dateStr, wsName, oIdx);
+            else handleCellClick(dept, dateStr, wsName);
+        } else {
+            openAllocModal(dept, dateStr, wsName, oIdx, h);
+        }
+    };
+
+    window.handleCellClick = function(dept, dateStr, wsName) {
+        if(!isAdmin) return;
+        if (activeBrushIdx !== null) {
+            let o = orders[activeBrushIdx];
+            let remaining = f(o[dept]) - getAllocated(o, dept);
+            if (remaining <= 0) { alert("Selle projekti kõik tunnid on juba laiali jagatud!"); return; }
+            
+            let totalCellH = 0;
+            orders.forEach(ord => { if(ord.allocs && ord.allocs[dept] && ord.allocs[dept][dateStr] && ord.allocs[dept][dateStr][wsName]) { totalCellH += f(ord.allocs[dept][dateStr][wsName]); } });
+            let room = 8 - totalCellH;
+            if (room <= 0) { alert("See töökoht on sel päeval juba 8h täis planeeritud!"); return; }
+            
+            let paintH = Math.min(room, remaining);
+            saveAllocationDirect(dept, dateStr, wsName, activeBrushIdx, paintH, true);
+        }
+    };
+
+    function saveAllocationDirect(dept, dateStr, wsName, oIdx, h, append = false) {
+        let o = orders[oIdx];
+        if(!o.allocs) o.allocs = {}; if(!o.allocs[dept]) o.allocs[dept] = {}; if(!o.allocs[dept][dateStr]) o.allocs[dept][dateStr] = {};
+        if (append && o.allocs[dept][dateStr][wsName]) {
+            o.allocs[dept][dateStr][wsName] = f(o.allocs[dept][dateStr][wsName]) + h;
+        } else {
+            o.allocs[dept][dateStr][wsName] = h;
+        }
+        save(); renderDispatcher();
+    }
+    
+    function deleteAllocationDirect(dept, dateStr, wsName, oIdx) {
+        if(orders[oIdx].allocs && orders[oIdx].allocs[dept] && orders[oIdx].allocs[dept][dateStr]) {
+            delete orders[oIdx].allocs[dept][dateStr][wsName];
+        }
+        save(); renderDispatcher();
+    }
+
+    function resetBrushAndRender() { activeBrushIdx = null; renderDispatcher(); }
+    function toggleBrush(idx) {
+        if(!isAdmin) { alert("Ainult Administraator saab Pintsli režiimi kasutada!"); return; }
+        if (activeBrushIdx === idx) activeBrushIdx = null; else activeBrushIdx = idx;
+        renderDispatcher();
+    }
+
+    function getAllocated(o, dept) {
+        let allocated = 0;
+        if(o.allocs && o.allocs[dept]) Object.values(o.allocs[dept]).forEach(day => { Object.values(day).forEach(h => allocated += f(h)); });
+        return allocated;
+    }
+
+    function renderDispatcher() {
+        let k = document.getElementById('disp-dept').value; 
+        let sDateStr = document.getElementById('disp-start').value || safeISO(TODAY); let sDate = new Date(sDateStr);
+        let gV = document.getElementById('globalFilter').value.toLowerCase();
+        let bankHtml = ""; let allocOptions = `<option value="">-- Vali tellimus --</option>`;
+        
+        let validBankOrders = orders.filter((o, i) => {
+            if(o.mt === 'SYS_SETTINGS' || o.status === 'Valmis' || String(o[CONFIG[k].d]) === 'true') return false;
+            let matchText = (!gV || (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)));
+            if (!matchText) return false;
+            let planned = f(o[k]); if(planned === 0) return false;
+            return true;
+        });
+
+        validBankOrders.forEach(o => {
+            let i = orders.indexOf(o); let planned = f(o[k]); let allocated = getAllocated(o, k); let remaining = planned - allocated;
+            let rColor = remaining < 0 ? 'red' : (remaining === 0 ? 'var(--success)' : '#333');
+            let isBrush = activeBrushIdx === i;
+            
+            bankHtml += `<div class="disp-bank-item ${isBrush ? 'brush-active' : ''}" style="border-left:5px solid ${remaining === 0 ? 'var(--success)' : CONFIG[k].color}; opacity:${remaining===0 && !isBrush ? 0.5 : 1};" onclick="toggleBrush(${i})">
+                <div style="font-weight:bold; font-size:14px; margin-bottom:4px;">${o.mt}</div>
+                <div style="color:#666; font-size:10px; margin-bottom:6px;">${o.client || '-'}</div>
+                <div style="display:flex; justify-content:space-between; font-size:11px;"><span>Plaan: <b>${planned}h</b></span><span>Jagatud: <b>${allocated}h</b></span></div>
+                <div style="margin-top:5px; font-size:12px; text-align:right;">Jääk: <b style="color:${rColor}; font-size:14px;">${remaining}h</b></div>
+            </div>`;
+            if (remaining > -999) allocOptions += `<option value="${i}">${o.mt} (Jääk: ${remaining}h)</option>`;
+        });
+        
+        if(bankHtml === "") bankHtml = "<div style='color:#777; padding:10px;'>Ühtegi planeerimist vajavat tööd ei leitud.</div>";
+        document.getElementById('disp-bank').innerHTML = bankHtml;
+        window.currentAllocOptions = allocOptions;
+
+        let bStatus = document.getElementById('brush-status');
+        if(activeBrushIdx !== null) { bStatus.innerHTML = `Pintsel: <b style="color:var(--danger)">${orders[activeBrushIdx].mt}</b> (Vajuta uuesti, et tühistada)`; } else { bStatus.innerHTML = `Pintsel: <b style="color:#999">VÄLJAS</b>`; }
+
+        let daysToShow = 30;
+        let gridHtml = `<thead><tr><th style="position:sticky; left:0; top:0; z-index:30; background:#2c3e50; color:white; min-width:80px; padding:10px;">Töökoht</th>`;
+        for(let d=0; d<daysToShow; d++) {
+            let dObj = new Date(sDate.getTime() + d*86400000); let isW = dObj.getDay()===0||dObj.getDay()===6;
+            gridHtml += `<th style="position:sticky; top:0; z-index:20; background:${isW?'#34495e':'#2c3e50'}; color:white; min-width:80px; font-size:10px; text-align:center;">${dObj.getDate()}.${dObj.getMonth()+1}<br>${['P','E','T','K','N','R','L'][dObj.getDay()]}</th>`;
+        }
+        gridHtml += `</tr></thead><tbody class="${activeBrushIdx !== null ? 'grid-brush-mode' : ''}">`;
+        
+        let wsCount = (customCap.wsCounts && customCap.wsCounts[k]) ? customCap.wsCounts[k] : (CONFIG[k].ws || 3);
+        
+        for(let w=1; w<=wsCount; w++) {
+            let wsName = `${CONFIG[k].prefix}-${w}`;
+            gridHtml += `<tr><td style="position:sticky; left:0; background:#f4f7f6; font-weight:bold; border-right:2px solid #ccc; z-index:10; text-align:center;">${wsName}</td>`;
+            
+            for(let d=0; d<daysToShow; d++) {
+                let dObj = new Date(sDate.getTime() + d*86400000); let dStr = safeISO(dObj);
+                
+                let cellContent = ""; let totalCellH = 0; let cellAllocs = [];
+                orders.forEach((o, i) => {
+                    if(o.allocs && o.allocs[k] && o.allocs[k][dStr] && o.allocs[k][dStr][wsName]) {
+                        let h = f(o.allocs[k][dStr][wsName]);
+                        if(h > 0) { cellAllocs.push({idx: i, mt: o.mt, client: o.client, h: h}); totalCellH += h; }
+                    }
+                });
+                
+                if(cellAllocs.length > 0) {
+                    cellContent = `<div style="display:flex; flex-direction:column; gap:2px; padding:2px; height:100%; min-height:40px;">`;
+                    cellAllocs.forEach(al => {
+                        let opacity = (activeBrushIdx !== null && activeBrushIdx !== al.idx) ? "0.4" : "1";
+                        cellContent += `<div class="disp-alloc" style="background:${CONFIG[k].color}; opacity:${opacity};" title="${al.client}" onclick="handleInnerBlockClick(event, '${k}', '${dStr}', '${wsName}', ${al.idx}, ${al.h})">${al.mt}<br>${al.h}h</div>`;
+                    });
+                    if(totalCellH < 8) cellContent += `<div style="color:#ccc; font-size:10px; margin-top:auto;">+</div>`;
+                    cellContent += `</div>`;
+                } else {
+                    cellContent = `<div style="color:#eee; font-size:16px; margin-top:2px;">+</div>`;
+                }
+                
+                let cellStyle = (dObj.getDay()===0||dObj.getDay()===6) ? "background:#fafafa;" : "background:#fff;";
+                if(totalCellH > 8) cellStyle += " border: 2px solid var(--danger); box-shadow: inset 0 0 5px rgba(231,76,60,0.5);";
+                
+                gridHtml += `<td class="disp-cell" style="${cellStyle}" onclick="handleCellClick('${k}', '${dStr}', '${wsName}')" ondblclick="openAllocModal('${k}', '${dStr}', '${wsName}', -1, 8)">${cellContent}</td>`;
+            }
+            gridHtml += `</tr>`;
+        }
+        gridHtml += `</tbody>`;
+        document.getElementById('disp-grid').innerHTML = gridHtml;
+    }
+
+    function openAllocModal(dept, dateStr, wsName, currentOIdx, currentH) {
+        if(!isAdmin) { alert("Ainult Administraator saab töökohti planeerida!"); return; }
+        let dObj = new Date(dateStr); let estDate = dObj.getDate() + "." + (dObj.getMonth()+1) + "." + dObj.getFullYear();
+        document.getElementById('alloc-title').innerText = `${wsName} | ${estDate}`;
+        document.getElementById('alloc-dept').value = dept; document.getElementById('alloc-date').value = dateStr; document.getElementById('alloc-ws').value = wsName;
+        document.getElementById('alloc-old-idx').value = currentOIdx >= 0 ? currentOIdx : "";
+        
+        let sel = document.getElementById('alloc-mt'); sel.innerHTML = window.currentAllocOptions;
+        if (currentOIdx >= 0) {
+            sel.value = currentOIdx; document.getElementById('alloc-h').value = currentH; document.getElementById('alloc-del-btn').style.display = 'block';
+        } else {
+            sel.value = ""; document.getElementById('alloc-h').value = 8; document.getElementById('alloc-del-btn').style.display = 'none';
+        }
+        document.getElementById('allocModal').style.display = 'block';
+    }
+    
+    function saveAllocationModal() {
+        let dept = document.getElementById('alloc-dept').value; let dateStr = document.getElementById('alloc-date').value;
+        let wsName = document.getElementById('alloc-ws').value; let newIdx = document.getElementById('alloc-mt').value;
+        let oldIdx = document.getElementById('alloc-old-idx').value; let h = parseFloat(document.getElementById('alloc-h').value);
+        
+        if (oldIdx !== "") deleteAllocationDirect(dept, dateStr, wsName, parseInt(oldIdx));
+        if (newIdx !== "" && h > 0) saveAllocationDirect(dept, dateStr, wsName, parseInt(newIdx), h, false);
+        document.getElementById('allocModal').style.display = 'none';
+    }
+    
+    function deleteAllocationModal() {
+        let dept = document.getElementById('alloc-dept').value; let dateStr = document.getElementById('alloc-date').value; let wsName = document.getElementById('alloc-ws').value;
+        let oldIdx = document.getElementById('alloc-old-idx').value;
+        if (oldIdx !== "") deleteAllocationDirect(dept, dateStr, wsName, parseInt(oldIdx));
+        document.getElementById('allocModal').style.display = 'none';
+    }
+
     function syncDailyScroll(e) {
         const scrollX = e.target.scrollLeft;
         document.querySelectorAll('.daily-chart-wrapper').forEach(w => { if (w !== e.target && w.scrollLeft !== scrollX) w.scrollLeft = scrollX; });
@@ -987,6 +981,11 @@
         });
         validOrders.forEach(o => {
             let bnds = getPhaseDates(o, START_VIEW);
+            let mIns = getGroupManualDates(o, ['ins']); if(mIns) bnds.ins = mIns;
+            let mLukk = getGroupManualDates(o, ['trei', 'must_l', 'rv_l']); if(mLukk) bnds.lukk = mLukk;
+            let mKeev = getGroupManualDates(o, ['must_k', 'rv_k']); if(mKeev) bnds.keev = mKeev;
+            let mKooste = getGroupManualDates(o, ['kooste']); if(mKooste) bnds.kooste = mKooste;
+
             let allocs = { mt: o.mt, client: o.client, kirjeldus: o.kirjeldus, depts: {} };
             Object.keys(CONFIG).forEach(k => {
                 let isDone = String(o[CONFIG[k].d]) === 'true';
@@ -1008,7 +1007,10 @@
                     for(let iter=0; iter<5; iter++) {
                         let excessH = 0; let receivers = [];
                         workDaysList.forEach(t => {
-                            let wNo = getWeek(new Date(t)); let cap = (customCap[k] && customCap[k][wNo]) ? customCap[k][wNo] / 5 : CONFIG[k].c / 5;
+                            let wNo = getWeek(new Date(t)); 
+                            let capCount = (customCap.wsCounts && customCap.wsCounts[k]) ? customCap.wsCounts[k] : CONFIG[k].ws;
+                            let cap = capCount * 8; // 8h per masin
+                            
                             let totalHere = (dailyLoadTracker[k][t] || 0) + myAllocs[t];
                             if (totalHere > cap && myAllocs[t] > 0) {
                                 let shiftable = Math.min(totalHere - cap, myAllocs[t]);
@@ -1043,7 +1045,9 @@
                 let curDate = new Date(startDate.getTime() + i*86400000), dateStr = safeISO(curDate), wNo = getWeek(curDate), isToday = curDate.toDateString() === TODAY.toDateString();
                 let isHol = isHoliday(curDate); let isWeekend = curDate.getDay() === 0 || curDate.getDay() === 6; let isRestDay = isWeekend || isHol;
                 let segmentsHtml = "", totalH = 0;
-                let dailyCap = (customCap[k] && customCap[k][wNo]) ? customCap[k][wNo] / 5 : CONFIG[k].c / 5;
+                
+                let capCount = (customCap.wsCounts && customCap.wsCounts[k]) ? customCap.wsCounts[k] : CONFIG[k].ws;
+                let dailyCap = capCount * 8; // 8h iga töökoht
                 
                 if (!isRestDay) {
                     validOrders.forEach(o => {
@@ -1091,7 +1095,11 @@
             html += `<tr><td style="position:sticky; left:0; background:#f4f7f6; font-weight:bold; border-right:2px solid #ccc; z-index:10; color:${CONFIG[k].color};">${CONFIG[k].l}</td>`;
             for(let i=0; i<daysToShow; i++) {
                 let curDate = new Date(startDate.getTime() + i*86400000), dateStr = safeISO(curDate), wNo = getWeek(curDate), isWeekend = curDate.getDay() === 0 || curDate.getDay() === 6, isToday = curDate.toDateString() === TODAY.toDateString();
-                let isHol = isHoliday(curDate); let dailyCap = (customCap[k] && customCap[k][wNo]) ? customCap[k][wNo] / 5 : CONFIG[k].c / 5;
+                let isHol = isHoliday(curDate); 
+                
+                let capCount = (customCap.wsCounts && customCap.wsCounts[k]) ? customCap.wsCounts[k] : CONFIG[k].ws;
+                let dailyCap = capCount * 8;
+                
                 let totalH = smartLoad.tracker[k][dateStr] || 0; 
                 let isOver = totalH > dailyCap + 0.1;
                 let cellStyle = isHol ? "background:#ffebee; color:#c62828;" : (isWeekend ? "background:#eee;" : (isOver ? "background:#ffebee; color:#c62828; font-weight:bold;" : (totalH > 0.1 ? "background:#e8f5e9; color:#2e7d32; font-weight:bold;" : "background:#fff;")));
@@ -1117,6 +1125,21 @@
         list.innerHTML = html;
     }
 
+    // UUS: Töökohade dünaamiline haldamine "Võimekus" vahekaardil
+    function renderWSManager() {
+        let list = document.getElementById('ws-list'); if(!list) return;
+        let disAttr = isAdmin ? "" : "disabled";
+        let html = "";
+        Object.keys(CONFIG).forEach(k => {
+            let count = (customCap.wsCounts && customCap.wsCounts[k]) ? customCap.wsCounts[k] : CONFIG[k].ws;
+            html += `<div style="display:flex; justify-content:space-between; align-items:center; background:#f4f7f6; padding:8px 12px; border-radius:4px; border:1px solid #eee;">
+                <strong>${CONFIG[k].l}</strong>
+                <input type="number" class="ws-num-in" data-k="${k}" value="${count}" min="1" max="50" style="width:60px; padding:4px; font-weight:bold; text-align:center; border:1px solid #ccc; border-radius:3px;" ${disAttr}>
+            </div>`;
+        });
+        list.innerHTML = html;
+    }
+
     function renderCapacity() {
         let disAttr = isAdmin ? "" : "disabled";
         let holidayWeeks = new Set(); let currentYear = TODAY.getFullYear();
@@ -1130,7 +1153,7 @@
         h += `</tr></thead><tbody>`;
 
         h += Object.keys(CONFIG).map(k => `<tr><td style="position:sticky; left:0; background:#f4f7f6; z-index:25; font-weight:bold; border-right:2px solid #ccc; border-bottom:1px solid #eee; color:${CONFIG[k].color};">${CONFIG[k].l}</td>` + Array.from({length:52},(_,i)=>{
-            let v = (customCap[k] && customCap[k][i+1]) ? customCap[k][i+1] : CONFIG[k].c;
+            let v = (customCap[k] && customCap[k][i+1]) ? customCap[k][i+1] : (CONFIG[k].ws * 8 * 5); // Default cap: ws * 8h * 5 päeva
             let bgStyle = holidayWeeks.has(i+1) ? "background-color:#ffebee;" : "";
             return `<td style="border-right:1px solid #eee; border-bottom:1px solid #eee; text-align:center;"><input type="number" class="cap-num-in" style="${bgStyle}" data-k="${k}" data-w="${i+1}" value="${v}" ${disAttr}></td>`;
         }).join('') + `</tr>`).join('');
@@ -1152,6 +1175,11 @@
     function saveCapacity() {
         if(!isAdmin) return;
         document.querySelectorAll('.cap-num-in').forEach(i => { if(!customCap[i.dataset.k]) customCap[i.dataset.k] = {}; customCap[i.dataset.k][i.dataset.w] = parseInt(i.value); });
+        
+        // Salvestame ka dünaamilised töökohtade arvud
+        if(!customCap.wsCounts) customCap.wsCounts = {};
+        document.querySelectorAll('.ws-num-in').forEach(i => { customCap.wsCounts[i.dataset.k] = parseInt(i.value) || 1; });
+        
         localStorage.setItem('prod_cap_live', JSON.stringify(customCap)); 
         let sysRow = orders.find(o => o.mt === 'SYS_SETTINGS');
         if(!sysRow) {
@@ -1159,7 +1187,7 @@
             orders.push(sysRow);
         }
         sysRow.kirjeldus = JSON.stringify(customCap);
-        alert("Puhkused ja võimekus salvestatud PILVE!"); applyUIMode(); save(); 
+        alert("Seaded salvestatud PILVE!"); applyUIMode(); save(); 
     }
 
     function save() { 
@@ -1245,7 +1273,7 @@
         }
         if (viewId === 'paeva_koormus_graafik') renderDailyCharts();
         if (viewId === 'paeva_koormus_tabel') renderDailyTable();
-        if (viewId === 'voimekus_tab') { renderHolidays(); renderCapacity(); }
+        if (viewId === 'voimekus_tab') { renderHolidays(); renderWSManager(); renderCapacity(); }
     }
     
     fetchData();
