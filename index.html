@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V108</title>
+    <title>TOCI Tootmisplaan V109</title>
     <style>
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -88,11 +88,20 @@
         .checklist-notes { width: 100%; height: 80px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; font-size: 13px; resize: vertical; margin-top: 10px; box-sizing: border-box; background: #fffdf5; }
         .checklist-notes:focus { outline: none; border-color: var(--accent); background: #fff; }
 
-        /* UUS: DISPETŠER */
-        .disp-cell { cursor:pointer; text-align:center; border-right:1px solid #eee; border-bottom:1px solid #eee; min-width:60px; position:relative; }
+        /* DISPETŠER & PINTSEL */
+        .disp-cell { cursor:pointer; text-align:center; border-right:1px solid #eee; border-bottom:1px solid #eee; min-width:60px; position:relative; user-select: none; }
         .disp-cell:hover { background: rgba(0,0,0,0.05) !important; }
-        .disp-alloc { font-size:11px; font-weight:bold; color:white; border-radius:3px; padding:3px; margin:2px; box-shadow:0 1px 3px rgba(0,0,0,0.2); }
-        .disp-bank-item { background:#fff; border:1px solid #ddd; padding:10px; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.05); min-width:200px; flex:1; }
+        .disp-alloc { font-size:11px; font-weight:bold; color:white; border-radius:3px; padding:3px; margin:2px; box-shadow:0 1px 3px rgba(0,0,0,0.2); pointer-events:none; }
+        .disp-bank-item { background:#fff; border:1px solid #ddd; padding:10px; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.05); min-width:200px; flex:1; cursor:pointer; transition:0.2s; user-select: none; }
+        .disp-bank-item:hover { box-shadow:0 4px 8px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        
+        /* PINTSLI EFEKT */
+        .brush-active { border: 2px dashed #e74c3c !important; background: #fffdf5; transform: scale(1.03); box-shadow: 0 4px 15px rgba(231,76,60,0.2) !important; z-index:10; }
+        .grid-brush-mode { cursor: crosshair !important; }
+        .grid-brush-mode .disp-cell:hover { background: rgba(231,76,60,0.1) !important; }
+        
+        /* HÜBRIID GRAAFIKU TRIIBUD */
+        .striped-bg { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.3), rgba(255,255,255,0.3) 5px, transparent 5px, transparent 10px); }
     </style>
 </head>
 <body>
@@ -129,16 +138,16 @@
             <label style="font-weight:bold; color:#555;">Tunde (1-24h):</label>
             <input type="number" id="alloc-h" value="8" min="0" max="24" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc; margin-top:5px; font-weight:bold;">
         </div>
-        <button onclick="saveAllocation()" style="width:100%; padding:12px; background:var(--success); color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">💾 SALVESTA PLAAN</button>
-        <button onclick="deleteAllocation()" id="alloc-del-btn" style="width:100%; padding:12px; background:var(--danger); color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; margin-top:10px; display:none;">🗑️ KUSTUTA (Tagasta Tunnid)</button>
+        <button onclick="saveAllocationModal()" style="width:100%; padding:12px; background:var(--success); color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">💾 SALVESTA PLAAN</button>
+        <button onclick="deleteAllocationModal()" id="alloc-del-btn" style="width:100%; padding:12px; background:var(--danger); color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; margin-top:10px; display:none;">🗑️ KUSTUTA (Tagasta Tunnid)</button>
     </div>
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V108.0 (Töökohtade Dispetšer)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V109.0 (Pintsel & Hübriid)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
-        <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;" title="Ekspordib selle vaate, kus sa parajasti oled">📥 EKSPORDI</button>
+        <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;" title="Ekspordib selle vaate, kus sa parajasti oled">📥 EKSPORDI VAADE</button>
         <div id="syncStatus" style="background:var(--warning); color:black; padding:4px 10px; border-radius:4px; font-weight:bold; transition: 0.3s;">Ühendan...</div>
         <button id="modeToggleBtn" onclick="toggleMode()" style="background:#95a5a6; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">🔒 VAATAJA</button>
     </div>
@@ -155,9 +164,7 @@
     <button class="tab-btn" onclick="openTab(event, 'gantt_ml', null)">MUST LUKK</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_rl', null)">RV LUKK</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_ko', null)">KOOSTE</button>
-    
     <button class="tab-btn" onclick="openTab(event, 'dispatcher_view', null)" style="background:#e74c3c; box-shadow: inset 0 -4px 0 #c0392b;">🗓️ DISPETŠER</button>
-
     <button class="tab-btn" onclick="openTab(event, 'paeva_koormus_graafik', null)" style="background:var(--accent)">📊 P. GRAAFIK</button>
     <button class="tab-btn" onclick="openTab(event, 'paeva_koormus_tabel', null)" style="background:#2980b9">📅 P. TABEL</button>
     <button class="tab-btn" onclick="openTab(event, 'voimekus_tab', null)" style="color:var(--warning)">⚙️ VÕIMEKUS</button>
@@ -206,7 +213,7 @@
 
 <div id="dispatcher_view" class="content flex-view">
     <div style="display:flex; gap:15px; margin-bottom:15px; align-items:center;">
-        <select id="disp-dept" onchange="renderDispatcher()" style="padding:10px; border-radius:4px; font-weight:bold; border:2px solid var(--accent); cursor:pointer;">
+        <select id="disp-dept" onchange="resetBrushAndRender()" style="padding:10px; border-radius:4px; font-weight:bold; border:2px solid var(--accent); cursor:pointer;">
             <option value="must_k">🔥 Must Keevitus</option>
             <option value="rv_k">✨ RV Keevitus</option>
             <option value="must_l">🔧 Must Lukk</option>
@@ -220,13 +227,17 @@
             <input type="date" id="disp-start" onchange="renderDispatcher()" style="padding:6px; border-radius:4px; border:1px solid #ccc;">
         </div>
         <div style="font-size:16px; font-weight:bold; color:var(--primary); margin-left:15px;">🗓️ Töökohtade Dispetšer</div>
-        <div style="font-size:11px; color:#666; margin-left:auto;">💡 Klõpsa tabelis tühjale lahtrile, et tunde panka lisada. Klõpsa värvilisel lahtril, et muuta/kustutada.</div>
+        <div style="font-size:11px; color:#666; margin-left:auto;">
+            💡 <b>1 klõps pangas</b> teeb aktiivseks "Pintsli".<br>
+            <b>1 klõps tabelis</b> kleebib 8h lahtrisse (kustutab, kui vajutad olemasoleval).<br>
+            <b>Topeltklikk tabelis</b> avab akna täpseks tundide muutmiseks.
+        </div>
     </div>
     
     <div style="background:#eef2f5; border-radius:8px; border:1px solid #ccc; padding:15px; margin-bottom:15px;">
         <h3 style="margin-top:0; margin-bottom:10px; color:#2c3e50; display:flex; justify-content:space-between;">
-            <span>🏦 Tundide Pank (Ootavad planeerimist)</span>
-            <span style="font-size:12px; font-weight:normal; color:#666;">Näitab ainult aktiivseid tellimusi, mis pole veel valmis märgitud</span>
+            <span>🏦 Tundide Pank (Kliki kastil, et valida PINTSEL 🖌️)</span>
+            <span style="font-size:12px; font-weight:normal; color:#666;" id="brush-status">Pintsel: VÄLJAS</span>
         </h3>
         <div id="disp-bank" style="display:flex; flex-wrap:wrap; gap:10px; max-height:150px; overflow-y:auto; padding-right:10px;"></div>
     </div>
@@ -275,8 +286,8 @@
     
     let isAdmin = false; const ADMIN_PIN = "1234";
     let saveTimeout; let isSaving = false; let hasPendingChanges = false;
+    let activeBrushIdx = null; // PINTSLI mälu
     
-    // UUS: CONFIG sai juurde töökohtade arvu (ws) ja eesliite (prefix) Dispetšeri jaoks
     const CONFIG = { 
         ins:    {l:'Inseneeria', c:100, color:'#0097e6', order:0, p:'prog_ins', d:'done_ins', ws: 2, prefix:'INS'}, 
         trei:   {l:'Treial',   c:40,  color:'#9b59b6', order:1, p:'prog_tr',  d:'done_tr',  ws: 2, prefix:'TR'},
@@ -311,10 +322,8 @@
         for(let i=0; i<customCap.holidays.length; i++) {
             let h = customCap.holidays[i];
             if (!h || !h.s) continue; 
-            let sDate = new Date(h.s);
-            if (isNaN(sDate.getTime())) continue;
-            let eDate = h.e ? new Date(h.e) : new Date(h.s);
-            if (isNaN(eDate.getTime())) eDate = sDate;
+            let sDate = new Date(h.s); if (isNaN(sDate.getTime())) continue;
+            let eDate = h.e ? new Date(h.e) : new Date(h.s); if (isNaN(eDate.getTime())) eDate = sDate;
             let s = sDate.setHours(0,0,0,0), e = eDate.setHours(23,59,59,999);
             if (dTime >= s && dTime <= e) return true;
         }
@@ -323,10 +332,7 @@
 
     function getWorkingDays(s, e) { 
         let c = 0, cur = new Date(s); 
-        while(cur <= e) { 
-            if(cur.getDay()!==0 && cur.getDay()!==6 && !isHoliday(cur)) c++; 
-            cur.setDate(cur.getDate()+1); 
-        } 
+        while(cur <= e) { if(cur.getDay()!==0 && cur.getDay()!==6 && !isHoliday(cur)) c++; cur.setDate(cur.getDate()+1); } 
         return c || 1; 
     }
 
@@ -356,12 +362,12 @@
                 if (mV && !safeISO(o.start).includes(mV)) return false;
                 return true;
             });
-        } else if (activeTab.startsWith('gantt_')) {
+        } else if (activeTab.startsWith('gantt_') || activeTab === 'dispatcher_view') {
             filteredOrders = filteredOrders.filter(o => o.status === 'Töös');
         } else {
-            alert("Seda vaadet ei saa tabelina eksportida. Vali Sisestus või mõni Gantti graafik!");
-            return;
+            alert("Seda vaadet ei saa tabelina eksportida. Vali Sisestus või mõni Gantti graafik!"); return;
         }
+
         if (gV) filteredOrders = filteredOrders.filter(o => (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
 
         let csv = "\uFEFF"; 
@@ -380,7 +386,7 @@
                 const fd = (bnd) => bnd.sDate ? safeISO(bnd.sDate) : '';
                 csv += `${clean(o.mt)};${clean(o.client)};${fd(p.ins)};${safeISO(p.ins.eDate)};${fd(p.ah1)};${safeISO(p.ah1.eDate)};${fd(p.lukk)};${safeISO(p.lukk.eDate)};${fd(p.keev)};${safeISO(p.keev.eDate)};${fd(p.ah2)};${safeISO(p.ah2.eDate)};${fd(p.kooste)};${safeISO(p.kooste.eDate)}\n`;
             });
-        } else if (activeTab.startsWith('gantt_')) {
+        } else if (activeTab.startsWith('gantt_') && activeTab !== 'gantt_all') {
             let key = activeTab.split('_')[1];
             let realKey = key === 'in' ? 'ins' : key === 'tr' ? 'trei' : key === 'mk' ? 'must_k' : key === 'rk' ? 'rv_k' : key === 'ml' ? 'must_l' : key === 'rl' ? 'rv_l' : 'kooste';
             csv += `MT;Klient;${CONFIG[realKey].l} Algus;${CONFIG[realKey].l} Lõpp;Kestvus (tööpäevi);Plaanitud (h);Tehtud (h);Eelarve Täituvus %\n`;
@@ -393,10 +399,11 @@
                 let prog = pH > 0 ? Math.round((aH/pH)*100) : 0;
                 csv += `${clean(o.mt)};${clean(o.client)};${safeISO(myBnd.sDate)};${safeISO(myBnd.eDate)};${wDays};${pH};${aH};${prog}%\n`;
             });
+        } else if (activeTab === 'dispatcher_view') {
+            csv += "Vabandust, Dispetšeri maatriksit ei saa otse alla laadida. Vali Päeva Tabeli vaade.\n";
         }
         let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        let link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
+        let link = document.createElement("a"); link.href = URL.createObjectURL(blob);
         let titleName = activeTab === 'main_view' ? 'KoguPlaan' : activeTab.toUpperCase();
         link.download = `TOCI_${titleName}_${new Date().toISOString().split('T')[0]}.csv`;
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
@@ -404,7 +411,7 @@
 
     function toggleMode() {
         if(isAdmin) {
-            isAdmin = false; document.getElementById('modeToggleBtn').innerText = "🔒 VAATAJA"; document.getElementById('modeToggleBtn').style.background = "#34495e";
+            isAdmin = false; activeBrushIdx = null; document.getElementById('modeToggleBtn').innerText = "🔒 VAATAJA"; document.getElementById('modeToggleBtn').style.background = "#95a5a6";
         } else {
             let pwd = prompt("Sisesta administraatori PIN kood:");
             if(pwd === ADMIN_PIN) { isAdmin = true; document.getElementById('modeToggleBtn').innerText = "🔓 ADMIN"; document.getElementById('modeToggleBtn').style.background = "var(--danger)"; } 
@@ -437,9 +444,7 @@
         if (hasPendingChanges || isSaving) { alert("⏳ Oota! Süsteem parasjagu salvestab pilve."); return; }
         updateSyncStatus("🔄 Värskendan...", "warning");
         try {
-            const r = await fetch(API_URL); 
-            const rawData = await r.json();
-            
+            const r = await fetch(API_URL); const rawData = await r.json();
             if(Array.isArray(rawData)) {
                 let cleanedData = []; let seenMt = new Set(); let duplicatesFound = 0;
                 let sysRow = rawData.find(o => o.mt === 'SYS_SETTINGS');
@@ -457,10 +462,7 @@
 
                 orders = cleanedData.map(o => {
                     if (o.mt === "SYS_SETTINGS") return o;
-                    // Parsib allocs lahtri JSONist tagasi objektiks!
-                    let parsedAllocs = {};
-                    if(o.allocs) { try { parsedAllocs = JSON.parse(o.allocs); } catch(e){} }
-
+                    let parsedAllocs = {}; if(o.allocs) { try { parsedAllocs = JSON.parse(o.allocs); } catch(e){} }
                     let obj = {...o, kirjeldus: o.kirjeldus||'', chk_notes: o.chk_notes||'', allocs: parsedAllocs,
                         ins:f(o.ins), trei:f(o.trei), must_k:f(o.must_k), rv_k:f(o.rv_k), must_l:f(o.must_l), rv_l:f(o.rv_l), kooste:f(o.kooste), 
                         prog_ins:f(o.prog_ins), prog_tr:f(o.prog_tr), prog_mk:f(o.prog_mk), prog_rk:f(o.prog_rk), prog_ml:f(o.prog_ml), prog_rl:f(o.prog_rl), prog_ko:f(o.prog_ko),
@@ -470,10 +472,7 @@
                 });
 
                 if (duplicatesFound > 0 && isAdmin) fetch(API_URL, {method:"POST", body:JSON.stringify(orders), mode:'no-cors'});
-                
-                // Paneb Dispetsheri alguskuupäevaks tänase, kui on tühi
                 if(!document.getElementById('disp-start').value) document.getElementById('disp-start').value = safeISO(TODAY);
-                
                 applyUIMode(); updateSyncStatus("✅ ANDMED OK", "success");
             }
         } catch(e) { updateSyncStatus("❌ Ühenduse viga", "danger"); }
@@ -562,37 +561,94 @@
         document.getElementById('m-body').innerHTML = html; document.getElementById('orderModal').style.display = 'block';
     }
 
-    // UUS! DISPETŠERI FUNKTSIOONID
+    // DISPETŠER JA PINTSEL
+    function resetBrushAndRender() { activeBrushIdx = null; renderDispatcher(); }
+    
+    function toggleBrush(idx) {
+        if(!isAdmin) { alert("Ainult Administraator saab Pintsli režiimi kasutada!"); return; }
+        if (activeBrushIdx === idx) activeBrushIdx = null; else activeBrushIdx = idx;
+        renderDispatcher();
+    }
+
+    function getAllocated(o, dept) {
+        let allocated = 0;
+        if(o.allocs && o.allocs[dept]) {
+            Object.values(o.allocs[dept]).forEach(day => { Object.values(day).forEach(h => allocated += f(h)); });
+        }
+        return allocated;
+    }
+
+    function handleCellClick(dept, dateStr, wsName, currentOIdx) {
+        if(!isAdmin) return;
+        if (activeBrushIdx !== null) {
+            if (currentOIdx === activeBrushIdx) {
+                // KUSTUTA KUI KLIKKID SAMAL KLOTSIL
+                deleteAllocationDirect(dept, dateStr, wsName);
+            } else {
+                // PRINDI UUS KLOTS
+                let o = orders[activeBrushIdx];
+                let remaining = f(o[dept]) - getAllocated(o, dept);
+                if (remaining <= 0 && currentOIdx !== activeBrushIdx) {
+                    alert("Sellel tellimusel on juba kõik tunnid kalendrisse jagatud!"); return;
+                }
+                let paintH = Math.min(8, remaining > 0 ? remaining : 8);
+                saveAllocationDirect(dept, dateStr, wsName, activeBrushIdx, paintH);
+            }
+        } else {
+            // PINTSEL VÄLJAS -> TEE TOPELTKLIKKI SELLE ASEMEL. Single click teeb midagi? Võiks lihtsalt ignoreerida, las dblclick avab akna.
+            // Paneme siia siiski akna avamise neile, kes on harjunud ühe klikiga.
+            let h = 0; if (currentOIdx >= 0) h = orders[currentOIdx].allocs[dept][dateStr][wsName];
+            openAllocModal(dept, dateStr, wsName, currentOIdx, h);
+        }
+    }
+    
+    function handleCellDblClick(dept, dateStr, wsName, currentOIdx) {
+        if(!isAdmin) return;
+        let h = 0; if (currentOIdx >= 0) h = orders[currentOIdx].allocs[dept][dateStr][wsName];
+        openAllocModal(dept, dateStr, wsName, currentOIdx, h);
+    }
+
+    function saveAllocationDirect(dept, dateStr, wsName, oIdx, h) {
+        orders.forEach(o => {
+            if(o.allocs && o.allocs[dept] && o.allocs[dept][dateStr] && o.allocs[dept][dateStr][wsName]) delete o.allocs[dept][dateStr][wsName];
+        });
+        let o = orders[oIdx];
+        if(!o.allocs) o.allocs = {}; if(!o.allocs[dept]) o.allocs[dept] = {}; if(!o.allocs[dept][dateStr]) o.allocs[dept][dateStr] = {};
+        o.allocs[dept][dateStr][wsName] = h;
+        save(); renderDispatcher();
+    }
+    
+    function deleteAllocationDirect(dept, dateStr, wsName) {
+        orders.forEach(o => {
+            if(o.allocs && o.allocs[dept] && o.allocs[dept][dateStr] && o.allocs[dept][dateStr][wsName]) delete o.allocs[dept][dateStr][wsName];
+        });
+        save(); renderDispatcher();
+    }
+
     function renderDispatcher() {
         let k = document.getElementById('disp-dept').value; 
-        let sDateStr = document.getElementById('disp-start').value || safeISO(TODAY);
-        let sDate = new Date(sDateStr);
+        let sDateStr = document.getElementById('disp-start').value || safeISO(TODAY); let sDate = new Date(sDateStr);
         let gV = document.getElementById('globalFilter').value.toLowerCase();
         
-        let bankHtml = "";
-        let allocOptions = `<option value="">-- Kustuta klots tabelist --</option>`;
+        let bankHtml = ""; let allocOptions = `<option value="">-- Kustuta klots tabelist --</option>`;
         
-        // 1. Ehitame Tundide Panga
-        orders.forEach((o, i) => {
-            if(o.mt === 'SYS_SETTINGS' || o.status === 'Valmis' || String(o[CONFIG[k].d]) === 'true') return;
+        let validBankOrders = orders.filter((o, i) => {
+            if(o.mt === 'SYS_SETTINGS' || o.status === 'Valmis' || String(o[CONFIG[k].d]) === 'true') return false;
             let matchText = (!gV || (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)));
-            if (!matchText) return;
+            if (!matchText) return false;
+            let planned = f(o[k]); if(planned === 0) return false;
+            return true;
+        });
 
+        validBankOrders.forEach(o => {
+            let i = orders.indexOf(o);
             let planned = f(o[k]);
-            if(planned === 0) return; // See osakond ei tee seda tööd
-            
-            // Arvutame, mitu tundi on juba dispetšerisse laiali jagatud
-            let allocated = 0;
-            if(o.allocs && o.allocs[k]) {
-                Object.values(o.allocs[k]).forEach(day => {
-                    Object.values(day).forEach(h => allocated += f(h));
-                });
-            }
-            
+            let allocated = getAllocated(o, k);
             let remaining = planned - allocated;
             let rColor = remaining < 0 ? 'red' : (remaining === 0 ? 'var(--success)' : '#333');
+            let isBrush = activeBrushIdx === i;
             
-            bankHtml += `<div class="disp-bank-item" style="border-left:5px solid ${remaining === 0 ? 'var(--success)' : CONFIG[k].color}; opacity:${remaining===0?0.5:1};">
+            bankHtml += `<div class="disp-bank-item ${isBrush ? 'brush-active' : ''}" style="border-left:5px solid ${remaining === 0 ? 'var(--success)' : CONFIG[k].color}; opacity:${remaining===0 && !isBrush ? 0.5 : 1};" onclick="toggleBrush(${i})">
                 <div style="font-weight:bold; font-size:14px; margin-bottom:4px;">${o.mt}</div>
                 <div style="color:#666; font-size:10px; margin-bottom:6px;">${o.client || '-'}</div>
                 <div style="display:flex; justify-content:space-between; font-size:11px;">
@@ -607,17 +663,19 @@
         
         if(bankHtml === "") bankHtml = "<div style='color:#777; padding:10px;'>Ühtegi planeerimist vajavat tööd ei leitud.</div>";
         document.getElementById('disp-bank').innerHTML = bankHtml;
-        window.currentAllocOptions = allocOptions; // Salvestame rippmenüü jaoks
-        
-        // 2. Ehitame Dispetšeri Tabeli (30 päeva)
+        window.currentAllocOptions = allocOptions;
+
+        let bStatus = document.getElementById('brush-status');
+        if(activeBrushIdx !== null) { bStatus.innerHTML = `Pintsel: <b style="color:var(--danger)">${orders[activeBrushIdx].mt}</b> (Vajuta klotsil, et tühistada)`; } 
+        else { bStatus.innerHTML = `Pintsel: <b style="color:#999">VÄLJAS</b>`; }
+
         let daysToShow = 30;
         let gridHtml = `<thead><tr><th style="position:sticky; left:0; top:0; z-index:30; background:#2c3e50; color:white; min-width:80px; padding:10px;">Töökoht</th>`;
         for(let d=0; d<daysToShow; d++) {
-            let dObj = new Date(sDate.getTime() + d*86400000);
-            let isW = dObj.getDay()===0||dObj.getDay()===6;
+            let dObj = new Date(sDate.getTime() + d*86400000); let isW = dObj.getDay()===0||dObj.getDay()===6;
             gridHtml += `<th style="position:sticky; top:0; z-index:20; background:${isW?'#34495e':'#2c3e50'}; color:white; min-width:80px; font-size:10px; text-align:center;">${dObj.getDate()}.${dObj.getMonth()+1}<br>${['P','E','T','K','N','R','L'][dObj.getDay()]}</th>`;
         }
-        gridHtml += `</tr></thead><tbody>`;
+        gridHtml += `</tr></thead><tbody class="${activeBrushIdx !== null ? 'grid-brush-mode' : ''}">`;
         
         let wsCount = CONFIG[k].ws || 3;
         for(let w=1; w<=wsCount; w++) {
@@ -625,30 +683,26 @@
             gridHtml += `<tr><td style="position:sticky; left:0; background:#f4f7f6; font-weight:bold; border-right:2px solid #ccc; z-index:10; text-align:center;">${wsName}</td>`;
             
             for(let d=0; d<daysToShow; d++) {
-                let dObj = new Date(sDate.getTime() + d*86400000);
-                let dStr = safeISO(dObj);
+                let dObj = new Date(sDate.getTime() + d*86400000); let dStr = safeISO(dObj);
                 
-                // Otsime, kas keegi on siia lahtrisse planeeritud
-                let allocatedOrderIdx = -1;
-                let allocatedHours = 0;
+                let allocatedOrderIdx = -1; let allocatedHours = 0;
                 orders.forEach((o, i) => {
                     if(o.allocs && o.allocs[k] && o.allocs[k][dStr] && o.allocs[k][dStr][wsName]) {
-                        allocatedOrderIdx = i;
-                        allocatedHours = o.allocs[k][dStr][wsName];
+                        allocatedOrderIdx = i; allocatedHours = o.allocs[k][dStr][wsName];
                     }
                 });
                 
-                let cellContent = "";
-                let cellStyle = "";
+                let cellContent = ""; let cellStyle = "";
                 if (allocatedOrderIdx >= 0) {
                     let o = orders[allocatedOrderIdx];
-                    cellContent = `<div class="disp-alloc" style="background:${CONFIG[k].color};" title="${o.client}">${o.mt}<br>${allocatedHours}h</div>`;
+                    let opacity = (activeBrushIdx !== null && activeBrushIdx !== allocatedOrderIdx) ? "0.4" : "1";
+                    cellContent = `<div class="disp-alloc" style="background:${CONFIG[k].color}; opacity:${opacity};" title="${o.client}">${o.mt}<br>${allocatedHours}h</div>`;
                 } else {
                     cellStyle = (dObj.getDay()===0||dObj.getDay()===6) ? "background:#fafafa;" : "background:#fff;";
-                    cellContent = `<div style="color:#ccc; font-size:16px;">+</div>`;
+                    cellContent = `<div style="color:#eee; font-size:14px; margin-top:2px;">+</div>`;
                 }
                 
-                gridHtml += `<td class="disp-cell" style="${cellStyle}" onclick="openAllocModal('${k}', '${dStr}', '${wsName}', ${allocatedOrderIdx}, ${allocatedHours})">${cellContent}</td>`;
+                gridHtml += `<td class="disp-cell" style="${cellStyle}" onclick="handleCellClick('${k}', '${dStr}', '${wsName}', ${allocatedOrderIdx >= 0 ? allocatedOrderIdx : 'undefined'})" ondblclick="handleCellDblClick('${k}', '${dStr}', '${wsName}', ${allocatedOrderIdx >= 0 ? allocatedOrderIdx : 'undefined'})">${cellContent}</td>`;
             }
             gridHtml += `</tr>`;
         }
@@ -658,61 +712,30 @@
 
     function openAllocModal(dept, dateStr, wsName, currentOIdx, currentH) {
         if(!isAdmin) { alert("Ainult Administraator saab töökohti planeerida!"); return; }
-        
-        let dObj = new Date(dateStr);
-        let estDate = dObj.getDate() + "." + (dObj.getMonth()+1) + "." + dObj.getFullYear();
+        let dObj = new Date(dateStr); let estDate = dObj.getDate() + "." + (dObj.getMonth()+1) + "." + dObj.getFullYear();
         document.getElementById('alloc-title').innerText = `${wsName} | ${estDate}`;
-        document.getElementById('alloc-dept').value = dept;
-        document.getElementById('alloc-date').value = dateStr;
-        document.getElementById('alloc-ws').value = wsName;
+        document.getElementById('alloc-dept').value = dept; document.getElementById('alloc-date').value = dateStr; document.getElementById('alloc-ws').value = wsName;
         
-        let sel = document.getElementById('alloc-mt');
-        sel.innerHTML = window.currentAllocOptions;
-        
-        if (currentOIdx >= 0) {
-            sel.value = currentOIdx;
-            document.getElementById('alloc-h').value = currentH;
-            document.getElementById('alloc-del-btn').style.display = 'block';
+        let sel = document.getElementById('alloc-mt'); sel.innerHTML = window.currentAllocOptions;
+        if (currentOIdx !== undefined && currentOIdx >= 0) {
+            sel.value = currentOIdx; document.getElementById('alloc-h').value = currentH; document.getElementById('alloc-del-btn').style.display = 'block';
         } else {
-            sel.value = "";
-            document.getElementById('alloc-h').value = 8;
-            document.getElementById('alloc-del-btn').style.display = 'none';
+            sel.value = ""; document.getElementById('alloc-h').value = 8; document.getElementById('alloc-del-btn').style.display = 'none';
         }
-        
         document.getElementById('allocModal').style.display = 'block';
     }
     
-    function saveAllocation() {
-        let dept = document.getElementById('alloc-dept').value;
-        let dateStr = document.getElementById('alloc-date').value;
-        let wsName = document.getElementById('alloc-ws').value;
-        let oIdx = document.getElementById('alloc-mt').value;
+    function saveAllocationModal() {
+        let dept = document.getElementById('alloc-dept').value; let dateStr = document.getElementById('alloc-date').value;
+        let wsName = document.getElementById('alloc-ws').value; let oIdx = document.getElementById('alloc-mt').value;
         let h = parseFloat(document.getElementById('alloc-h').value);
-        
-        // Kustutame esmalt selle konkreetse klotsi ajaloost (kui ta oli teise tellimuse all)
-        orders.forEach(o => {
-            if(o.allocs && o.allocs[dept] && o.allocs[dept][dateStr] && o.allocs[dept][dateStr][wsName]) {
-                delete o.allocs[dept][dateStr][wsName];
-            }
-        });
-        
-        // Kui valiti uus tellimus ja tunnid, lisame selle õigesse kohta
-        if (oIdx !== "" && h > 0) {
-            let o = orders[oIdx];
-            if(!o.allocs) o.allocs = {};
-            if(!o.allocs[dept]) o.allocs[dept] = {};
-            if(!o.allocs[dept][dateStr]) o.allocs[dept][dateStr] = {};
-            o.allocs[dept][dateStr][wsName] = h;
-        }
-        
+        if (oIdx !== "" && h > 0) saveAllocationDirect(dept, dateStr, wsName, oIdx, h);
+        else deleteAllocationDirect(dept, dateStr, wsName);
         document.getElementById('allocModal').style.display = 'none';
-        save(); // Saadab pilve
-        renderDispatcher(); // Uuendab kohe pilti
     }
-    
-    function deleteAllocation() {
-        document.getElementById('alloc-mt').value = ""; 
-        saveAllocation(); // Salvestab tühjuse, mis sisuliselt kustutab klotsi
+    function deleteAllocationModal() {
+        let dept = document.getElementById('alloc-dept').value; let dateStr = document.getElementById('alloc-date').value; let wsName = document.getElementById('alloc-ws').value;
+        deleteAllocationDirect(dept, dateStr, wsName); document.getElementById('allocModal').style.display = 'none';
     }
 
     function renderTable() {
@@ -729,17 +752,13 @@
             let matchText = (!gV || (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
             if ((!mV || safeISO(o.start).includes(mV)) && matchText) {
                 const sCl = o.status === 'Valmis' ? 'status-valmis' : o.status === 'Töös' ? 'status-toos' : 'status-ootel';
-                
                 let isOverdue = false;
                 if (o.status !== 'Valmis') { let endD = new Date(o.end); endD.setHours(23, 59, 59, 999); if (endD.getTime() < todayTime.getTime()) isOverdue = true; }
                 let overStyle = isOverdue ? 'background-color:#ffebee; color:#c62828; font-weight:bold; border:1px solid #c62828;' : '';
                 let overBadge = isOverdue ? `<div style="color:#c62828; font-weight:bold; font-size:10px; text-align:center; background:#ffcdd2; padding:2px; border-radius:3px; margin-top:3px; border:1px solid #e53935;">⚠️ ÜLE AJA</div>` : '';
                 let totOver = o.progress > 100 ? 'overbudget-tot' : '';
 
-                let ostDone = String(o.chk_ost) === 'true';
-                let insDone = String(o.done_ins) === 'true';
-                let ah1Done = f(o.sub1) === 0 || String(o.chk_ah1) === 'true';
-                let ah2Done = f(o.sub2) === 0 || String(o.chk_ah2) === 'true';
+                let ostDone = String(o.chk_ost) === 'true'; let insDone = String(o.done_ins) === 'true'; let ah1Done = f(o.sub1) === 0 || String(o.chk_ah1) === 'true'; let ah2Done = f(o.sub2) === 0 || String(o.chk_ah2) === 'true';
                 let listIcon = (ostDone && insDone && ah1Done && ah2Done) ? '✅' : '📋';
 
                 b.innerHTML += `<tr class="${sCl}">
@@ -778,7 +797,6 @@
                 activeTotal++;
                 let endD = new Date(o.end); endD.setHours(23, 59, 59, 999);
                 if (o.status === 'Töös' && endD.getTime() < todayTime.getTime()) overdueTotal++;
-                
                 if(String(o.done_ins) !== 'true') remH.ins += Math.max(0, f(o.ins) - f(o.prog_ins));
                 if(String(o.done_tr) !== 'true') remH.trei += Math.max(0, f(o.trei) - f(o.prog_tr));
                 if(String(o.done_mk) !== 'true') remH.must_k += Math.max(0, f(o.must_k) - f(o.prog_mk));
@@ -815,25 +833,31 @@
         
         let filteredOrders = orders.filter(o => o.status === 'Töös' && o.mt !== 'SYS_SETTINGS');
         if (gV) filteredOrders = filteredOrders.filter(o => (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
-        
         if (filteredOrders.length === 0) bodyHtml += `<div class="empty-state">ℹ️ Ühtegi filtriga sobivat 'Töös' tellimust ei leitud.</div>`;
         let disAttr = isAdmin ? "" : "disabled";
 
         filteredOrders.forEach((o) => {
-            let gIdx = orders.indexOf(o);
-            let bnds = getPhaseDates(o, START_VIEW);
+            let gIdx = orders.indexOf(o); let bnds = getPhaseDates(o, START_VIEW);
+
+            // Arvutame eelarve kokkuvõtte info "tühja" alla panemiseks
+            let tPlan = f(o.ins)+f(o.trei)+f(o.must_k)+f(o.rv_k)+f(o.must_l)+f(o.rv_l)+f(o.kooste);
+            let tAct = f(o.prog_ins)+f(o.prog_tr)+f(o.prog_mk)+f(o.prog_rk)+f(o.prog_ml)+f(o.prog_rl)+f(o.prog_ko);
+            let prog = tPlan > 0 ? Math.round((tAct/tPlan)*100) : 0;
+            let statusColor = prog > 100 ? 'color:#c62828;' : 'color:#27ae60;';
 
             bodyHtml += `<div class="gantt-row">
                 <div class="gantt-info">
                     <b>${o.mt}</b><small>${o.client}</small><small style="color:#777; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${o.kirjeldus||''}">${o.kirjeldus||''}</small>
                     <div style="display:flex;gap:3px;"><input type="date" title="Algus" value="${safeISO(o.start)}" onchange="u(${gIdx},'start',this.value);applyUIMode()" ${disAttr}><input type="date" title="Lõpp" value="${safeISO(o.end)}" onchange="u(${gIdx},'end',this.value);applyUIMode()" ${disAttr}></div>
+                    <div style="font-size:10px; background:#f4f7f6; padding:3px; margin-top:3px; border-radius:3px; border:1px solid #ddd; display:flex; justify-content:space-between;">
+                        <span>Eelarve: <b>${tAct}</b> / ${tPlan}h</span><span style="font-weight:bold; ${statusColor}">${prog}%</span>
+                    </div>
                 </div>
                 <div class="gantt-bars-area" style="width:calc(var(--cell-w) * ${dayCount});">
                     <div class="today-line" style="left:${tIdx * 45}px"></div>`;
             
             const drawSeg = (bnd, color, label, titleText) => {
-                let dur = bnd.e - bnd.s + 1;
-                if(dur < 1) return ''; 
+                let dur = bnd.e - bnd.s + 1; if(dur < 1) return ''; 
                 let left = bnd.s * 45; let width = dur * 45 - 1; 
                 return `<div class="task-bar" title="${titleText}" style="left:${left}px; width:${width}px; background:${color}; font-size:10px; justify-content:center; padding:0; border-radius:3px; box-shadow:inset 0 0 0 1px rgba(0,0,0,0.1);">${dur > 1 ? label : label[0]}</div>`;
             };
@@ -867,16 +891,12 @@
         
         let filteredOrders = orders.filter(o => o[key] > 0 && o.status === 'Töös' && o.mt !== 'SYS_SETTINGS' && String(o[CONFIG[key].d]) !== 'true');
         if (gV) filteredOrders = filteredOrders.filter(o => (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
-        
         if (filteredOrders.length === 0) bodyHtml += `<div class="empty-state">ℹ️ Selles osakonnas pole ühtegi töös tellimust.</div>`;
-
         let disAttr = isAdmin ? "" : "disabled";
 
         filteredOrders.forEach((o) => {
-            let gIdx = orders.indexOf(o);
-            let bnds = getPhaseDates(o, START_VIEW);
-            let myBnd;
-            if (CONFIG[key].order === 0) myBnd = bnds.ins; else if (CONFIG[key].order === 1) myBnd = bnds.lukk; else if (CONFIG[key].order === 2) myBnd = bnds.keev; else if (CONFIG[key].order === 3) myBnd = bnds.kooste;
+            let gIdx = orders.indexOf(o); let bnds = getPhaseDates(o, START_VIEW);
+            let myBnd = CONFIG[key].order === 0 ? bnds.ins : (CONFIG[key].order === 1 ? bnds.lukk : (CONFIG[key].order === 2 ? bnds.keev : bnds.kooste));
 
             let finalLeft = myBnd.s * 45; let taskDur = Math.max(1, myBnd.e - myBnd.s + 1);
             let plannedH = f(o[key]); let actualH = f(o[CONFIG[key].p]);
@@ -889,35 +909,24 @@
             bodyHtml += `<div class="gantt-row">
                 <div class="gantt-info">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <div style="display:flex; flex-direction:column; overflow:hidden;">
-                            <b>${o.mt}</b><small>${o.client}</small>
-                        </div>
+                        <div style="display:flex; flex-direction:column; overflow:hidden;"><b>${o.mt}</b><small>${o.client}</small></div>
                         <div style="display:flex; flex-direction:column; align-items:flex-end;">
                             <div style="display:flex; align-items:center; gap:4px; background:#f4f7f6; padding:3px 6px; border-radius:4px; border:1px solid #ccc; flex-shrink:0;">
-                                <span style="font-size:10px; color:#555;" title="Plaanitud tunnid">P: <b>${plannedH}h</b></span>
-                                <span style="font-size:10px; color:#aaa;">|</span>
-                                <span style="font-size:10px; color:#27ae60; font-weight:bold;" title="Tehtud tunnid">T:</span>
+                                <span style="font-size:10px; color:#555;" title="Plaanitud tunnid">P: <b>${plannedH}h</b></span><span style="font-size:10px; color:#aaa;">|</span><span style="font-size:10px; color:#27ae60; font-weight:bold;" title="Tehtud tunnid">T:</span>
                                 <input type="number" class="prog-in ${inputOverClass}" value="${actualH}" onchange="u(${gIdx},'${CONFIG[key].p}',this.value);applyUIMode()" ${disAttr} style="width:42px; height:20px; padding:0 2px; font-size:11px; margin:0;">
                             </div>
-                            <label style="font-size:10px; cursor:pointer; display:flex; align-items:center; gap:2px; margin-top:3px; background:#e8f5e9; padding:2px 5px; border-radius:3px; border:1px solid #a5d6a7; color:#2e7d32;">
-                                <input type="checkbox" onchange="u(${gIdx},'${CONFIG[key].d}',this.checked);applyUIMode()" ${checkAttr} ${disAttr} style="margin:0;"> ✅ Valmis
-                            </label>
+                            <label style="font-size:10px; cursor:pointer; display:flex; align-items:center; gap:2px; margin-top:3px; background:#e8f5e9; padding:2px 5px; border-radius:3px; border:1px solid #a5d6a7; color:#2e7d32;"><input type="checkbox" onchange="u(${gIdx},'${CONFIG[key].d}',this.checked);applyUIMode()" ${checkAttr} ${disAttr} style="margin:0;"> ✅ Valmis</label>
                         </div>
                     </div>
                     <small style="color:#777; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${o.kirjeldus||''}">${o.kirjeldus||''}</small>
-                    <div style="display:flex;gap:3px; margin-top:2px;">
-                        <input type="date" title="Algus" value="${safeISO(o.start)}" onchange="u(${gIdx},'start',this.value);applyUIMode()" ${disAttr}>
-                        <input type="date" title="Lõpp" value="${safeISO(o.end)}" onchange="u(${gIdx},'end',this.value);applyUIMode()" ${disAttr}>
-                    </div>
+                    <div style="display:flex;gap:3px; margin-top:2px;"><input type="date" title="Algus" value="${safeISO(o.start)}" onchange="u(${gIdx},'start',this.value);applyUIMode()" ${disAttr}><input type="date" title="Lõpp" value="${safeISO(o.end)}" onchange="u(${gIdx},'end',this.value);applyUIMode()" ${disAttr}></div>
                 </div>
                 <div class="gantt-bars-area" style="width:calc(var(--cell-w) * ${dayCount});">
                     <div class="today-line" style="left:${tIdx * 45}px"></div>`;
             
             if(f(o.sub1) > 0) bodyHtml += `<div class="sub-bar sub-pre" style="left:${bnds.ah1.s*45}px; width:${(Math.max(1, bnds.ah1.e - bnds.ah1.s + 1))*45 - 2}px">AH1</div>`;
-            
             bodyHtml += `<div class="task-bar" title="MT: ${o.mt}\nKlient: ${o.client}\n${CONFIG[key].l}: ${actualH}h / ${plannedH}h tehtud (${curProg}%)\nSisu: ${o.kirjeldus||'-'}" style="left:${finalLeft}px; width:${taskDur * 45 - 5}px; background:${CONFIG[key].color}">
                 <div class="progress-fill" style="width:${fillW}%; ${overBg}"></div><span style="position:relative; padding-left:5px; z-index:10;">${o.mt} (${curProg}%)</span></div>`;
-            
             if(f(o.sub2) > 0) bodyHtml += `<div class="sub-bar sub-post" style="left:${bnds.ah2.s*45}px; width:${(Math.max(1, bnds.ah2.e - bnds.ah2.s + 1))*45 - 2}px">AH2</div>`;
             bodyHtml += `</div></div>`; 
         });
@@ -928,9 +937,76 @@
 
     function syncDailyScroll(e) {
         const scrollX = e.target.scrollLeft;
-        document.querySelectorAll('.daily-chart-wrapper').forEach(w => {
-            if (w !== e.target && w.scrollLeft !== scrollX) w.scrollLeft = scrollX;
+        document.querySelectorAll('.daily-chart-wrapper').forEach(w => { if (w !== e.target && w.scrollLeft !== scrollX) w.scrollLeft = scrollX; });
+    }
+
+    // --- UUS: TARK HÜBRIID TASANDAJA ---
+    function calculateSmartDailyLoad(validOrders) {
+        let dailyLoadTracker = {}; 
+        Object.keys(CONFIG).forEach(k => dailyLoadTracker[k] = {});
+        let autoAllocations = []; 
+
+        // 1. Paneme kirja juba käsitsi tehtud Dispetšeri tunnid, et need hõivaksid ruumi
+        validOrders.forEach(o => {
+            Object.keys(CONFIG).forEach(k => {
+                if (o.allocs && o.allocs[k]) {
+                    Object.keys(o.allocs[k]).forEach(dStr => {
+                        let sum = Object.values(o.allocs[k][dStr]).reduce((a,b)=>a+f(b), 0);
+                        dailyLoadTracker[k][dStr] = (dailyLoadTracker[k][dStr] || 0) + sum;
+                    });
+                }
+            });
         });
+
+        // 2. Jagame järelejäänud tunnid vabadele päevadele (Tetris)
+        validOrders.forEach(o => {
+            let bnds = getPhaseDates(o, START_VIEW);
+            let allocs = { mt: o.mt, client: o.client, kirjeldus: o.kirjeldus, depts: {} };
+
+            Object.keys(CONFIG).forEach(k => {
+                let isDone = String(o[CONFIG[k].d]) === 'true';
+                let planned = f(o[k]);
+                let allocated = getAllocated(o, k);
+                let remainingH = Math.max(0, planned - allocated);
+
+                if (remainingH > 0 && !isDone) {
+                    allocs.depts[k] = {};
+                    let myBnd = CONFIG[k].order === 0 ? bnds.ins : (CONFIG[k].order === 1 ? bnds.lukk : (CONFIG[k].order === 2 ? bnds.keev : bnds.kooste));
+                    let startT = myBnd.sDate.getTime(); let endT = myBnd.eDate.getTime();
+                    
+                    let workDaysList = []; let curT = startT;
+                    while(curT <= endT) {
+                        let cD = new Date(curT);
+                        if(cD.getDay() !== 0 && cD.getDay() !== 6 && !isHoliday(cD)) workDaysList.push(safeISO(cD));
+                        curT += 86400000;
+                    }
+                    if (workDaysList.length === 0) workDaysList.push(safeISO(new Date(startT)));
+
+                    let myAllocs = {};
+                    workDaysList.forEach(t => myAllocs[t] = remainingH / workDaysList.length);
+
+                    for(let iter=0; iter<5; iter++) {
+                        let excessH = 0; let receivers = [];
+                        workDaysList.forEach(t => {
+                            let wNo = getWeek(new Date(t)); let cap = (customCap[k] && customCap[k][wNo]) ? customCap[k][wNo] / 5 : CONFIG[k].c / 5;
+                            let totalHere = (dailyLoadTracker[k][t] || 0) + myAllocs[t];
+                            
+                            if (totalHere > cap && myAllocs[t] > 0) {
+                                let shiftable = Math.min(totalHere - cap, myAllocs[t]);
+                                if (shiftable > 0.05) { excessH += shiftable; myAllocs[t] -= shiftable; }
+                            } else if (totalHere < cap - 0.05) { receivers.push(t); }
+                        });
+                        if (excessH <= 0.05 || receivers.length === 0) break;
+                        let addPerDay = excessH / receivers.length;
+                        receivers.forEach(t => myAllocs[t] += addPerDay);
+                    }
+                    
+                    workDaysList.forEach(t => { allocs.depts[k][t] = myAllocs[t]; dailyLoadTracker[k][t] = (dailyLoadTracker[k][t] || 0) + myAllocs[t]; });
+                }
+            });
+            autoAllocations.push(allocs);
+        });
+        return { tracker: dailyLoadTracker, autoAllocs: autoAllocations };
     }
 
     function renderDailyCharts() {
@@ -943,6 +1019,8 @@
         if (gV) validOrders = validOrders.filter(o => (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
         validOrders.sort((a, b) => new Date(a.start) - new Date(b.start));
 
+        let smartLoad = calculateSmartDailyLoad(validOrders);
+
         Object.keys(CONFIG).forEach(k => {
             let chartHtml = `<div class="daily-chart-wrapper" onscroll="syncDailyScroll(event)"><h3>${CONFIG[k].l} (Päeva koormus)</h3><div class="daily-chart-area">`;
             for(let i=0; i<daysToShow; i++) {
@@ -953,10 +1031,16 @@
                 
                 if (!isRestDay) {
                     validOrders.forEach(o => {
-                        let hHere = o.allocs && o.allocs[k] && o.allocs[k][dateStr] ? Object.values(o.allocs[k][dateStr]).reduce((a,b)=>a+f(b), 0) : 0;
-                        if(hHere > 0) {
-                            totalH += hHere; 
-                            segmentsHtml += `<div class="order-segment" style="height:${hHere * SCALE}px; background:${CONFIG[k].color};" title="${o.mt} (${o.kirjeldus||''})\nKoormus: ${hHere.toFixed(1)}h">${hHere > 0.5 ? o.mt : ''}</div>`;
+                        let manualH = o.allocs && o.allocs[k] && o.allocs[k][dateStr] ? Object.values(o.allocs[k][dateStr]).reduce((a,b)=>a+f(b), 0) : 0;
+                        let autoH = smartLoad.autoAllocs.find(a => a.mt === o.mt)?.depts[k]?.[dateStr] || 0;
+                        
+                        if (manualH > 0) {
+                            totalH += manualH; 
+                            segmentsHtml += `<div class="order-segment" style="height:${manualH * SCALE}px; background:${CONFIG[k].color};" title="${o.mt} (Dispetšerist kindlalt määratud)\nKoormus: ${manualH.toFixed(1)}h">${manualH > 0.5 ? o.mt : ''}</div>`;
+                        }
+                        if (autoH > 0) {
+                            totalH += autoH; 
+                            segmentsHtml += `<div class="order-segment striped-bg" style="height:${autoH * SCALE}px; background-color:${CONFIG[k].color};" title="${o.mt} (Pangas olev jääk, süsteemi prognoos)\nKoormus: ${autoH.toFixed(1)}h"></div>`;
                         }
                     });
                 }
@@ -976,6 +1060,9 @@
         
         let validOrders = orders.filter(o => o.status === 'Töös' && o.mt !== 'SYS_SETTINGS');
         if (gV) validOrders = validOrders.filter(o => (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
+        validOrders.sort((a, b) => new Date(a.start) - new Date(b.start));
+
+        let smartLoad = calculateSmartDailyLoad(validOrders);
 
         let html = `<div style="background:white; border-radius:8px; padding:0; box-shadow:0 4px 15px rgba(0,0,0,0.05); overflow:auto; height:100%;">
             <table class="data-table" style="min-width:max-content; border-collapse: separate; border-spacing: 0;">
@@ -993,14 +1080,8 @@
             for(let i=0; i<daysToShow; i++) {
                 let curDate = new Date(startDate.getTime() + i*86400000), dateStr = safeISO(curDate), wNo = getWeek(curDate), isWeekend = curDate.getDay() === 0 || curDate.getDay() === 6, isToday = curDate.toDateString() === TODAY.toDateString();
                 let isHol = isHoliday(curDate); let dailyCap = (customCap[k] && customCap[k][wNo]) ? customCap[k][wNo] / 5 : CONFIG[k].c / 5;
-                let totalH = 0;
                 
-                if (!isWeekend && !isHol) {
-                    validOrders.forEach(o => {
-                        let hHere = o.allocs && o.allocs[k] && o.allocs[k][dateStr] ? Object.values(o.allocs[k][dateStr]).reduce((a,b)=>a+f(b), 0) : 0;
-                        totalH += hHere;
-                    });
-                }
+                let totalH = smartLoad.tracker[k][dateStr] || 0; // manual + auto
                 
                 let isOver = totalH > dailyCap + 0.1;
                 let cellStyle = isHol ? "background:#ffebee; color:#c62828;" : (isWeekend ? "background:#eee;" : (isOver ? "background:#ffebee; color:#c62828; font-weight:bold;" : (totalH > 0.1 ? "background:#e8f5e9; color:#2e7d32; font-weight:bold;" : "background:#fff;")));
@@ -1052,8 +1133,7 @@
         let n = document.getElementById('hol-name').value; let s = document.getElementById('hol-start').value; let e = document.getElementById('hol-end').value;
         if(!n || !s) { alert("Nimetus ja alguskuupäev on kohustuslikud!"); return; }
         if(!e) e = s;
-        if(!customCap.holidays) customCap.holidays = [];
-        customCap.holidays.push({n:n, s:s, e:e});
+        if(!customCap.holidays) customCap.holidays = []; customCap.holidays.push({n:n, s:s, e:e});
         document.getElementById('hol-name').value = ""; document.getElementById('hol-start').value = ""; document.getElementById('hol-end').value = "";
         saveCapacity(); 
     }
@@ -1064,16 +1144,13 @@
         if(!isAdmin) return;
         document.querySelectorAll('.cap-num-in').forEach(i => { if(!customCap[i.dataset.k]) customCap[i.dataset.k] = {}; customCap[i.dataset.k][i.dataset.w] = parseInt(i.value); });
         localStorage.setItem('prod_cap_live', JSON.stringify(customCap)); 
-        
         let sysRow = orders.find(o => o.mt === 'SYS_SETTINGS');
         if(!sysRow) {
             sysRow = {mt:"SYS_SETTINGS", client:"SYSTEM", kirjeldus:"", start:safeISO(new Date()), end:safeISO(new Date()), sub1:0, sub2:0, ins:0, trei:0, must_k:0, rv_k:0, must_l:0, rv_l:0, kooste:0, prog_ins:0, prog_tr:0, prog_mk:0, prog_rk:0, prog_ml:0, prog_rl:0, prog_ko:0, progress:0, status:'Valmis'};
             orders.push(sysRow);
         }
         sysRow.kirjeldus = JSON.stringify(customCap);
-
-        alert("Puhkused ja võimekus salvestatud PILVE!"); 
-        applyUIMode(); save(); 
+        alert("Puhkused ja võimekus salvestatud PILVE!"); applyUIMode(); save(); 
     }
 
     function save() { 
@@ -1083,12 +1160,7 @@
         saveTimeout = setTimeout(async () => {
             isSaving = true; updateSyncStatus("💾 Salvestan...", "warning");
             try {
-                // MUUDETUD: Et salvestada allocs, peame selle JSON objektist stringiks tegema enne posti!
-                let saveOrders = orders.map(o => {
-                    let copy = {...o};
-                    copy.allocs = JSON.stringify(o.allocs || {});
-                    return copy;
-                });
+                let saveOrders = orders.map(o => { let copy = {...o}; copy.allocs = JSON.stringify(o.allocs || {}); return copy; });
                 await fetch(API_URL, {method:"POST", body:JSON.stringify(saveOrders), mode:'no-cors'});
                 isSaving = false; hasPendingChanges = false; updateSyncStatus("✅ Salvestatud", "success");
             } catch(e) { isSaving = false; updateSyncStatus("❌ Salvestamise viga", "danger"); }
