@@ -145,7 +145,7 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V112.0 (Keevitus on Ankur ⚓)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V112.0 (Pudelikaela Mootor & Automaatika)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;" title="Ekspordib selle vaate, kus sa parajasti oled">📥 EKSPORDI VAADE</button>
@@ -228,8 +228,8 @@
         </div>
         <div style="font-size:16px; font-weight:bold; color:var(--primary); margin-left:15px;">🗓️ Töökohtade Dispetšer</div>
         <div style="font-size:11px; color:#666; margin-left:auto;">
-            💡 <b>1 klõps pangas</b> valib "Pintsli". <b>1 klõps tabelis</b> kleebib lahtrisse (klotsil klikkides kustutab).<br>
-            <b>Topeltklikk tabelis</b> avab akna täpseks tundide muutmiseks.
+            💡 <b>Triibulised klotsid:</b> Süsteemi automaatne soovitus. <b>Täisvärvi klotsid:</b> Sinu käsitsi kinnitatud plaan.<br>
+            <b>1 klõps pangas</b> valib "Pintsli". <b>1 klõps tabelis</b> kleebib lahtrisse. <b>Topeltklikk tabelis</b> avab täpse muutmise.
         </div>
     </div>
     
@@ -387,10 +387,6 @@
                 let p = getPhaseDates(o, START_VIEW);
                 const fd = (bnd) => bnd && bnd.sDate ? safeISO(bnd.sDate) : '';
                 const fde = (bnd) => bnd && bnd.eDate ? safeISO(bnd.eDate) : '';
-                let mIns = getGroupManualDates(o, ['ins']); if(mIns) p.ins = mIns;
-                let mLukk = getGroupManualDates(o, ['trei', 'must_l', 'rv_l']); if(mLukk) p.lukk = mLukk;
-                let mKeev = getGroupManualDates(o, ['must_k', 'rv_k']); if(mKeev) p.keev = mKeev;
-                let mKooste = getGroupManualDates(o, ['kooste']); if(mKooste) p.kooste = mKooste;
                 csv += `${clean(o.mt)};${clean(o.client)};${fd(p.ins)};${fde(p.ins)};${fd(p.ah1)};${fde(p.ah1)};${fd(p.lukk)};${fde(p.lukk)};${fd(p.keev)};${fde(p.keev)};${fd(p.ah2)};${fde(p.ah2)};${fd(p.kooste)};${fde(p.kooste)}\n`;
             });
         } else if (activeTab.startsWith('gantt_') && activeTab !== 'gantt_all') {
@@ -401,7 +397,6 @@
             filteredOrders.forEach(o => {
                 let p = getPhaseDates(o, START_VIEW);
                 let myBnd = CONFIG[realKey].order === 0 ? p.ins : (CONFIG[realKey].order === 1 ? p.lukk : (CONFIG[realKey].order === 2 ? p.keev : p.kooste));
-                let mBnd = getGroupManualDates(o, [realKey]); if (mBnd) myBnd = mBnd;
                 let wDays = getWorkingDays(myBnd.sDate, myBnd.eDate);
                 let pH = f(o[realKey]), aH = f(o[CONFIG[realKey].p]);
                 let prog = pH > 0 ? Math.round((aH/pH)*100) : 0;
@@ -487,7 +482,23 @@
         } catch(e) { updateSyncStatus("❌ Ühenduse viga", "danger"); }
     }
 
-    // V112 UUS TARK ANKRUPÕHINE (KEEVITUSE) PLANEERIJA
+    // V112: TARK ANKRUPÕHINE (KASKAAD) PLANEERIJA
+    function getGroupManualDates(o, deptsArray) {
+        let dates = [];
+        deptsArray.forEach(dept => {
+            if(o.allocs && o.allocs[dept]) {
+                Object.keys(o.allocs[dept]).forEach(dStr => {
+                    if(Object.values(o.allocs[dept][dStr]).some(h => f(h) > 0)) dates.push(new Date(dStr).getTime());
+                });
+            }
+        });
+        if(dates.length === 0) return null;
+        let minT = Math.min(...dates); let maxT = Math.max(...dates);
+        return { 
+            sDate: new Date(minT), eDate: new Date(maxT)
+        };
+    }
+
     function getPhaseDates(o, startView) {
         function isWDay(dStr) {
             let d = new Date(dStr); let day = d.getDay();
@@ -509,114 +520,76 @@
             return safeISO(d);
         }
 
-        let insD = Math.ceil(f(o.ins)/8) || (f(o.ins)>0?1:0);
-        let lukkH = f(o.trei)+f(o.must_l)+f(o.rv_l); let lukkD = Math.ceil(lukkH/8) || (lukkH>0?1:0);
-        let keevH = f(o.must_k)+f(o.rv_k); let keevD = Math.ceil(keevH/8) || (keevH>0?1:0);
-        let koosteD = Math.ceil(f(o.kooste)/8) || (f(o.kooste)>0?1:0);
-        let ah1D = f(o.sub1); let ah2D = f(o.sub2);
+        let d = {};
+        d.ins = Math.ceil(f(o.ins)/8) || (f(o.ins)>0?1:0);
+        let lukkH = f(o.trei)+f(o.must_l)+f(o.rv_l); d.lukk = Math.ceil(lukkH/8) || (lukkH>0?1:0);
+        let keevH = f(o.must_k)+f(o.rv_k); d.keev = Math.ceil(keevH/8) || (keevH>0?1:0);
+        d.kooste = Math.ceil(f(o.kooste)/8) || (f(o.kooste)>0?1:0);
+        d.ah1 = f(o.sub1); d.ah2 = f(o.sub2);
 
-        let manualKeevDates = [];
-        ['must_k', 'rv_k'].forEach(dept => {
-            if(o.allocs && o.allocs[dept]) {
-                Object.keys(o.allocs[dept]).forEach(dStr => {
-                    if(Object.values(o.allocs[dept][dStr]).some(h => f(h) > 0)) manualKeevDates.push(dStr);
-                });
-            }
-        });
+        let mDates = {
+            ins: getGroupManualDates(o, ['ins']),
+            lukk: getGroupManualDates(o, ['trei', 'must_l', 'rv_l']),
+            keev: getGroupManualDates(o, ['must_k', 'rv_k']),
+            kooste: getGroupManualDates(o, ['kooste'])
+        };
 
-        let insS, insE, ah1S, ah1E, lukkS, lukkE, keevS, keevE, ah2S, ah2E, koosteS, koosteE;
+        let phases = ['ins', 'ah1', 'lukk', 'keev', 'ah2', 'kooste'];
+        
+        // Dünaamiline Ankur
+        let anchorIdx = -1;
+        if (mDates.keev) anchorIdx = 3;
+        else if (mDates.lukk) anchorIdx = 2;
+        else if (mDates.kooste) anchorIdx = 5;
+        else if (mDates.ins) anchorIdx = 0;
 
-        if (manualKeevDates.length > 0) {
-            manualKeevDates.sort(); // Keevituse ankur paigas!
-            let minKeev = manualKeevDates[0];
-            let maxKeev = manualKeevDates[manualKeevDates.length - 1];
-            
-            keevS = snapToW(minKeev, "prev");
-            keevE = snapToW(maxKeev, "next");
+        let P = {}; phases.forEach(p => P[p] = { sStr: null, eStr: null });
 
-            // Kett edasi
-            let cursor = keevE;
-            ah2S = ah2D > 0 ? addW(cursor, 1) : cursor;
-            ah2E = ah2D > 0 ? addW(ah2S, Math.max(0, ah2D - 1)) : ah2S;
-            cursor = ah2D > 0 ? ah2E : cursor;
-
-            koosteS = koosteD > 0 ? addW(cursor, 1) : cursor;
-            koosteE = koosteD > 0 ? addW(koosteS, Math.max(0, koosteD - 1)) : koosteS;
-
-            // Kett tagasi
-            cursor = keevS;
-            lukkE = lukkD > 0 ? subW(cursor, 1) : cursor;
-            lukkS = lukkD > 0 ? subW(lukkE, Math.max(0, lukkD - 1)) : lukkE;
-            cursor = lukkD > 0 ? lukkS : cursor;
-
-            ah1E = ah1D > 0 ? subW(cursor, 1) : cursor;
-            ah1S = ah1D > 0 ? subW(ah1E, Math.max(0, ah1D - 1)) : ah1E;
-            cursor = ah1D > 0 ? ah1S : cursor;
-
-            insE = insD > 0 ? subW(cursor, 1) : cursor;
-            insS = insD > 0 ? subW(insE, Math.max(0, insD - 1)) : insE;
-
-        } else {
-            // Keevitust pole määratud, ankur on Lõppkuupäev
+        if (anchorIdx === -1) {
+            // Ankruks on Lõppkuupäev
             let endStr = o.end || safeISO(TODAY);
             let cursor = snapToW(endStr, "prev");
-
-            koosteE = cursor;
-            koosteS = koosteD > 0 ? subW(koosteE, Math.max(0, koosteD - 1)) : koosteE;
-            cursor = koosteD > 0 ? subW(koosteS, 1) : cursor;
-
-            ah2E = ah2D > 0 ? cursor : cursor;
-            ah2S = ah2D > 0 ? subW(ah2E, Math.max(0, ah2D - 1)) : ah2E;
-            cursor = ah2D > 0 ? subW(ah2S, 1) : cursor;
-
-            keevE = keevD > 0 ? cursor : cursor;
-            keevS = keevD > 0 ? subW(keevE, Math.max(0, keevD - 1)) : keevE;
-            cursor = keevD > 0 ? subW(keevS, 1) : cursor;
-
-            lukkE = lukkD > 0 ? cursor : cursor;
-            lukkS = lukkD > 0 ? subW(lukkE, Math.max(0, lukkD - 1)) : lukkE;
-            cursor = lukkD > 0 ? subW(lukkS, 1) : cursor;
-
-            ah1E = ah1D > 0 ? cursor : cursor;
-            ah1S = ah1D > 0 ? subW(ah1E, Math.max(0, ah1D - 1)) : ah1E;
-            cursor = ah1D > 0 ? subW(ah1S, 1) : cursor;
-
-            insE = insD > 0 ? cursor : cursor;
-            insS = insD > 0 ? subW(insE, Math.max(0, insD - 1)) : insE;
-        }
-
-        let bounds = {
-            ins: { sDate: new Date(insS), eDate: new Date(insE) },
-            ah1: { sDate: new Date(ah1S), eDate: new Date(ah1E) },
-            lukk: { sDate: new Date(lukkS), eDate: new Date(lukkE) },
-            keev: { sDate: new Date(keevS), eDate: new Date(keevE) },
-            ah2: { sDate: new Date(ah2S), eDate: new Date(ah2E) },
-            kooste: { sDate: new Date(koosteS), eDate: new Date(koosteE) }
-        };
-
-        for (let k in bounds) {
-            bounds[k].s = getDayIndexUTC(bounds[k].sDate, startView);
-            bounds[k].e = getDayIndexUTC(bounds[k].eDate, startView);
-            if(bounds[k].e < bounds[k].s) bounds[k].e = bounds[k].s;
-        }
-        return bounds;
-    }
-
-    function getGroupManualDates(o, deptsArray) {
-        let dates = [];
-        deptsArray.forEach(dept => {
-            if(o.allocs && o.allocs[dept]) {
-                Object.keys(o.allocs[dept]).forEach(dStr => {
-                    if(Object.values(o.allocs[dept][dStr]).some(h => f(h) > 0)) dates.push(new Date(dStr).getTime());
-                });
+            
+            for(let i=5; i>=0; i--) {
+                let p = phases[i]; let dur = d[p];
+                P[p].eStr = cursor;
+                P[p].sStr = dur > 0 ? subW(cursor, Math.max(0, dur - 1)) : cursor;
+                cursor = dur > 0 ? subW(P[p].sStr, 1) : cursor;
             }
+        } else {
+            // Edasi Planeerimine ankru pealt
+            for(let i=anchorIdx; i<=5; i++) {
+                let p = phases[i]; let dur = d[p];
+                if (mDates[p]) {
+                    P[p].sStr = safeISO(mDates[p].sDate); P[p].eStr = safeISO(mDates[p].eDate);
+                } else {
+                    let prevEnd = P[phases[i-1]].eStr;
+                    P[p].sStr = dur > 0 ? addW(prevEnd, 1) : prevEnd;
+                    P[p].eStr = dur > 0 ? addW(P[p].sStr, Math.max(0, dur - 1)) : P[p].sStr;
+                }
+            }
+            // Tagasi Planeerimine ankru pealt
+            for(let i=anchorIdx-1; i>=0; i--) {
+                let p = phases[i]; let dur = d[p];
+                if (mDates[p]) {
+                    P[p].sStr = safeISO(mDates[p].sDate); P[p].eStr = safeISO(mDates[p].eDate);
+                } else {
+                    let nextStart = P[phases[i+1]].sStr;
+                    P[p].eStr = dur > 0 ? subW(nextStart, 1) : nextStart;
+                    P[p].sStr = dur > 0 ? subW(P[p].eStr, Math.max(0, dur - 1)) : P[p].eStr;
+                }
+            }
+        }
+
+        let bounds = {};
+        phases.forEach(p => {
+            bounds[p] = { sDate: new Date(P[p].sStr), eDate: new Date(P[p].eStr) };
+            bounds[p].s = getDayIndexUTC(bounds[p].sDate, startView);
+            bounds[p].e = getDayIndexUTC(bounds[p].eDate, startView);
+            if (bounds[p].e < bounds[p].s) bounds[p].e = bounds[p].s;
         });
-        if(dates.length === 0) return null;
-        let minT = Math.min(...dates); let maxT = Math.max(...dates);
-        return { 
-            s: getDayIndexUTC(new Date(minT), START_VIEW), e: getDayIndexUTC(new Date(maxT), START_VIEW),
-            sDate: new Date(minT), eDate: new Date(maxT)
-        };
+
+        return bounds;
     }
 
     const makeCell = (k, pK, dK, i, o, dis) => {
@@ -678,7 +651,7 @@
             if (currentMainTabFilter === 'active' && o.status === 'Valmis') return;
             if (currentMainTabFilter === 'archive' && o.status !== 'Valmis') return;
             let matchText = (!gV || (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
-            if ((!mV || safeISO(o.end).includes(mV)) && matchText) { // V112 muudatus: Kuu filter vaatab nüüd LÕPP kuupäeva, mitte algust!
+            if ((!mV || safeISO(o.end).includes(mV)) && matchText) {
                 const sCl = o.status === 'Valmis' ? 'status-valmis' : o.status === 'Töös' ? 'status-toos' : 'status-ootel';
                 let isOverdue = false; if (o.status !== 'Valmis') { let endD = new Date(o.end); endD.setHours(23, 59, 59, 999); if (endD.getTime() < todayTime.getTime()) isOverdue = true; }
                 let overStyle = isOverdue ? 'background-color:#ffebee; color:#c62828; font-weight:bold; border:1px solid #c62828;' : '';
@@ -688,7 +661,6 @@
                 let ostDone = String(o.chk_ost) === 'true'; let insDone = String(o.done_ins) === 'true'; let ah1Done = f(o.sub1) === 0 || String(o.chk_ah1) === 'true'; let ah2Done = f(o.sub2) === 0 || String(o.chk_ah2) === 'true';
                 let listIcon = (ostDone && insDone && ah1Done && ah2Done) ? '✅' : '📋';
 
-                // V112 muudatus: Tabelist on Alguse kuupäev kustutatud, on vaid Lõpp!
                 b.innerHTML += `<tr class="${sCl}">
                     <td><div style="display:flex; align-items:center; gap:5px;"><button onclick="showChecklist(${i})" title="Projektiplaan" style="border:none; background:none; cursor:pointer; font-size:16px;">${listIcon}</button><button onclick="showOrder(${i})" title="Ava Raport" style="border:none; background:none; cursor:pointer; font-size:16px;">🔍</button><input class="data-in" value="${o.mt}" onchange="u(${i},'mt',this.value)" ${disAttr}></div></td>
                     <td><input class="data-in" value="${o.client}" onchange="u(${i},'client',this.value)" ${disAttr}></td>
@@ -765,16 +737,12 @@
 
         filteredOrders.forEach((o) => {
             let gIdx = orders.indexOf(o); let bnds = getPhaseDates(o, START_VIEW);
-            let mIns = getGroupManualDates(o, ['ins']); if(mIns) bnds.ins = mIns;
-            let mLukk = getGroupManualDates(o, ['trei', 'must_l', 'rv_l']); if(mLukk) bnds.lukk = mLukk;
-            let mKooste = getGroupManualDates(o, ['kooste']); if(mKooste) bnds.kooste = mKooste;
 
             let tPlan = f(o.ins)+f(o.trei)+f(o.must_k)+f(o.rv_k)+f(o.must_l)+f(o.rv_l)+f(o.kooste);
             let tAct = f(o.prog_ins)+f(o.prog_tr)+f(o.prog_mk)+f(o.prog_rk)+f(o.prog_ml)+f(o.prog_rl)+f(o.prog_ko);
             let prog = tPlan > 0 ? Math.round((tAct/tPlan)*100) : 0;
             let statusColor = prog > 100 ? 'color:#c62828;' : 'color:#27ae60;';
 
-            // Hoiatus kui automaatne Kooste (või muu) läheb üle Lõpptähtaja
             let eIdx = getDayIndexUTC(o.end, START_VIEW);
             let isOverdue = bnds.kooste.e > eIdx;
             let endTitleStyle = isOverdue ? "color:#c62828; background:#ffebee; padding:2px; border-radius:3px; font-weight:bold;" : "";
@@ -832,7 +800,6 @@
         filteredOrders.forEach((o) => {
             let gIdx = orders.indexOf(o); let bnds = getPhaseDates(o, START_VIEW);
             let myBnd = CONFIG[key].order === 0 ? bnds.ins : (CONFIG[key].order === 1 ? bnds.lukk : (CONFIG[key].order === 2 ? bnds.keev : bnds.kooste));
-            let mBnd = getGroupManualDates(o, [key]); if (mBnd) myBnd = mBnd;
 
             let finalLeft = myBnd.s * 45; let taskDur = Math.max(1, myBnd.e - myBnd.s + 1);
             let plannedH = f(o[key]); let actualH = f(o[CONFIG[key].p]);
@@ -933,6 +900,102 @@
         return allocated;
     }
 
+    function calculateSmartDailyLoad(validOrders) {
+        let dailyLoadTracker = {}; let wsTracker = {};
+        Object.keys(CONFIG).forEach(k => { dailyLoadTracker[k] = {}; wsTracker[k] = {}; });
+        let autoAllocations = []; 
+        
+        validOrders.forEach(o => {
+            Object.keys(CONFIG).forEach(k => {
+                if (o.allocs && o.allocs[k]) {
+                    Object.keys(o.allocs[k]).forEach(dStr => {
+                        if(!wsTracker[k][dStr]) wsTracker[k][dStr] = {};
+                        let sum = 0;
+                        Object.keys(o.allocs[k][dStr]).forEach(ws => {
+                            let h = f(o.allocs[k][dStr][ws]);
+                            wsTracker[k][dStr][ws] = (wsTracker[k][dStr][ws] || 0) + h;
+                            sum += h;
+                        });
+                        dailyLoadTracker[k][dStr] = (dailyLoadTracker[k][dStr] || 0) + sum;
+                    });
+                }
+            });
+        });
+
+        validOrders.forEach(o => {
+            let bnds = getPhaseDates(o, START_VIEW);
+            let allocs = { mt: o.mt, client: o.client, kirjeldus: o.kirjeldus, depts: {} };
+
+            Object.keys(CONFIG).forEach(k => {
+                let isDone = String(o[CONFIG[k].d]) === 'true';
+                let planned = f(o[k]); let allocated = getAllocated(o, k); let remainingH = Math.max(0, planned - allocated);
+
+                if (remainingH > 0 && !isDone) {
+                    allocs.depts[k] = {};
+                    let myBnd = CONFIG[k].order === 0 ? bnds.ins : (CONFIG[k].order === 1 ? bnds.lukk : (CONFIG[k].order === 2 ? bnds.keev : bnds.kooste));
+                    let startT = myBnd.sDate.getTime(); let endT = myBnd.eDate.getTime();
+                    
+                    let workDaysList = []; let curT = startT;
+                    while(curT <= endT) {
+                        let cD = new Date(curT); if(cD.getDay() !== 0 && cD.getDay() !== 6 && !isHoliday(cD)) workDaysList.push(safeISO(cD));
+                        curT += 86400000;
+                    }
+                    if (workDaysList.length === 0) workDaysList.push(safeISO(new Date(startT)));
+
+                    let myAllocs = {}; workDaysList.forEach(t => myAllocs[t] = remainingH / workDaysList.length);
+
+                    for(let iter=0; iter<5; iter++) {
+                        let excessH = 0; let receivers = [];
+                        workDaysList.forEach(t => {
+                            let wNo = getWeek(new Date(t)); 
+                            let capCount = (customCap.wsCounts && customCap.wsCounts[k]) ? customCap.wsCounts[k] : CONFIG[k].ws;
+                            let cap = capCount * 8; 
+                            
+                            let totalHere = (dailyLoadTracker[k][t] || 0) + myAllocs[t];
+                            if (totalHere > cap && myAllocs[t] > 0) {
+                                let shiftable = Math.min(totalHere - cap, myAllocs[t]);
+                                if (shiftable > 0.05) { excessH += shiftable; myAllocs[t] -= shiftable; }
+                            } else if (totalHere < cap - 0.05) { receivers.push(t); }
+                        });
+                        if (excessH <= 0.05 || receivers.length === 0) break;
+                        let addPerDay = excessH / receivers.length; receivers.forEach(t => myAllocs[t] += addPerDay);
+                    }
+                    
+                    workDaysList.forEach(t => { 
+                        let dayH = myAllocs[t];
+                        if (dayH > 0.05) {
+                            if(!wsTracker[k][t]) wsTracker[k][t] = {};
+                            if(!allocs.depts[k][t]) allocs.depts[k][t] = {};
+                            
+                            let wsCount = (customCap.wsCounts && customCap.wsCounts[k]) ? customCap.wsCounts[k] : CONFIG[k].ws;
+                            let toAllocate = dayH;
+                            
+                            for(let w=1; w<=wsCount && toAllocate > 0.05; w++) {
+                                let wsName = `${CONFIG[k].prefix}-${w}`;
+                                let currentH = wsTracker[k][t][wsName] || 0;
+                                if (currentH < 8) {
+                                    let space = 8 - currentH;
+                                    let put = Math.min(space, toAllocate);
+                                    allocs.depts[k][t][wsName] = put;
+                                    wsTracker[k][t][wsName] = currentH + put;
+                                    toAllocate -= put;
+                                }
+                            }
+                            if (toAllocate > 0.05) {
+                                let wsName = `${CONFIG[k].prefix}-1`;
+                                allocs.depts[k][t][wsName] = (allocs.depts[k][t][wsName] || 0) + toAllocate;
+                                wsTracker[k][t][wsName] = (wsTracker[k][t][wsName] || 0) + toAllocate;
+                            }
+                        }
+                        dailyLoadTracker[k][t] = (dailyLoadTracker[k][t] || 0) + myAllocs[t]; 
+                    });
+                }
+            });
+            autoAllocations.push(allocs);
+        });
+        return { tracker: dailyLoadTracker, autoAllocs: autoAllocations, wsTracker: wsTracker };
+    }
+
     function renderDispatcher() {
         let k = document.getElementById('disp-dept').value; 
         let sDateStr = document.getElementById('disp-start').value || safeISO(TODAY); let sDate = new Date(sDateStr);
@@ -968,6 +1031,10 @@
         let bStatus = document.getElementById('brush-status');
         if(activeBrushIdx !== null) { bStatus.innerHTML = `Pintsel: <b style="color:var(--danger)">${orders[activeBrushIdx].mt}</b> (Vajuta uuesti, et tühistada)`; } else { bStatus.innerHTML = `Pintsel: <b style="color:#999">VÄLJAS</b>`; }
 
+        let validOrders = orders.filter(o => o.status === 'Töös' && o.mt !== 'SYS_SETTINGS');
+        validOrders.sort((a, b) => new Date(a.start) - new Date(b.start));
+        let smartLoad = calculateSmartDailyLoad(validOrders);
+
         let daysToShow = 30;
         let gridHtml = `<thead><tr><th style="position:sticky; left:0; top:0; z-index:30; background:#2c3e50; color:white; min-width:80px; padding:10px;">Töökoht</th>`;
         for(let d=0; d<daysToShow; d++) {
@@ -985,19 +1052,37 @@
             for(let d=0; d<daysToShow; d++) {
                 let dObj = new Date(sDate.getTime() + d*86400000); let dStr = safeISO(dObj);
                 
-                let cellContent = ""; let totalCellH = 0; let cellAllocs = [];
+                let cellContent = ""; let totalCellH = 0; let cellBlocks = [];
+                
+                // Otsime manuaalsed klotsid
                 orders.forEach((o, i) => {
                     if(o.allocs && o.allocs[k] && o.allocs[k][dStr] && o.allocs[k][dStr][wsName]) {
                         let h = f(o.allocs[k][dStr][wsName]);
-                        if(h > 0) { cellAllocs.push({idx: i, mt: o.mt, client: o.client, h: h}); totalCellH += h; }
+                        if(h > 0) { cellBlocks.push({idx: i, mt: o.mt, client: o.client, h: h, isAuto: false}); totalCellH += h; }
                     }
                 });
                 
-                if(cellAllocs.length > 0) {
+                // Otsime automaatsed süsteemi soovitusklotsid (Triibulised!)
+                smartLoad.autoAllocs.forEach(alloc => {
+                    if(alloc.depts[k] && alloc.depts[k][dStr] && alloc.depts[k][dStr][wsName]) {
+                        let h = alloc.depts[k][dStr][wsName];
+                        if(h > 0) { 
+                            let oIdx = orders.findIndex(o => o.mt === alloc.mt);
+                            cellBlocks.push({idx: oIdx, mt: alloc.mt, client: alloc.client, h: h, isAuto: true}); 
+                            totalCellH += h; 
+                        }
+                    }
+                });
+                
+                if(cellBlocks.length > 0) {
                     cellContent = `<div style="display:flex; flex-direction:column; gap:2px; padding:2px; height:100%; min-height:40px;">`;
-                    cellAllocs.forEach(al => {
+                    cellBlocks.forEach(al => {
                         let opacity = (activeBrushIdx !== null && activeBrushIdx !== al.idx) ? "0.4" : "1";
-                        cellContent += `<div class="disp-alloc" style="background:${CONFIG[k].color}; opacity:${opacity};" title="${al.client}" onclick="handleInnerBlockClick(event, '${k}', '${dStr}', '${wsName}', ${al.idx}, ${al.h})">${al.mt}<br>${al.h}h</div>`;
+                        let bgClass = al.isAuto ? "striped-bg" : "";
+                        let titleEx = al.isAuto ? "(Automaatne soovitus)" : "(Käsitsi kinnitatud)";
+                        let clickAction = al.isAuto ? `handleCellClick('${k}', '${dStr}', '${wsName}')` : `handleInnerBlockClick(event, '${k}', '${dStr}', '${wsName}', ${al.idx}, ${al.h})`;
+                        
+                        cellContent += `<div class="disp-alloc ${bgClass}" style="background-color:${CONFIG[k].color}; opacity:${opacity};" title="${al.client} ${titleEx}" onclick="${clickAction}">${al.mt}<br>${al.h.toFixed(1)}h</div>`;
                     });
                     if(totalCellH < 8) cellContent += `<div style="color:#ccc; font-size:10px; margin-top:auto;">+</div>`;
                     cellContent += `</div>`;
@@ -1014,106 +1099,6 @@
         }
         gridHtml += `</tbody>`;
         document.getElementById('disp-grid').innerHTML = gridHtml;
-    }
-
-    function openAllocModal(dept, dateStr, wsName, currentOIdx, currentH) {
-        if(!isAdmin) { alert("Ainult Administraator saab töökohti planeerida!"); return; }
-        let dObj = new Date(dateStr); let estDate = dObj.getDate() + "." + (dObj.getMonth()+1) + "." + dObj.getFullYear();
-        document.getElementById('alloc-title').innerText = `${wsName} | ${estDate}`;
-        document.getElementById('alloc-dept').value = dept; document.getElementById('alloc-date').value = dateStr; document.getElementById('alloc-ws').value = wsName;
-        document.getElementById('alloc-old-idx').value = currentOIdx >= 0 ? currentOIdx : "";
-        
-        let sel = document.getElementById('alloc-mt'); sel.innerHTML = window.currentAllocOptions;
-        if (currentOIdx >= 0) {
-            sel.value = currentOIdx; document.getElementById('alloc-h').value = currentH; document.getElementById('alloc-del-btn').style.display = 'block';
-        } else {
-            sel.value = ""; document.getElementById('alloc-h').value = 8; document.getElementById('alloc-del-btn').style.display = 'none';
-        }
-        document.getElementById('allocModal').style.display = 'block';
-    }
-    
-    function saveAllocationModal() {
-        let dept = document.getElementById('alloc-dept').value; let dateStr = document.getElementById('alloc-date').value;
-        let wsName = document.getElementById('alloc-ws').value; let newIdx = document.getElementById('alloc-mt').value;
-        let oldIdx = document.getElementById('alloc-old-idx').value; let h = parseFloat(document.getElementById('alloc-h').value);
-        
-        if (oldIdx !== "") deleteAllocationDirect(dept, dateStr, wsName, parseInt(oldIdx));
-        if (newIdx !== "" && h > 0) saveAllocationDirect(dept, dateStr, wsName, parseInt(newIdx), h, false);
-        document.getElementById('allocModal').style.display = 'none';
-    }
-    
-    function deleteAllocationModal() {
-        let dept = document.getElementById('alloc-dept').value; let dateStr = document.getElementById('alloc-date').value; let wsName = document.getElementById('alloc-ws').value;
-        let oldIdx = document.getElementById('alloc-old-idx').value;
-        if (oldIdx !== "") deleteAllocationDirect(dept, dateStr, wsName, parseInt(oldIdx));
-        document.getElementById('allocModal').style.display = 'none';
-    }
-
-    function syncDailyScroll(e) {
-        const scrollX = e.target.scrollLeft;
-        document.querySelectorAll('.daily-chart-wrapper').forEach(w => { if (w !== e.target && w.scrollLeft !== scrollX) w.scrollLeft = scrollX; });
-    }
-
-    function calculateSmartDailyLoad(validOrders) {
-        let dailyLoadTracker = {}; Object.keys(CONFIG).forEach(k => dailyLoadTracker[k] = {});
-        let autoAllocations = []; 
-        validOrders.forEach(o => {
-            Object.keys(CONFIG).forEach(k => {
-                if (o.allocs && o.allocs[k]) {
-                    Object.keys(o.allocs[k]).forEach(dStr => {
-                        let sum = Object.values(o.allocs[k][dStr]).reduce((a,b)=>a+f(b), 0);
-                        dailyLoadTracker[k][dStr] = (dailyLoadTracker[k][dStr] || 0) + sum;
-                    });
-                }
-            });
-        });
-        validOrders.forEach(o => {
-            let bnds = getPhaseDates(o, START_VIEW);
-            let mIns = getGroupManualDates(o, ['ins']); if(mIns) bnds.ins = mIns;
-            let mLukk = getGroupManualDates(o, ['trei', 'must_l', 'rv_l']); if(mLukk) bnds.lukk = mLukk;
-            let mKeev = getGroupManualDates(o, ['must_k', 'rv_k']); if(mKeev) bnds.keev = mKeev;
-            let mKooste = getGroupManualDates(o, ['kooste']); if(mKooste) bnds.kooste = mKooste;
-
-            let allocs = { mt: o.mt, client: o.client, kirjeldus: o.kirjeldus, depts: {} };
-            Object.keys(CONFIG).forEach(k => {
-                let isDone = String(o[CONFIG[k].d]) === 'true';
-                let planned = f(o[k]); let allocated = getAllocated(o, k); let remainingH = Math.max(0, planned - allocated);
-
-                if (remainingH > 0 && !isDone) {
-                    allocs.depts[k] = {};
-                    let myBnd = CONFIG[k].order === 0 ? bnds.ins : (CONFIG[k].order === 1 ? bnds.lukk : (CONFIG[k].order === 2 ? bnds.keev : bnds.kooste));
-                    let startT = myBnd.sDate.getTime(); let endT = myBnd.eDate.getTime();
-                    let workDaysList = []; let curT = startT;
-                    while(curT <= endT) {
-                        let cD = new Date(curT); if(cD.getDay() !== 0 && cD.getDay() !== 6 && !isHoliday(cD)) workDaysList.push(safeISO(cD));
-                        curT += 86400000;
-                    }
-                    if (workDaysList.length === 0) workDaysList.push(safeISO(new Date(startT)));
-
-                    let myAllocs = {}; workDaysList.forEach(t => myAllocs[t] = remainingH / workDaysList.length);
-
-                    for(let iter=0; iter<5; iter++) {
-                        let excessH = 0; let receivers = [];
-                        workDaysList.forEach(t => {
-                            let wNo = getWeek(new Date(t)); 
-                            let capCount = (customCap.wsCounts && customCap.wsCounts[k]) ? customCap.wsCounts[k] : CONFIG[k].ws;
-                            let cap = capCount * 8; 
-                            
-                            let totalHere = (dailyLoadTracker[k][t] || 0) + myAllocs[t];
-                            if (totalHere > cap && myAllocs[t] > 0) {
-                                let shiftable = Math.min(totalHere - cap, myAllocs[t]);
-                                if (shiftable > 0.05) { excessH += shiftable; myAllocs[t] -= shiftable; }
-                            } else if (totalHere < cap - 0.05) { receivers.push(t); }
-                        });
-                        if (excessH <= 0.05 || receivers.length === 0) break;
-                        let addPerDay = excessH / receivers.length; receivers.forEach(t => myAllocs[t] += addPerDay);
-                    }
-                    workDaysList.forEach(t => { allocs.depts[k][t] = myAllocs[t]; dailyLoadTracker[k][t] = (dailyLoadTracker[k][t] || 0) + myAllocs[t]; });
-                }
-            });
-            autoAllocations.push(allocs);
-        });
-        return { tracker: dailyLoadTracker, autoAllocs: autoAllocations };
     }
 
     function renderDailyCharts() {
@@ -1140,7 +1125,10 @@
                 if (!isRestDay) {
                     validOrders.forEach(o => {
                         let manualH = o.allocs && o.allocs[k] && o.allocs[k][dateStr] ? Object.values(o.allocs[k][dateStr]).reduce((a,b)=>a+f(b), 0) : 0;
-                        let autoH = smartLoad.autoAllocs.find(a => a.mt === o.mt)?.depts[k]?.[dateStr] || 0;
+                        let autoH = 0;
+                        let aObj = smartLoad.autoAllocs.find(a => a.mt === o.mt);
+                        if (aObj && aObj.depts[k] && aObj.depts[k][dateStr]) autoH = Object.values(aObj.depts[k][dateStr]).reduce((sum, val) => sum + f(val), 0);
+                        
                         if (manualH > 0) {
                             totalH += manualH; 
                             segmentsHtml += `<div class="order-segment" style="height:${manualH * SCALE}px; background:${CONFIG[k].color};" title="${o.mt} (Dispetšerist kindlalt määratud)\nKoormus: ${manualH.toFixed(1)}h">${manualH > 0.5 ? o.mt : ''}</div>`;
