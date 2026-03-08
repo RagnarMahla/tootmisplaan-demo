@@ -2,8 +2,9 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V116</title>
+    <title>TOCI Tootmisplaan V117</title>
     <style>
+        /* AMETLIK LIVE STIIL */
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); font-size: 12px; overflow: hidden; }
@@ -35,6 +36,7 @@
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 10px; overflow-y: auto; height: 100%; }
         .dash-card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 5px solid var(--accent); display: flex; flex-direction: column; justify-content: center; }
 
+        /* MODAALAKNAD */
         .modal { display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
         .modal-content { background-color: #fff; margin: 5vh auto; padding: 25px; border-radius: 12px; width: 450px; max-width: 95%; box-shadow: 0 15px 40px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
         .modal-content.large { width: 800px; }
@@ -93,11 +95,9 @@
         .disp-alloc:hover { transform: scale(1.05); z-index: 10; box-shadow:0 3px 6px rgba(0,0,0,0.3); }
         .disp-bank-item { background:#fff; border:1px solid #ddd; padding:10px; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.05); min-width:200px; flex:1; cursor:pointer; transition:0.2s; user-select: none; }
         .disp-bank-item:hover { box-shadow:0 4px 8px rgba(0,0,0,0.1); transform: translateY(-2px); }
-        
         .brush-active { border: 2px dashed #e74c3c !important; background: #fffdf5; transform: scale(1.03); box-shadow: 0 4px 15px rgba(231,76,60,0.2) !important; z-index:10; }
         .grid-brush-mode { cursor: crosshair !important; }
         .grid-brush-mode .disp-cell:hover { background: rgba(231,76,60,0.1) !important; }
-        
         .striped-bg { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.3), rgba(255,255,255,0.3) 5px, transparent 5px, transparent 10px); }
     </style>
 </head>
@@ -213,7 +213,7 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V116.0 (Sünkroonitud Graafikud)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V117.0 (Kuupäevad Paneelides)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI VAADE</button>
@@ -234,7 +234,7 @@
     <button class="tab-btn" onclick="openTab(event, 'gantt_ml', null)">MUST LUKK</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_rl', null)">RV LUKK</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_ko', null)">KOOSTE</button>
-    <button class="tab-btn" onclick="openTab(event, 'dispatcher_view', null)" style="background:#e74c3c; box-shadow: inset 0 -4px 0 #c0392b;">🗓️ PLANEERIJA</button>
+    <button class="tab-btn" onclick="openTab(event, 'dispatcher_view', null)" style="background:#e74c3c; box-shadow: inset 0 -4px 0 #c0392b;">🗓️ DISPETŠER</button>
     <button class="tab-btn" onclick="openTab(event, 'paeva_koormus_graafik', null)" style="background:var(--accent)">📊 P. GRAAFIK</button>
     <button class="tab-btn" onclick="openTab(event, 'paeva_koormus_tabel', null)" style="background:#2980b9">📅 P. TABEL</button>
     <button class="tab-btn" onclick="openTab(event, 'voimekus_tab', null)" style="color:var(--warning)">⚙️ VÕIMEKUS</button>
@@ -295,7 +295,7 @@
     
     <div style="background:#eef2f5; border-radius:8px; border:1px solid #ccc; padding:15px; margin-bottom:15px;">
         <h3 style="margin-top:0; margin-bottom:10px; color:#2c3e50; display:flex; justify-content:space-between;">
-            <span>🏦 Tundide Pank (Kliki kastil, et valida )</span>
+            <span>🏦 Tundide Pank (Kliki kastil, et valida PINTSEL 🖌️)</span>
             <span style="font-size:12px; font-weight:normal; color:#666;" id="brush-status">Pintsel: VÄLJAS</span>
         </h3>
         <div id="disp-bank" style="display:flex; flex-wrap:wrap; gap:10px; max-height:150px; overflow-y:auto; padding-right:10px;"></div>
@@ -957,6 +957,7 @@
         let filteredOrders = orders.filter(o => o[key] > 0 && o.status !== 'Valmis' && o.mt !== 'SYS_SETTINGS' && String(o[CONFIG[key].d]) !== 'true');
         if (gV) filteredOrders = filteredOrders.filter(o => (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
         if (filteredOrders.length === 0) bodyHtml += `<div class="empty-state">ℹ️ Selles osakonnas pole ühtegi töös tellimust.</div>`;
+        let disAttr = isAdmin ? "" : "disabled";
 
         filteredOrders.forEach((o) => {
             let gIdx = orders.indexOf(o); let bnds = getPhaseDates(o, START_VIEW);
@@ -967,6 +968,9 @@
             let curProg = plannedH > 0 ? Math.round((actualH / plannedH) * 100) : 0;
             let fillW = Math.min(100, curProg);
             let overBg = curProg > 100 ? 'background: rgba(231, 76, 60, 0.7); border-right: 2px solid #c0392b;' : '';
+
+            // UUS: Näitame osakonna konkreetset tähtaega
+            let deptEndStr = safeISO(myBnd.eDate);
 
             bodyHtml += `<div class="gantt-row">
                 <div class="gantt-info">
@@ -979,8 +983,10 @@
                         </div>
                     </div>
                     <small style="color:#777; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${o.kirjeldus||''}">${o.kirjeldus||''}</small>
-                    <div style="display:flex;gap:3px; align-items:center; margin-top:2px;">
-                        <span style="font-size:10px; color:#555;">Lõpp: ${safeISO(o.end)}</span>
+                    <div style="display:flex;gap:3px; align-items:center; margin-top:2px; flex-wrap:wrap;">
+                        <span style="font-size:10px; color:#555; font-weight:bold;">Osak. tähtaeg:</span>
+                        <span style="font-size:10px; background:#fff3cd; color:#856404; padding:1px 4px; border-radius:3px; border:1px solid #ffeeba;" title="Selle osakonna tähtaeg">${deptEndStr}</span>
+                        <span style="font-size:10px; color:#aaa; margin-left:3px;" title="Kogu projekti lõpptähtaeg">(Üld: ${safeISO(o.end)})</span>
                     </div>
                 </div>
                 <div class="gantt-bars-area" style="width:calc(var(--cell-w) * ${dayCount});">
@@ -1172,12 +1178,22 @@
             let rColor = remaining < 0 ? 'red' : (remaining === 0 ? 'var(--success)' : '#333');
             let isBrush = activeBrushIdx === i;
             
+            // UUS: Leiame osakonna alguse ja lõpu soovitusliku/faktilise kuupäeva
+            let bnds = getPhaseDates(o, START_VIEW);
+            let myBnd = CONFIG[k].order === 0 ? bnds.ins : (CONFIG[k].order === 1 ? bnds.lukk : (CONFIG[k].order === 2 ? bnds.keev : bnds.kooste));
+            let sD = myBnd.sDate, eD = myBnd.eDate;
+            let dRange = `${String(sD.getDate()).padStart(2,'0')}.${String(sD.getMonth()+1).padStart(2,'0')} - ${String(eD.getDate()).padStart(2,'0')}.${String(eD.getMonth()+1).padStart(2,'0')}`;
+
             bankHtml += `<div class="disp-bank-item ${isBrush ? 'brush-active' : ''}" style="border-left:5px solid ${remaining === 0 ? 'var(--success)' : CONFIG[k].color}; opacity:${remaining===0 && !isBrush ? 0.5 : 1};" onclick="toggleBrush(${i})">
-                <div style="font-weight:bold; font-size:14px; margin-bottom:4px;">${o.mt}</div>
-                <div style="color:#666; font-size:10px; margin-bottom:6px;">${o.client || '-'}</div>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div style="font-weight:bold; font-size:14px; margin-bottom:2px; max-width:60%; overflow:hidden; text-overflow:ellipsis;">${o.mt}</div>
+                    <div style="font-size:9px; background:#e1f5fe; color:#0288d1; padding:2px 4px; border-radius:3px; border:1px solid #b3e5fc; white-space:nowrap;" title="Selle osakonna planeeritud ajavahemik">📅 ${dRange}</div>
+                </div>
+                <div style="color:#666; font-size:10px; margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${o.client || '-'}">${o.client || '-'}</div>
                 <div style="display:flex; justify-content:space-between; font-size:11px;"><span>Plaan: <b>${planned}h</b></span><span>Jagatud: <b>${allocated}h</b></span></div>
                 <div style="margin-top:5px; font-size:12px; text-align:right;">Jääk: <b style="color:${rColor}; font-size:14px;">${remaining}h</b></div>
             </div>`;
+            
             allocOptions += `<option value="${i}">${o.mt} (Jääk: ${remaining}h)</option>`;
         });
         
@@ -1315,7 +1331,6 @@
         const container = document.getElementById('daily-load-container'); container.innerHTML = "";
         const daysToShow = 365, startDate = new Date(TODAY); startDate.setDate(startDate.getDate() - 2);
         const SCALE = 4;
-        
         let allValidOrders = orders.filter(o => o.status !== 'Valmis' && o.mt !== 'SYS_SETTINGS');
         allValidOrders.sort((a, b) => new Date(a.start) - new Date(b.start));
         let smartLoad = calculateSmartDailyLoad(allValidOrders);
