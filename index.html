@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V124.0</title>
+    <title>TOCI Tootmisplaan V125.0</title>
     <style>
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -32,12 +32,14 @@
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 10px; overflow-y: auto; height: 100%; }
         .dash-card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 5px solid var(--accent); display: flex; flex-direction: column; justify-content: center; }
 
+        /* MODAALAKNAD */
         .modal { display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
         .modal-content { background-color: #fff; margin: 5vh auto; padding: 25px; border-radius: 12px; width: 450px; max-width: 95%; box-shadow: 0 15px 40px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
         .modal-content.large { width: 850px; }
         .m-close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; margin-top:-10px; }
         .m-close:hover { color: #333; }
         
+        /* TELLIMUSE DETAILIDE KAART */
         .edit-section-title { font-size: 14px; font-weight: bold; color: var(--accent); border-bottom: 2px solid #eee; margin-top: 20px; margin-bottom: 10px; padding-bottom: 5px; }
         .edit-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
         .edit-group { margin-bottom: 10px; }
@@ -57,6 +59,7 @@
         .checklist-item span { font-size: 13px; font-weight: bold; color: #333; }
         .checklist-notes { width: 100%; height: 115px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; font-size: 13px; resize: vertical; box-sizing: border-box; background: #fffdf5; }
 
+        /* GANTT & DISPETŠER */
         .gantt-outer { height: 100%; display: flex; flex-direction: column; background: white; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; }
         .gantt-header-wrapper { display: flex; background: #f8f9fa; border-bottom: 2px solid #ccc; height: 75px; }
         .header-corner { width: 340px; min-width: 340px; background: #eee; border-right: 3px solid #bbb; display: flex; align-items: center; padding-left: 15px; font-weight: bold; position: sticky; left: 0; z-index: 2500; }
@@ -89,9 +92,11 @@
         .disp-alloc:hover { transform: scale(1.05); z-index: 10; box-shadow:0 3px 6px rgba(0,0,0,0.3); }
         .disp-bank-item { background:#fff; border:1px solid #ddd; padding:10px; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.05); min-width:200px; flex:1; cursor:pointer; transition:0.2s; user-select: none; }
         .disp-bank-item:hover { box-shadow:0 4px 8px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        
         .brush-active { border: 2px dashed #e74c3c !important; background: #fffdf5; transform: scale(1.03); box-shadow: 0 4px 15px rgba(231,76,60,0.2) !important; z-index:10; }
         .grid-brush-mode { cursor: crosshair !important; }
         .grid-brush-mode .disp-cell:hover { background: rgba(231,76,60,0.1) !important; }
+        
         .striped-bg { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.3), rgba(255,255,255,0.3) 5px, transparent 5px, transparent 10px); }
     </style>
 </head>
@@ -170,7 +175,7 @@
                 </div>
             </div>
             <div style="flex:1;">
-                <label style="display:block; font-size:11px; font-weight:bold; color:#666; margin-bottom:4px;">Märkmed / Kommentaarid:</label>
+                <label style="display:block; font-size:11px; font-weight:bold; color:#666; margin-bottom:4px;">Märkmed / Kommentaarid (Materjal viibib vms):</label>
                 <textarea id="edit-chk-notes" class="checklist-notes" placeholder="Kirjuta lisainfo siia..."></textarea>
             </div>
         </div>
@@ -196,7 +201,7 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V124.0 (Turvaparandused & Kiirus)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V124.0 (Turvaparandused)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI</button>
@@ -348,7 +353,6 @@
     
     const START_VIEW = new Date("2026-01-01"), TODAY = new Date();
     
-    // MÄLU TAASTAMINE (TURVAKONTROLLIGA)
     let customCap = {};
     try {
         let loaded = localStorage.getItem('prod_cap_live');
@@ -666,7 +670,6 @@
             document.getElementById('edit-mt').value = o.mt || ''; 
             document.getElementById('edit-client').value = o.client || '';
             document.getElementById('edit-desc').value = o.kirjeldus || ''; 
-            document.getElementById('edit-start').value = safeISO(o.start);
             document.getElementById('edit-end').value = safeISO(o.end); 
             document.getElementById('edit-ah1').value = f(o.sub1);
             document.getElementById('edit-ah2').value = f(o.sub2); 
@@ -681,7 +684,6 @@
             document.getElementById('edit-mt').disabled = !isAdmin; 
             document.getElementById('edit-client').disabled = !isAdmin;
             document.getElementById('edit-desc').disabled = !isAdmin; 
-            document.getElementById('edit-start').disabled = !isAdmin;
             document.getElementById('edit-end').disabled = !isAdmin; 
             document.getElementById('edit-ah1').disabled = !isAdmin;
             document.getElementById('edit-ah2').disabled = !isAdmin; 
@@ -703,8 +705,8 @@
                 deptsHtml += `
                 <div class="dept-edit-row">
                     <strong>${c.l}</strong>
-                    <input type="number" id="edit-p-${k}" value="${pVal}" min="0" ${disAttr} title="Plaanitud tunnid" oninput="calcDiff('${k}')">
-                    <input type="number" id="edit-a-${c.p}" value="${aVal}" min="0" ${disAttr} title="Tehtud tunnid" oninput="calcDiff('${k}')">
+                    <input type="number" id="edit-p-${k}" value="${pVal}" min="0" ${disAttr} title="Plaanitud tunnid" oninput="window.calcDiff('${k}')">
+                    <input type="number" id="edit-a-${c.p}" value="${aVal}" min="0" ${disAttr} title="Tehtud tunnid" oninput="window.calcDiff('${k}')">
                     <div id="diff-${k}" style="width:65px; text-align:center;"></div>
                     <label><input type="checkbox" id="edit-d-${c.d}" ${isDone ? 'checked' : ''} ${disAttr}> Valmis</label>
                 </div>`;
@@ -717,7 +719,7 @@
 
         } catch(e) {
             console.error("Viga Edit Modali avamisel:", e);
-            alert("Kaardi avamine ebaõnnestus. Värskenda lehte ja proovi uuesti.");
+            alert("Viga kaardi avamisel: " + e.message);
         }
     };
 
@@ -729,9 +731,12 @@
                 if (isDuplicate) { alert(`⚠️ VIGA: MT number '${newMt}' on juba süsteemis olemas! Dublikaadid ei ole lubatud.`); return; }
             }
             let o = orders[i];
-            o.mt = newMt || "UUS"; o.client = document.getElementById('edit-client').value; o.kirjeldus = document.getElementById('edit-desc').value;
-            o.start = document.getElementById('edit-start').value; o.end = document.getElementById('edit-end').value;
-            o.sub1 = f(document.getElementById('edit-ah1').value); o.sub2 = f(document.getElementById('edit-ah2').value);
+            o.mt = newMt || "UUS"; 
+            o.client = document.getElementById('edit-client').value; 
+            o.kirjeldus = document.getElementById('edit-desc').value;
+            o.end = document.getElementById('edit-end').value;
+            o.sub1 = f(document.getElementById('edit-ah1').value); 
+            o.sub2 = f(document.getElementById('edit-ah2').value);
             
             o.chk_ost = document.getElementById('edit-chk-ost').checked;
             o.done_ins = document.getElementById('edit-chk-ins').checked;
