@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V114</title>
+    <title>TOCI Tootmisplaan V115</title>
     <style>
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -35,6 +35,7 @@
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 10px; overflow-y: auto; height: 100%; }
         .dash-card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 5px solid var(--accent); display: flex; flex-direction: column; justify-content: center; }
 
+        /* MODAALAKNAD */
         .modal { display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
         .modal-content { background-color: #fff; margin: 5vh auto; padding: 25px; border-radius: 12px; width: 450px; max-width: 95%; box-shadow: 0 15px 40px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
         .modal-content.large { width: 800px; }
@@ -45,24 +46,26 @@
         .raport-table th { background: #f4f7f6; padding: 10px; text-align: left; border-bottom: 2px solid #ddd; }
         .raport-table td { padding: 10px; border-bottom: 1px solid #eee; }
 
+        /* EDIT MODAAL */
         .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 15px; }
         .edit-group { margin-bottom: 15px; }
         .edit-group label { display: block; font-size: 11px; font-weight: bold; color: #666; margin-bottom: 4px; }
         .edit-input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; font-family: inherit; }
         .edit-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2); }
-        
         .dept-edit-row { display: grid; grid-template-columns: 100px 60px 60px 70px; gap: 10px; align-items: center; padding: 8px; background: #f8f9fa; border-radius: 6px; margin-bottom: 6px; border: 1px solid #eee; }
         .dept-edit-row strong { font-size: 12px; color: #2c3e50; }
         .dept-edit-row input[type="number"] { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: center; }
         .dept-edit-row label { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: bold; color: var(--success); cursor: pointer; margin:0;}
         .dept-edit-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--success); cursor: pointer; }
 
+        /* CHECKLIST */
         .checklist-item { display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 8px; cursor: pointer; transition: 0.2s; }
         .checklist-item:hover { background: #e1f5fe; border-color: #81d4fa; }
         .checklist-item input { width: 18px; height: 18px; accent-color: var(--success); cursor: pointer; }
         .checklist-item span { font-size: 14px; font-weight: bold; color: #333; }
         .checklist-notes { width: 100%; height: 80px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; font-size: 13px; resize: vertical; margin-top: 10px; box-sizing: border-box; background: #fffdf5; }
 
+        /* GANTT & DISPETŠER */
         .gantt-outer { height: 100%; display: flex; flex-direction: column; background: white; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; }
         .gantt-header-wrapper { display: flex; background: #f8f9fa; border-bottom: 2px solid #ccc; height: 75px; }
         .header-corner { width: 340px; min-width: 340px; background: #eee; border-right: 3px solid #bbb; display: flex; align-items: center; padding-left: 15px; font-weight: bold; position: sticky; left: 0; z-index: 2500; }
@@ -128,7 +131,7 @@
         <input type="hidden" id="alloc-dept">
         <input type="hidden" id="alloc-old-idx">
         <div style="margin-bottom:15px;">
-            <label style="font-weight:bold; color:#555;">Vali tellimus:</label>
+            <label style="font-weight:bold; color:#555;">Vali tellimus (Tundide Pangast):</label>
             <select id="alloc-mt" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc; margin-top:5px;"></select>
         </div>
         <div style="margin-bottom:20px;">
@@ -212,10 +215,10 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V114.0 (Turvaparandused)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V115.0 (Turvaparandus + Täpne Dispetšer)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
-        <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI VAADE</button>
+        <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;" title="Ekspordib selle vaate">📥 EKSPORDI VAADE</button>
         <div id="syncStatus" style="background:var(--warning); color:black; padding:4px 10px; border-radius:4px; font-weight:bold; transition: 0.3s;">Ühendan...</div>
         <button id="modeToggleBtn" onclick="toggleMode()" style="background:#95a5a6; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">🔒 VAATAJA</button>
     </div>
@@ -287,8 +290,8 @@
         </div>
         <div style="font-size:16px; font-weight:bold; color:var(--primary); margin-left:15px;">🗓️ Töökohtade Dispetšer</div>
         <div style="font-size:11px; color:#666; margin-left:auto;">
-            💡 <b>Triibulised klotsid:</b> Automaatne soovitus. <b>Täisvärvi klotsid:</b> Käsitsi kinnitatud plaan.<br>
-            <b>1 klõps pangas</b> valib "Pintsli". <b>1 klõps tabelis</b> kleebib lahtrisse. <b>Topeltklikk tabelis</b> avab muutmise akna.
+            💡 <b>Triibulised klotsid:</b> Automaatne soovitus. <b>Täisvärvi klotsid:</b> Käsitsi plaan.<br>
+            <b>1 klõps pangas</b> = "Pintsel". <b>1 klõps tabelis</b> = kleebib. <b>Topeltklikk lahtril</b> = täpne muutmine.
         </div>
     </div>
     
@@ -321,7 +324,7 @@
     <div style="display:flex; gap:20px; margin-bottom: 20px; flex-shrink: 0; flex-wrap: wrap;">
         <div id="holiday-manager" style="flex:1; min-width:300px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #ddd;">
             <h3 style="margin-top:0; color:#c62828;">🏖️ Puhkused ja Riigipühad</h3>
-            <p style="font-size:11px; color:#666; margin-top:-5px;">Määratud pühade päevadel jaotatakse koormus automaatselt ümber ja neid ei loeta tööpäevadeks.</p>
+            <p style="font-size:11px; color:#666; margin-top:-5px;">Määratud pühade päevadel jaotatakse koormus automaatselt ümber.</p>
             <div class="admin-only" style="display:none; margin-bottom: 15px; gap: 10px; align-items: center;">
                 <input type="text" id="hol-name" placeholder="Nimetus (nt. Suvepuhkus)" style="padding:6px; border-radius:4px; border:1px solid #ccc; width:150px;">
                 <input type="date" id="hol-start" style="padding:6px; border-radius:4px; border:1px solid #ccc;">
@@ -363,18 +366,16 @@
     };
     
     const START_VIEW = new Date("2026-01-01"), TODAY = new Date();
-    let orders = [], customCap = JSON.parse(localStorage.getItem('prod_cap_live')) || {};
-    if (!customCap.holidays) customCap.holidays = [];
-    if (!customCap.wsCounts) customCap.wsCounts = {};
+    let orders = [], customCap = {};
     
     let currentMainTabFilter = 'active'; 
 
     const f = (v) => parseFloat(v) || 0;
 
-    // Turvalised kuupäeva funktsioonid!
+    // Turvalised kuupäeva funktsioonid
     function getValidDate(dStr) {
         let d = new Date(dStr);
-        if (isNaN(d.getTime())) return new Date(); // Viga vältimiseks võtame tänase
+        if (isNaN(d.getTime())) return new Date();
         return d;
     }
 
@@ -403,14 +404,8 @@
         return Math.ceil((((d2 - new Date(Date.UTC(d2.getUTCFullYear(),0,1))) / 86400000) + 1)/7); 
     }
     
-    window.onclick = function(event) {
-        if (event.target == document.getElementById('orderModal')) document.getElementById('orderModal').style.display = "none";
-        if (event.target == document.getElementById('checklistModal')) document.getElementById('checklistModal').style.display = "none";
-        if (event.target == document.getElementById('allocModal')) document.getElementById('allocModal').style.display = "none";
-    }
-
     function isHoliday(dateObj) {
-        if (!customCap.holidays || !Array.isArray(customCap.holidays)) return false;
+        if (!customCap || !customCap.holidays || !Array.isArray(customCap.holidays)) return false;
         let dStr = safeISO(dateObj); let time = new Date(dStr).getTime();
         for(let i=0; i<customCap.holidays.length; i++) {
             let h = customCap.holidays[i]; if (!h || !h.s) continue;
@@ -585,7 +580,7 @@
                     obj.progress = calcOverallProgress(obj); return obj;
                 });
 
-                if (duplicatesFound > 0 && isAdmin) fetch(API_URL, {method:"POST", body:JSON.stringify(orders), mode:'no-cors'});
+                if (duplicatesFound > 0 && isAdmin) save(); // Automaatne duplikaatide eemaldus pilvest
                 if(!document.getElementById('disp-start').value) document.getElementById('disp-start').value = safeISO(TODAY);
                 applyUIMode(); updateSyncStatus("✅ ANDMED OK", "success");
             }
@@ -683,7 +678,6 @@
         save(); openEditModal(0);
     }
 
-    // V114: PARANDATUD getGroupManualDates mis tagastab õiged indeksid (s ja e)
     function getGroupManualDates(o, deptsArray) {
         let dates = [];
         deptsArray.forEach(dept => {
@@ -701,7 +695,6 @@
         };
     }
 
-    // V114: PARANDATUD getPhaseDates PÜHAPÄEVA LÕPUTU TSÜKLI VASTU
     function getPhaseDates(o, startView) {
         let d = {};
         d.ins = Math.ceil(f(o.ins)/8) || (f(o.ins)>0?1:0);
@@ -770,43 +763,6 @@
         return bounds;
     }
 
-    function showChecklist(i) {
-        let o = orders[i]; let disAttr = isAdmin ? "" : "disabled";
-        document.getElementById('cl-title').innerText = `Projektiplaan: ${o.mt}`;
-        let html = `<div style="display:flex; flex-direction:column; gap:5px;">`;
-        html += `<label class="checklist-item"><input type="checkbox" onchange="u(${i},'done_ins',this.checked); showChecklist(${i});" ${String(o.done_ins)==='true'?'checked':''} ${disAttr}><span>Inseneeria / Joonised valmis</span></label>`;
-        html += `<label class="checklist-item"><input type="checkbox" onchange="u(${i},'chk_ost',this.checked); showChecklist(${i});" ${String(o.chk_ost)==='true'?'checked':''} ${disAttr}><span>Ost / Materjalid käes</span></label>`;
-        if (f(o.sub1) > 0) html += `<label class="checklist-item"><input type="checkbox" onchange="u(${i},'chk_ah1',this.checked); showChecklist(${i});" ${String(o.chk_ah1)==='true'?'checked':''} ${disAttr}><span>Allhange 1 (AH1) käes</span></label>`;
-        if (f(o.sub2) > 0) html += `<label class="checklist-item"><input type="checkbox" onchange="u(${i},'chk_ah2',this.checked); showChecklist(${i});" ${String(o.chk_ah2)==='true'?'checked':''} ${disAttr}><span>Allhange 2 (AH2) käes</span></label>`;
-        html += `</div><div style="margin-top: 15px;"><label style="font-size:12px; font-weight:bold; color:#555;">Märkmed / Kommentaarid:</label><textarea class="checklist-notes" placeholder="Kirjuta siia lisainfo (nt miks materjal viibib)..." onchange="u(${i},'chk_notes',this.value)" ${disAttr}>${o.chk_notes || ''}</textarea></div>`;
-        document.getElementById('cl-body').innerHTML = html; document.getElementById('checklistModal').style.display = 'block';
-    }
-
-    function showOrder(i) {
-        let o = orders[i]; document.getElementById('m-title').innerText = `Raport: ${o.mt} ${o.client ? '('+o.client+')' : ''}`;
-        let endD = new Date(o.end); endD.setHours(23,59,59,999);
-        let isLate = o.status !== 'Valmis' && endD.getTime() < new Date().getTime();
-        let statusHtml = o.status; if(isLate) statusHtml += ` <span style="color:red;font-weight:bold;">(Tähtaeg on möödas!)</span>`; if(o.kirjeldus.includes("LÕPETATUD HILINEMISEGA")) statusHtml += ` <span style="color:red;font-weight:bold;">(Lõpetatud hilinemisega)</span>`;
-
-        let html = `<div style="margin-bottom:15px; font-size:14px; background:#f8f9fa; padding:10px; border-radius:6px; border:1px solid #ddd;">
-            <div style="margin-bottom:5px;"><b>Tähtaeg:</b> ${safeISO(o.end)}</div><div style="margin-bottom:5px;"><b>Staatus:</b> ${statusHtml}</div>
-            <div><b>Projekti edenemine:</b> <span style="color:${o.progress>100?'#c62828':'#27ae60'}; font-weight:bold;">${o.progress}%</span></div></div>`;
-        html += `<table class="raport-table"><tr><th>Osakond</th><th>Plaan</th><th>Tehtud</th><th>Olek</th><th>Vahe</th></tr>`;
-        let depts = [ {k:'ins', p:'prog_ins', d:'done_ins', l:'Inseneeria'}, {k:'trei', p:'prog_tr', d:'done_tr', l:'Treial'}, {k:'must_k', p:'prog_mk', d:'done_mk', l:'Must Keevitus'}, {k:'rv_k', p:'prog_rk', d:'done_rk', l:'RV Keevitus'}, {k:'must_l', p:'prog_ml', d:'done_ml', l:'Must Lukksepp'}, {k:'rv_l', p:'prog_rl', d:'done_rl', l:'RV Lukksepp'}, {k:'kooste', p:'prog_ko', d:'done_ko', l:'Kooste'} ];
-        
-        let tP=0, tA=0;
-        depts.forEach(d => {
-            let p = f(o[d.k]), a = f(o[d.p]), diff = a - p; let isD = String(o[d.d]) === 'true'; tP += p; tA += a;
-            if(p > 0 || a > 0) {
-                let dColor = diff > 0 ? 'color:#c62828; font-weight:bold;' : 'color:#27ae60;'; let dText = diff > 0 ? `+${diff}h üle!` : `${Math.abs(diff)}h varu`; if(diff === 0) dText = 'Täpselt';
-                let dStatus = isD ? '☑️ Valmis' : '⏳ Töös'; html += `<tr><td><b>${d.l}</b></td><td>${p}h</td><td>${a}h</td><td>${dStatus}</td><td style="${dColor}">${dText}</td></tr>`;
-            }
-        });
-        let tDiff = tA - tP; let tColor = tDiff > 0 ? 'color:#c62828; font-weight:bold;' : 'color:#27ae60; font-weight:bold;'; let tText = tDiff > 0 ? `+${tDiff}h lõhki!` : `${Math.abs(tDiff)}h varu`; if(tDiff === 0) tText = 'Täpselt eelarves';
-        html += `<tr style="background:#eee; font-size:14px;"><td><b>KOKKU:</b></td><td><b>${tP}h</b></td><td><b>${tA}h</b></td><td></td><td style="${tColor}">${tText}</td></tr></table>`;
-        document.getElementById('m-body').innerHTML = html; document.getElementById('orderModal').style.display = 'block';
-    }
-
     function renderTable() {
         const gV = document.getElementById('globalFilter').value.toLowerCase();
         const mV = document.getElementById('monthFilter').value;
@@ -823,7 +779,6 @@
                 let isOverdue = false; if (o.status !== 'Valmis') { let endD = new Date(o.end); endD.setHours(23, 59, 59, 999); if (endD.getTime() < todayTime.getTime()) isOverdue = true; }
                 let overStyle = isOverdue ? 'color:#c62828; font-weight:bold;' : '';
                 let overBadge = isOverdue ? `<br><span style="color:#c62828; font-weight:bold; font-size:10px; background:#ffcdd2; padding:2px 4px; border-radius:3px;">⚠️ ÜLE AJA</span>` : '';
-                
                 let totOver = o.progress > 100 ? 'background:#c62828; color:white; border-color:#b71c1c;' : 'background:#e3f2fd; color:#0277bd; border-color:#0288d1;';
 
                 let ostDone = String(o.chk_ost) === 'true'; let insDone = String(o.done_ins) === 'true'; let ah1Done = f(o.sub1) === 0 || String(o.chk_ah1) === 'true'; let ah2Done = f(o.sub2) === 0 || String(o.chk_ah2) === 'true';
@@ -842,9 +797,7 @@
                     <td style="color:#555;">${o.kirjeldus || '-'}</td>
                     <td><span style="${overStyle}">${safeISO(o.end)}</span>${overBadge}</td>
                     <td style="text-align:center;">
-                        <div style="${totOver} border:1px solid; border-radius:4px; padding:4px 8px; font-weight:bold; display:inline-block;" title="Kogu progress">
-                            ${o.progress}%
-                        </div>
+                        <div style="${totOver} border:1px solid; border-radius:4px; padding:4px 8px; font-weight:bold; display:inline-block;" title="Kogu progress">${o.progress}%</div>
                     </td>
                     <td style="font-weight:bold; color:${statusColor};">${o.status}</td>
                 </tr>`;
@@ -906,7 +859,6 @@
 
         filteredOrders.forEach((o) => {
             let gIdx = orders.indexOf(o); let bnds = getPhaseDates(o, START_VIEW);
-
             let tPlan = f(o.ins)+f(o.trei)+f(o.must_k)+f(o.rv_k)+f(o.must_l)+f(o.rv_l)+f(o.kooste);
             let tAct = f(o.prog_ins)+f(o.prog_tr)+f(o.prog_mk)+f(o.prog_rk)+f(o.prog_ml)+f(o.prog_rl)+f(o.prog_ko);
             let prog = tPlan > 0 ? Math.round((tAct/tPlan)*100) : 0;
@@ -921,7 +873,7 @@
                     <b>${o.mt}</b><small>${o.client}</small><small style="color:#777; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${o.kirjeldus||''}">${o.kirjeldus||''}</small>
                     <div style="display:flex;gap:3px; align-items:center; margin-top:2px;">
                         <span style="font-size:10px; color:#555;">Lõpp: </span>
-                        <input type="date" title="Lõppkuupäev" value="${safeISO(o.end)}" onchange="u(${gIdx},'end',this.value);applyUIMode()" ${disAttr} style="${endTitleStyle}">
+                        <input type="date" title="Lõppkuupäev" value="${safeISO(o.end)}" disabled style="${endTitleStyle}; background:transparent; border:none;">
                     </div>
                     <div style="font-size:10px; background:#f4f7f6; padding:3px; margin-top:3px; border-radius:3px; border:1px solid #ddd; display:flex; justify-content:space-between;"><span>Eelarve: <b>${tAct}</b> / ${tPlan}h</span><span style="font-weight:bold; ${statusColor}">${prog}%</span></div>
                 </div>
@@ -994,7 +946,7 @@
                     <small style="color:#777; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${o.kirjeldus||''}">${o.kirjeldus||''}</small>
                     <div style="display:flex;gap:3px; align-items:center; margin-top:2px;">
                         <span style="font-size:10px; color:#555;">Lõpp:</span>
-                        <input type="date" title="Lõpp" value="${safeISO(o.end)}" onchange="u(${gIdx},'end',this.value);applyUIMode()" ${disAttr}>
+                        <input type="date" title="Lõpp" value="${safeISO(o.end)}" disabled style="background:transparent; border:none; color:#555;">
                     </div>
                 </div>
                 <div class="gantt-bars-area" style="width:calc(var(--cell-w) * ${dayCount});">
@@ -1011,6 +963,7 @@
         if(bS && hS) { bS.onscroll = () => { hS.scrollLeft = bS.scrollLeft; }; setTimeout(() => { bS.scrollLeft = (tIdx * 45) - 160; }, 100); }
     }
 
+    // DISPETŠER JA PINTSEL
     window.handleInnerBlockClick = function(e, dept, dateStr, wsName, oIdx, h) {
         e.stopPropagation(); 
         if(!isAdmin) return;
@@ -1023,7 +976,11 @@
     };
 
     window.handleCellClick = function(dept, dateStr, wsName) {
-        if(!isAdmin) return;
+        if(!isAdmin) {
+            // Kui vaataja klikib, avame lihtsalt vaatamiseks
+            openAllocModal(dept, dateStr, wsName, -1, 8);
+            return;
+        }
         if (activeBrushIdx !== null) {
             let o = orders[activeBrushIdx];
             let remaining = f(o[dept]) - getAllocated(o, dept);
@@ -1036,6 +993,8 @@
             
             let paintH = Math.min(room, remaining);
             saveAllocationDirect(dept, dateStr, wsName, activeBrushIdx, paintH, true);
+        } else {
+            openAllocModal(dept, dateStr, wsName, -1, 8);
         }
     };
 
@@ -1048,7 +1007,9 @@
     }
     
     function deleteAllocationDirect(dept, dateStr, wsName, oIdx) {
-        if(orders[oIdx].allocs && orders[oIdx].allocs[dept] && orders[oIdx].allocs[dept][dateStr]) delete orders[oIdx].allocs[dept][dateStr][wsName];
+        if(orders[oIdx].allocs && orders[oIdx].allocs[dept] && orders[oIdx].allocs[dept][dateStr]) {
+            delete orders[oIdx].allocs[dept][dateStr][wsName];
+        }
         save(); renderDispatcher();
     }
 
@@ -1100,10 +1061,10 @@
                     let myBnd = CONFIG[k].order === 0 ? bnds.ins : (CONFIG[k].order === 1 ? bnds.lukk : (CONFIG[k].order === 2 ? bnds.keev : bnds.kooste));
                     let startT = myBnd.sDate.getTime(); let endT = myBnd.eDate.getTime();
                     
-                    let workDaysList = []; let curT = startT;
-                    while(curT <= endT) {
+                    let workDaysList = []; let curT = startT; let safety = 0;
+                    while(curT <= endT && safety < 1000) {
                         let cD = new Date(curT); if(cD.getDay() !== 0 && cD.getDay() !== 6 && !isHoliday(cD)) workDaysList.push(safeISO(cD));
-                        curT += 86400000;
+                        curT += 86400000; safety++;
                     }
                     if (workDaysList.length === 0) workDaysList.push(safeISO(new Date(startT)));
 
@@ -1112,7 +1073,7 @@
                     for(let iter=0; iter<5; iter++) {
                         let excessH = 0; let receivers = [];
                         workDaysList.forEach(t => {
-                            let wNo = getWeek(new Date(t)); 
+                            let wNo = getWeek(getValidDate(t)); 
                             let capCount = (customCap.wsCounts && customCap.wsCounts[k]) ? customCap.wsCounts[k] : CONFIG[k].ws;
                             let cap = capCount * 8; 
                             
@@ -1186,7 +1147,9 @@
                 <div style="display:flex; justify-content:space-between; font-size:11px;"><span>Plaan: <b>${planned}h</b></span><span>Jagatud: <b>${allocated}h</b></span></div>
                 <div style="margin-top:5px; font-size:12px; text-align:right;">Jääk: <b style="color:${rColor}; font-size:14px;">${remaining}h</b></div>
             </div>`;
-            if (remaining > -999) allocOptions += `<option value="${i}">${o.mt} (Jääk: ${remaining}h)</option>`;
+            
+            // LISAME RIPPMENÜÜSSE KÕIK (KA NEED, MILLEL JÄÄK ON 0), et saaks vajadusel modalist muuta
+            allocOptions += `<option value="${i}">${o.mt} (Jääk: ${remaining}h)</option>`;
         });
         
         if(bankHtml === "") bankHtml = "<div style='color:#777; padding:10px;'>Ühtegi planeerimist vajavat tööd ei leitud.</div>";
@@ -1219,6 +1182,7 @@
                 
                 let cellContent = ""; let totalCellH = 0; let cellBlocks = [];
                 
+                // Manuaalsed
                 orders.forEach((o, i) => {
                     if(o.allocs && o.allocs[k] && o.allocs[k][dStr] && o.allocs[k][dStr][wsName]) {
                         let h = f(o.allocs[k][dStr][wsName]);
@@ -1226,6 +1190,7 @@
                     }
                 });
                 
+                // Automaatsed
                 smartLoad.autoAllocs.forEach(alloc => {
                     if(alloc.depts[k] && alloc.depts[k][dStr] && alloc.depts[k][dStr][wsName]) {
                         let h = alloc.depts[k][dStr][wsName];
@@ -1262,6 +1227,53 @@
         }
         gridHtml += `</tbody>`;
         document.getElementById('disp-grid').innerHTML = gridHtml;
+    }
+
+    function openAllocModal(dept, dateStr, wsName, currentOIdx, currentH) {
+        if(!isAdmin) { alert("Ainult Administraator saab töökohti planeerida!"); return; }
+        let dObj = new Date(dateStr); let estDate = dObj.getDate() + "." + (dObj.getMonth()+1) + "." + dObj.getFullYear();
+        document.getElementById('alloc-title').innerText = `${wsName} | ${estDate}`;
+        document.getElementById('alloc-dept').value = dept; document.getElementById('alloc-date').value = dateStr; document.getElementById('alloc-ws').value = wsName;
+        document.getElementById('alloc-old-idx').value = currentOIdx >= 0 ? currentOIdx : "";
+        
+        let sel = document.getElementById('alloc-mt'); 
+        sel.innerHTML = window.currentAllocOptions;
+        
+        if (currentOIdx >= 0) {
+            // FIX: Kui projektil on jääk 0h, ei pruugi see rippmenüüs olla. Lisame jõuga!
+            if (!sel.querySelector(`option[value="${currentOIdx}"]`)) {
+                let o = orders[currentOIdx];
+                sel.innerHTML += `<option value="${currentOIdx}">${o.mt} (Jääk: 0h)</option>`;
+            }
+            sel.value = currentOIdx; 
+            document.getElementById('alloc-h').value = currentH; 
+            document.getElementById('alloc-del-btn').style.display = 'block';
+        } else {
+            sel.value = ""; document.getElementById('alloc-h').value = 8; document.getElementById('alloc-del-btn').style.display = 'none';
+        }
+        document.getElementById('allocModal').style.display = 'block';
+    }
+    
+    function saveAllocationModal() {
+        let dept = document.getElementById('alloc-dept').value; let dateStr = document.getElementById('alloc-date').value;
+        let wsName = document.getElementById('alloc-ws').value; let newIdx = document.getElementById('alloc-mt').value;
+        let oldIdx = document.getElementById('alloc-old-idx').value; let h = parseFloat(document.getElementById('alloc-h').value);
+        
+        if (oldIdx !== "") deleteAllocationDirect(dept, dateStr, wsName, parseInt(oldIdx));
+        if (newIdx !== "" && h > 0) saveAllocationDirect(dept, dateStr, wsName, parseInt(newIdx), h, false);
+        document.getElementById('allocModal').style.display = 'none';
+    }
+    
+    function deleteAllocationModal() {
+        let dept = document.getElementById('alloc-dept').value; let dateStr = document.getElementById('alloc-date').value; let wsName = document.getElementById('alloc-ws').value;
+        let oldIdx = document.getElementById('alloc-old-idx').value;
+        if (oldIdx !== "") deleteAllocationDirect(dept, dateStr, wsName, parseInt(oldIdx));
+        document.getElementById('allocModal').style.display = 'none';
+    }
+
+    function syncDailyScroll(e) {
+        const scrollX = e.target.scrollLeft;
+        document.querySelectorAll('.daily-chart-wrapper').forEach(w => { if (w !== e.target && w.scrollLeft !== scrollX) w.scrollLeft = scrollX; });
     }
 
     function renderDailyCharts() {
@@ -1434,35 +1446,10 @@
             isSaving = true; updateSyncStatus("💾 Salvestan...", "warning");
             try {
                 let saveOrders = orders.map(o => { let copy = {...o}; copy.allocs = JSON.stringify(o.allocs || {}); return copy; });
-                await fetch(API_URL, {method:"POST", body:JSON.stringify(saveOrders), mode:'no-cors'});
+                await fetch(API_URL, {method:"POST", body:JSON.stringify(saveOrders)});
                 isSaving = false; hasPendingChanges = false; updateSyncStatus("✅ Salvestatud", "success");
             } catch(e) { isSaving = false; updateSyncStatus("❌ Salvestamise viga", "danger"); }
         }, 1500);
-    }
-    
-    function u(i, k, v) { 
-        if(!isAdmin) return; 
-        if (k === 'mt' && v !== "UUS" && String(v).trim() !== "") {
-            let isDuplicate = orders.some((o, idx) => idx !== i && String(o.mt).trim().toLowerCase() === String(v).trim().toLowerCase());
-            if (isDuplicate) { alert("⚠️ VIGA: MT number '" + v + "' on juba süsteemis olemas! Dublikaadid ei ole lubatud."); renderTable(); return; }
-        }
-        
-        if (k === 'status' && v === 'Valmis') {
-            let endD = new Date(orders[i].end); endD.setHours(23, 59, 59, 999); let today = new Date();
-            if (endD.getTime() < today.getTime()) {
-                if (!orders[i].kirjeldus.includes("LÕPETATUD HILINEMISEGA")) {
-                    let dateStr = today.getDate() + "." + (today.getMonth() + 1) + "." + today.getFullYear();
-                    orders[i].kirjeldus = orders[i].kirjeldus + " (⚠️ LÕPETATUD HILINEMISEGA: " + dateStr + ")";
-                }
-            }
-        }
-
-        orders[i][k] = v; 
-        if (['ins', 'trei', 'must_k', 'rv_k', 'must_l', 'rv_l', 'kooste', 'prog_ins', 'prog_tr', 'prog_mk', 'prog_rk', 'prog_ml', 'prog_rl', 'prog_ko'].includes(k)) {
-            orders[i].progress = calcOverallProgress(orders[i]);
-        }
-        save(); 
-        if (['chk_ost', 'done_ins', 'chk_ah1', 'chk_ah2'].includes(k)) renderTable();
     }
     
     function openTab(e, viewId, filterType) {
