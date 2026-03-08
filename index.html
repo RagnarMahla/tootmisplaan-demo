@@ -2,9 +2,8 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V117</title>
+    <title>TOCI Tootmisplaan V118</title>
     <style>
-        /* AMETLIK LIVE STIIL */
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); font-size: 12px; overflow: hidden; }
@@ -36,33 +35,31 @@
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 10px; overflow-y: auto; height: 100%; }
         .dash-card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 5px solid var(--accent); display: flex; flex-direction: column; justify-content: center; }
 
-        /* MODAALAKNAD */
         .modal { display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
         .modal-content { background-color: #fff; margin: 5vh auto; padding: 25px; border-radius: 12px; width: 450px; max-width: 95%; box-shadow: 0 15px 40px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
-        .modal-content.large { width: 800px; }
+        .modal-content.large { width: 850px; }
         .m-close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; margin-top:-10px; }
         .m-close:hover { color: #333; }
         
-        .raport-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
-        .raport-table th { background: #f4f7f6; padding: 10px; text-align: left; border-bottom: 2px solid #ddd; }
-        .raport-table td { padding: 10px; border-bottom: 1px solid #eee; }
-
-        .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 15px; }
-        .edit-group { margin-bottom: 15px; }
+        .edit-section-title { font-size: 14px; font-weight: bold; color: var(--accent); border-bottom: 2px solid #eee; margin-top: 20px; margin-bottom: 10px; padding-bottom: 5px; }
+        
+        .edit-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+        .edit-group { margin-bottom: 10px; }
         .edit-group label { display: block; font-size: 11px; font-weight: bold; color: #666; margin-bottom: 4px; }
         .edit-input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; font-family: inherit; }
         .edit-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2); }
-        .dept-edit-row { display: grid; grid-template-columns: 100px 60px 60px 70px; gap: 10px; align-items: center; padding: 8px; background: #f8f9fa; border-radius: 6px; margin-bottom: 6px; border: 1px solid #eee; }
+        
+        .dept-edit-row { display: grid; grid-template-columns: 100px 70px 70px 70px 70px; gap: 10px; align-items: center; padding: 8px; background: #f8f9fa; border-radius: 6px; margin-bottom: 6px; border: 1px solid #eee; }
         .dept-edit-row strong { font-size: 12px; color: #2c3e50; }
-        .dept-edit-row input[type="number"] { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: center; }
+        .dept-edit-row input[type="number"] { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: center; font-weight:bold; }
         .dept-edit-row label { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: bold; color: var(--success); cursor: pointer; margin:0;}
         .dept-edit-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--success); cursor: pointer; }
 
-        .checklist-item { display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 8px; cursor: pointer; transition: 0.2s; }
+        .checklist-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #f8f9fa; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 8px; cursor: pointer; transition: 0.2s; }
         .checklist-item:hover { background: #e1f5fe; border-color: #81d4fa; }
         .checklist-item input { width: 18px; height: 18px; accent-color: var(--success); cursor: pointer; }
-        .checklist-item span { font-size: 14px; font-weight: bold; color: #333; }
-        .checklist-notes { width: 100%; height: 80px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; font-size: 13px; resize: vertical; margin-top: 10px; box-sizing: border-box; background: #fffdf5; }
+        .checklist-item span { font-size: 13px; font-weight: bold; color: #333; }
+        .checklist-notes { width: 100%; height: 115px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; font-size: 13px; resize: vertical; box-sizing: border-box; background: #fffdf5; }
 
         .gantt-outer { height: 100%; display: flex; flex-direction: column; background: white; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; }
         .gantt-header-wrapper { display: flex; background: #f8f9fa; border-bottom: 2px solid #ccc; height: 75px; }
@@ -103,23 +100,6 @@
 </head>
 <body>
 
-<div id="orderModal" class="modal">
-    <div class="modal-content">
-        <span class="m-close" onclick="document.getElementById('orderModal').style.display='none'">&times;</span>
-        <h2 id="m-title" style="margin-top:0; color:var(--primary);">Raport</h2>
-        <div id="m-body"></div>
-    </div>
-</div>
-
-<div id="checklistModal" class="modal">
-    <div class="modal-content" style="width:380px;">
-        <span class="m-close" onclick="document.getElementById('checklistModal').style.display='none'">&times;</span>
-        <h2 id="cl-title" style="margin-top:0; color:var(--accent);">Projektiplaan</h2>
-        <p style="font-size:12px; color:#666; margin-top:-10px;">Märgi linnukesega, kui etapp on edukalt läbitud.</p>
-        <div id="cl-body"></div>
-    </div>
-</div>
-
 <div id="allocModal" class="modal">
     <div class="modal-content" style="width:300px;">
         <span class="m-close" onclick="document.getElementById('allocModal').style.display='none'">&times;</span>
@@ -129,7 +109,7 @@
         <input type="hidden" id="alloc-dept">
         <input type="hidden" id="alloc-old-idx">
         <div style="margin-bottom:15px;">
-            <label style="font-weight:bold; color:#555;">Vali tellimus (Tundide Pangast):</label>
+            <label style="font-weight:bold; color:#555;">Vali tellimus:</label>
             <select id="alloc-mt" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc; margin-top:5px;"></select>
         </div>
         <div style="margin-bottom:20px;">
@@ -137,70 +117,76 @@
             <input type="number" id="alloc-h" value="8" min="0.5" step="0.5" max="24" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc; margin-top:5px; font-weight:bold;">
         </div>
         <button onclick="saveAllocationModal()" style="width:100%; padding:12px; background:var(--success); color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">💾 SALVESTA PLAAN</button>
-        <button onclick="deleteAllocationModal()" id="alloc-del-btn" style="width:100%; padding:12px; background:var(--danger); color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; margin-top:10px; display:none;">🗑️ KUSTUTA (Tagasta Tunnid)</button>
+        <button onclick="deleteAllocationModal()" id="alloc-del-btn" style="width:100%; padding:12px; background:var(--danger); color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; margin-top:10px; display:none;">🗑️ KUSTUTA KLOTS</button>
     </div>
 </div>
 
 <div id="editModal" class="modal">
     <div class="modal-content large">
         <span class="m-close" onclick="document.getElementById('editModal').style.display='none'">&times;</span>
-        <h2 id="edit-modal-title" style="margin-top:0; color:var(--primary); border-bottom:2px solid #eee; padding-bottom:10px;">Tellimuse Detailid</h2>
+        <h2 id="edit-modal-title" style="margin-top:0; color:var(--primary); font-size:22px;">🗂️ Tellimuse Kaart</h2>
         
+        <div class="edit-section-title">Põhiinfo</div>
         <div class="edit-grid">
-            <div>
-                <h3 style="color:var(--accent); margin-top:0;">Põhiinfo</h3>
-                <div class="edit-group">
-                    <label>MT Number (Kohustuslik)</label>
-                    <input type="text" id="edit-mt" class="edit-input" placeholder="nt. MT-26.1234">
-                </div>
-                <div class="edit-group">
-                    <label>Klient</label>
-                    <input type="text" id="edit-client" class="edit-input" placeholder="Kliendi nimi">
-                </div>
-                <div class="edit-group">
-                    <label>Töö kirjeldus</label>
-                    <input type="text" id="edit-desc" class="edit-input" placeholder="Mida tehakse...">
-                </div>
-                <div style="display:flex; gap:15px;">
-                    <div class="edit-group" style="flex:1;">
-                        <label>Algus (Oletuslik)</label>
-                        <input type="date" id="edit-start" class="edit-input">
-                    </div>
-                    <div class="edit-group" style="flex:1;">
-                        <label>Lõpp (TÄHTAEG ⚓)</label>
-                        <input type="date" id="edit-end" class="edit-input" style="border-color:var(--danger); border-width:2px;">
-                    </div>
-                </div>
-                <div style="display:flex; gap:15px;">
-                    <div class="edit-group" style="flex:1;">
-                        <label>Allhange ENNE (päevi)</label>
-                        <input type="number" id="edit-ah1" class="edit-input" value="0" min="0">
-                    </div>
-                    <div class="edit-group" style="flex:1;">
-                        <label>Allhange PEALE (päevi)</label>
-                        <input type="number" id="edit-ah2" class="edit-input" value="0" min="0">
-                    </div>
-                </div>
-                <div class="edit-group">
-                    <label>Staatus</label>
-                    <select id="edit-status" class="edit-input" style="font-weight:bold;">
-                        <option value="Ootel">Ootel</option>
-                        <option value="Töös">Töös</option>
-                        <option value="Valmis">Valmis</option>
-                    </select>
-                </div>
+            <div class="edit-group">
+                <label>MT Number (Kohustuslik)</label>
+                <input type="text" id="edit-mt" class="edit-input" placeholder="nt. MT-26.1234">
             </div>
-            <div>
-                <h3 style="color:var(--accent); margin-top:0;">Töötunnid ja Osakonnad</h3>
-                <div style="display:grid; grid-template-columns: 100px 60px 60px 70px; gap: 10px; margin-bottom:5px; padding:0 8px;">
-                    <small style="color:#777; font-weight:bold;">Osakond</small>
-                    <small style="color:#777; font-weight:bold; text-align:center;">Plaan h</small>
-                    <small style="color:#777; font-weight:bold; text-align:center;">Tehtud h</small>
-                    <small style="color:#777; font-weight:bold;">Olek</small>
-                </div>
-                <div id="edit-departments-container"></div>
+            <div class="edit-group">
+                <label>Klient</label>
+                <input type="text" id="edit-client" class="edit-input" placeholder="Kliendi nimi">
+            </div>
+            <div class="edit-group">
+                <label>Lõpp (TÄHTAEG ⚓)</label>
+                <input type="date" id="edit-end" class="edit-input" style="border-color:var(--danger); border-width:2px; font-weight:bold;">
+            </div>
+            <div class="edit-group" style="grid-column: span 2;">
+                <label>Töö kirjeldus</label>
+                <input type="text" id="edit-desc" class="edit-input" placeholder="Mida tehakse...">
+            </div>
+            <div class="edit-group">
+                <label>Staatus</label>
+                <select id="edit-status" class="edit-input" style="font-weight:bold;">
+                    <option value="Ootel">Ootel</option>
+                    <option value="Töös">Töös</option>
+                    <option value="Valmis">Valmis</option>
+                </select>
             </div>
         </div>
+
+        <div class="edit-section-title" style="margin-top:5px;">Projektiplaan (Eeltööd) & Märkmed</div>
+        <div style="display:flex; gap:20px;">
+            <div style="flex:1;">
+                <label class="checklist-item"><input type="checkbox" id="edit-chk-ins"><span>📐 Inseneeria / Joonised valmis</span></label>
+                <label class="checklist-item"><input type="checkbox" id="edit-chk-ost"><span>📦 Ost / Materjalid käes</span></label>
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1;">
+                        <label style="font-size:10px; color:#666; font-weight:bold;">AH 1 (Päevi enne)</label>
+                        <input type="number" id="edit-ah1" class="edit-input" value="0" min="0" style="margin-bottom:5px;">
+                        <label class="checklist-item" style="padding:6px;"><input type="checkbox" id="edit-chk-ah1"><span style="font-size:11px;">AH1 Käes</span></label>
+                    </div>
+                    <div style="flex:1;">
+                        <label style="font-size:10px; color:#666; font-weight:bold;">AH 2 (Päevi peale)</label>
+                        <input type="number" id="edit-ah2" class="edit-input" value="0" min="0" style="margin-bottom:5px;">
+                        <label class="checklist-item" style="padding:6px;"><input type="checkbox" id="edit-chk-ah2"><span style="font-size:11px;">AH2 Käes</span></label>
+                    </div>
+                </div>
+            </div>
+            <div style="flex:1;">
+                <label style="display:block; font-size:11px; font-weight:bold; color:#666; margin-bottom:4px;">Märkmed / Kommentaarid (Materjal viibib vms):</label>
+                <textarea id="edit-chk-notes" class="checklist-notes" placeholder="Kirjuta lisainfo siia..."></textarea>
+            </div>
+        </div>
+
+        <div class="edit-section-title">Töötunnid ja Raport (Reaalajas)</div>
+        <div style="display:grid; grid-template-columns: 100px 70px 70px 70px 70px; gap: 10px; margin-bottom:5px; padding:0 8px;">
+            <small style="color:#777; font-weight:bold;">Osakond</small>
+            <small style="color:#777; font-weight:bold; text-align:center;">Plaan h</small>
+            <small style="color:#777; font-weight:bold; text-align:center;">Tehtud h</small>
+            <small style="color:#777; font-weight:bold; text-align:center;">Vahe</small>
+            <small style="color:#777; font-weight:bold;">Olek</small>
+        </div>
+        <div id="edit-departments-container"></div>
 
         <div style="margin-top: 25px; display:flex; justify-content:space-between; border-top:1px solid #eee; padding-top:15px;">
             <button id="edit-delete-btn" onclick="deleteFromEdit()" style="padding:10px 20px; background:#e74c3c; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">🗑️ KUSTUTA TELLIMUS</button>
@@ -213,10 +199,10 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V118.0 (Tellimuse Kaart + Fix)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
-        <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI VAADE</button>
+        <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI</button>
         <div id="syncStatus" style="background:var(--warning); color:black; padding:4px 10px; border-radius:4px; font-weight:bold; transition: 0.3s;">Ühendan...</div>
         <button id="modeToggleBtn" onclick="toggleMode()" style="background:#95a5a6; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">🔒 VAATAJA</button>
     </div>
@@ -234,7 +220,7 @@
     <button class="tab-btn" onclick="openTab(event, 'gantt_ml', null)">MUST LUKK</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_rl', null)">RV LUKK</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_ko', null)">KOOSTE</button>
-    <button class="tab-btn" onclick="openTab(event, 'dispatcher_view', null)" style="background:#e74c3c; box-shadow: inset 0 -4px 0 #c0392b;">🗓️ PLANEERIJA</button>
+    <button class="tab-btn" onclick="openTab(event, 'dispatcher_view', null)" style="background:#e74c3c; box-shadow: inset 0 -4px 0 #c0392b;">🗓️ DISPETŠER</button>
     <button class="tab-btn" onclick="openTab(event, 'paeva_koormus_graafik', null)" style="background:var(--accent)">📊 P. GRAAFIK</button>
     <button class="tab-btn" onclick="openTab(event, 'paeva_koormus_tabel', null)" style="background:#2980b9">📅 P. TABEL</button>
     <button class="tab-btn" onclick="openTab(event, 'voimekus_tab', null)" style="color:var(--warning)">⚙️ VÕIMEKUS</button>
@@ -251,17 +237,17 @@
             <option value="-01-">Jaanuar</option><option value="-02-">Veebruar</option><option value="-03-">Märts</option><option value="-04-">Aprill</option><option value="-05-">Mai</option><option value="-06-">Juuni</option><option value="-07-">Juuli</option><option value="-08-">August</option><option value="-09-">September</option><option value="-10-">Oktoober</option><option value="-11-">November</option><option value="-12-">Detsember</option>
         </select>
         <div id="view-title" style="font-size:16px; font-weight:bold; color:var(--primary); margin-left:15px;">Aktiivsed tööd</div>
-        <div style="font-size:12px; color:#666; margin-left:auto;">💡 <b>Klõpsa MT numbril</b>, et muuta detaile! | <b>📋 = Projektiplaan</b> | <b>🔍 = Raport</b></div>
+        <div style="font-size:12px; color:#666; margin-left:auto;">💡 <b>Klõpsa reale</b>, et avada Tellimuse Kaart.</div>
     </div>
     <div class="table-container">
         <table class="data-table">
             <thead>
                 <tr>
-                    <th style="width: 80px; text-align:center;">Toimingud</th>
-                    <th title="MT Number (Kliki et muuta)">MT Number ✏️</th>
+                    <th style="width: 100px; text-align:center;">Kaart</th>
+                    <th>MT Number</th>
                     <th>Klient</th>
                     <th>Töö sisu / Kirjeldus</th>
-                    <th title="Kohustuslik Lõpptähtaeg">Lõpptähtaeg</th>
+                    <th>Lõpptähtaeg</th>
                     <th title="Kogu tellimuse valmisolek">Üld %</th>
                     <th>Staatus</th>
                 </tr>
@@ -288,14 +274,14 @@
         </div>
         <div style="font-size:16px; font-weight:bold; color:var(--primary); margin-left:15px;">🗓️ Töökohtade Dispetšer</div>
         <div style="font-size:11px; color:#666; margin-left:auto;">
-            💡 <b>Triibulised klotsid:</b> Automaatne soovitus. <b>Täisvärvi klotsid:</b> Käsitsi plaan.<br>
-            <b>1 klõps pangas</b> = "Pintsel". <b>1 klõps tabelis</b> = kleebib. <b>Topeltklikk lahtril</b> = täpne muutmine.
+            💡 <b>Triibulised:</b> Süsteemi soovitus. <b>Täisvärvi:</b> Sinu plaan.<br>
+            <b>1 klõps pangas</b> = "Pintsel". <b>1 klõps tabelis</b> = kleebib/kustutab. <b>Topeltklikk</b> = täpne muutmine.
         </div>
     </div>
     
     <div style="background:#eef2f5; border-radius:8px; border:1px solid #ccc; padding:15px; margin-bottom:15px;">
         <h3 style="margin-top:0; margin-bottom:10px; color:#2c3e50; display:flex; justify-content:space-between;">
-            <span>🏦 Tundide Pank</span>
+            <span>🏦 Tundide Pank (Kliki kastil, et valida PINTSEL 🖌️)</span>
             <span style="font-size:12px; font-weight:normal; color:#666;" id="brush-status">Pintsel: VÄLJAS</span>
         </h3>
         <div id="disp-bank" style="display:flex; flex-wrap:wrap; gap:10px; max-height:150px; overflow-y:auto; padding-right:10px;"></div>
@@ -333,7 +319,7 @@
             <div id="holidays-list" style="display:flex; flex-direction:column; gap:5px; max-height: 100px; overflow-y: auto;"></div>
         </div>
         <div id="ws-manager" style="width:350px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #ddd;">
-            <h3 style="margin-top:0; color:#2980b9;">🏭 Töökohtade arv</h3>
+            <h3 style="margin-top:0; color:#2980b9;">🏭 Töökohtade arv (Dispetšer)</h3>
             <p style="font-size:11px; color:#666; margin-top:-5px;">Määra, mitu paralleelset töökohta igas osakonnas tabelisse joonistatakse.</p>
             <div id="ws-list" style="display:flex; flex-direction:column; gap:5px;"></div>
         </div>
@@ -364,7 +350,12 @@
     };
     
     const START_VIEW = new Date("2026-01-01"), TODAY = new Date();
-    let orders = [], customCap = {};
+    
+    // PÜHADE MÄLU TAASTAMINE (et ei kaoks lehe uuenemisel)
+    let customCap = JSON.parse(localStorage.getItem('prod_cap_live')) || {};
+    if (!customCap.holidays) customCap.holidays = [];
+    if (!customCap.wsCounts) customCap.wsCounts = {};
+    let orders = [];
     
     let currentMainTabFilter = 'active'; 
 
@@ -401,12 +392,6 @@
         return Math.ceil((((d2 - new Date(Date.UTC(d2.getUTCFullYear(),0,1))) / 86400000) + 1)/7); 
     }
     
-    window.onclick = function(event) {
-        if (event.target == document.getElementById('orderModal')) document.getElementById('orderModal').style.display = "none";
-        if (event.target == document.getElementById('checklistModal')) document.getElementById('checklistModal').style.display = "none";
-        if (event.target == document.getElementById('allocModal')) document.getElementById('allocModal').style.display = "none";
-    }
-
     function isHoliday(dateObj) {
         if (!customCap || !customCap.holidays || !Array.isArray(customCap.holidays)) return false;
         let dStr = safeISO(dateObj); let time = new Date(dStr).getTime();
@@ -558,10 +543,21 @@
             const r = await fetch(API_URL); const rawData = await r.json();
             if(Array.isArray(rawData)) {
                 let cleanedData = []; let seenMt = new Set(); let duplicatesFound = 0;
+                
+                // Loeme andmebaasist seaded
                 let sysRow = rawData.find(o => o.mt === 'SYS_SETTINGS');
-                if (sysRow && sysRow.kirjeldus) { try { customCap = JSON.parse(sysRow.kirjeldus); } catch(e) {} }
-                if (!customCap.holidays) customCap.holidays = [];
-                if (!customCap.wsCounts) customCap.wsCounts = {};
+                if (sysRow && sysRow.kirjeldus) { 
+                    try { 
+                        let dbCap = JSON.parse(sysRow.kirjeldus);
+                        if (dbCap && typeof dbCap === 'object') {
+                            customCap = dbCap;
+                            if (!customCap.holidays) customCap.holidays = [];
+                            if (!customCap.wsCounts) customCap.wsCounts = {};
+                            // Uuendame ka lokaalset varukoopiat
+                            localStorage.setItem('prod_cap_live', JSON.stringify(customCap)); 
+                        }
+                    } catch(e) {} 
+                }
 
                 rawData.forEach(o => {
                     let cleanMt = String(o.mt).trim();
@@ -590,34 +586,78 @@
         } catch(e) { updateSyncStatus("❌ Ühenduse viga", "danger"); }
     }
 
+    // --- UUS: EDIT MODALI DÜNAAMILINE ARVUTUS (VAHE) ---
+    window.calcDiff = function(k) {
+        let c = CONFIG[k];
+        let pVal = f(document.getElementById(`edit-p-${k}`).value);
+        let aVal = f(document.getElementById(`edit-a-${c.p}`).value);
+        let diff = aVal - pVal;
+        
+        let el = document.getElementById(`diff-${k}`);
+        if(pVal > 0 || aVal > 0) {
+            if(diff > 0) {
+                el.innerHTML = `<span style="color:#c62828; font-size:11px; font-weight:bold; background:#ffebee; padding:2px 4px; border-radius:3px;">+${diff}h üle</span>`;
+            } else if(diff < 0) {
+                el.innerHTML = `<span style="color:#27ae60; font-size:11px;">${Math.abs(diff)}h varu</span>`;
+            } else {
+                el.innerHTML = `<span style="color:#999; font-size:11px;">Täpselt</span>`;
+            }
+        } else {
+            el.innerHTML = "";
+        }
+    };
+
     function openEditModal(i) {
         currentEditIndex = i; let o = orders[i]; let disAttr = isAdmin ? "" : "disabled";
-        document.getElementById('edit-modal-title').innerText = `Tellimuse Detailid: ${o.mt === 'UUS' ? 'Uus Tellimus' : o.mt}`;
+        document.getElementById('edit-modal-title').innerText = `🗂️ Tellimuse Kaart: ${o.mt === 'UUS' ? 'Uus Tellimus' : o.mt}`;
         
+        // Põhiinfo
         document.getElementById('edit-mt').value = o.mt; document.getElementById('edit-client').value = o.client;
         document.getElementById('edit-desc').value = o.kirjeldus; document.getElementById('edit-start').value = safeISO(o.start);
         document.getElementById('edit-end').value = safeISO(o.end); document.getElementById('edit-ah1').value = o.sub1;
         document.getElementById('edit-ah2').value = o.sub2; document.getElementById('edit-status').value = o.status;
 
+        // Checklist ja Märkmed
+        document.getElementById('edit-chk-ins').checked = String(o.done_ins) === 'true';
+        document.getElementById('edit-chk-ost').checked = String(o.chk_ost) === 'true';
+        document.getElementById('edit-chk-ah1').checked = String(o.chk_ah1) === 'true';
+        document.getElementById('edit-chk-ah2').checked = String(o.chk_ah2) === 'true';
+        document.getElementById('edit-chk-notes').value = o.chk_notes || '';
+
+        // Õigused
         document.getElementById('edit-mt').disabled = !isAdmin; document.getElementById('edit-client').disabled = !isAdmin;
         document.getElementById('edit-desc').disabled = !isAdmin; document.getElementById('edit-start').disabled = !isAdmin;
         document.getElementById('edit-end').disabled = !isAdmin; document.getElementById('edit-ah1').disabled = !isAdmin;
         document.getElementById('edit-ah2').disabled = !isAdmin; document.getElementById('edit-status').disabled = !isAdmin;
+        
+        document.getElementById('edit-chk-ins').disabled = !isAdmin;
+        document.getElementById('edit-chk-ost').disabled = !isAdmin;
+        document.getElementById('edit-chk-ah1').disabled = !isAdmin;
+        document.getElementById('edit-chk-ah2').disabled = !isAdmin;
+        document.getElementById('edit-chk-notes').disabled = !isAdmin;
+
         document.getElementById('edit-delete-btn').style.display = isAdmin ? "block" : "none";
         document.getElementById('edit-save-btn').style.display = isAdmin ? "block" : "none";
 
+        // Osakondade genereerimine
         let deptsHtml = "";
         Object.keys(CONFIG).forEach(k => {
             let c = CONFIG[k]; let pVal = f(o[k]); let aVal = f(o[c.p]); let isDone = String(o[c.d]) === 'true';
+            
             deptsHtml += `
             <div class="dept-edit-row">
                 <strong>${c.l}</strong>
-                <input type="number" id="edit-p-${k}" value="${pVal}" min="0" ${disAttr} title="Plaanitud tunnid">
-                <input type="number" id="edit-a-${c.p}" value="${aVal}" min="0" ${disAttr} title="Tehtud tunnid" style="${aVal > pVal && pVal > 0 ? 'background:#ffebee; border-color:#c62828; color:#c62828; font-weight:bold;' : ''}">
+                <input type="number" id="edit-p-${k}" value="${pVal}" min="0" ${disAttr} title="Plaanitud tunnid" oninput="calcDiff('${k}')">
+                <input type="number" id="edit-a-${c.p}" value="${aVal}" min="0" ${disAttr} title="Tehtud tunnid" oninput="calcDiff('${k}')">
+                <div id="diff-${k}" style="width:65px; text-align:center;"></div>
                 <label><input type="checkbox" id="edit-d-${c.d}" ${isDone ? 'checked' : ''} ${disAttr}> Valmis</label>
             </div>`;
         });
         document.getElementById('edit-departments-container').innerHTML = deptsHtml;
+        
+        // Arvutame kohe alguses diffid välja
+        Object.keys(CONFIG).forEach(k => window.calcDiff(k));
+        
         document.getElementById('editModal').style.display = 'block';
     }
 
@@ -632,6 +672,12 @@
         o.start = document.getElementById('edit-start').value; o.end = document.getElementById('edit-end').value;
         o.sub1 = parseFloat(document.getElementById('edit-ah1').value) || 0; o.sub2 = parseFloat(document.getElementById('edit-ah2').value) || 0;
         
+        o.chk_ost = document.getElementById('edit-chk-ost').checked;
+        o.done_ins = document.getElementById('edit-chk-ins').checked;
+        o.chk_ah1 = document.getElementById('edit-chk-ah1').checked;
+        o.chk_ah2 = document.getElementById('edit-chk-ah2').checked;
+        o.chk_notes = document.getElementById('edit-chk-notes').value;
+
         let oldStatus = o.status; o.status = document.getElementById('edit-status').value;
         if (o.status === 'Valmis' && oldStatus !== 'Valmis') {
             let endD = new Date(o.end); endD.setHours(23, 59, 59, 999); let today = new Date();
@@ -693,6 +739,7 @@
         if(dates.length === 0) return null;
         let minT = Math.min(...dates); let maxT = Math.max(...dates);
         return { 
+            s: getDayIndexUTC(new Date(minT), START_VIEW), e: getDayIndexUTC(new Date(maxT), START_VIEW),
             sDate: new Date(minT), eDate: new Date(maxT)
         };
     }
@@ -765,6 +812,7 @@
         return bounds;
     }
 
+    // UUS TABEL: Eemaldatud 🔍 ja 📋, lisatud Nupp "Ava Kaart"
     function renderTable() {
         const gV = document.getElementById('globalFilter').value.toLowerCase();
         const mV = document.getElementById('monthFilter').value;
@@ -789,10 +837,7 @@
 
                 b.innerHTML += `<tr class="${sCl}">
                     <td style="text-align:center;">
-                        <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
-                            <button onclick="showChecklist(${i})" title="Projektiplaan" style="border:none; background:none; cursor:pointer; font-size:18px; padding:0;">${listIcon}</button>
-                            <button onclick="showOrder(${i})" title="Ava Raport" style="border:none; background:none; cursor:pointer; font-size:18px; padding:0;">🔍</button>
-                        </div>
+                        <button onclick="openEditModal(${i})" style="padding:6px 12px; background:var(--accent); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer; width:100%; white-space:nowrap; box-shadow:0 2px 4px rgba(0,0,0,0.1);">Ava 🗂️</button>
                     </td>
                     <td><a href="#" class="mt-link" onclick="openEditModal(${i}); return false;">${o.mt}</a></td>
                     <td style="font-weight:bold;">${o.client || '-'}</td>
@@ -801,47 +846,10 @@
                     <td style="text-align:center;">
                         <div style="${totOver} border:1px solid; border-radius:4px; padding:4px 8px; font-weight:bold; display:inline-block;" title="Kogu progress">${o.progress}%</div>
                     </td>
-                    <td style="font-weight:bold; color:${statusColor};">${o.status}</td>
+                    <td style="font-weight:bold; color:${statusColor};">${o.status} <span style="font-size:14px; margin-left:5px;" title="Projektiplaani staatus">${listIcon}</span></td>
                 </tr>`;
             }
         });
-    }
-
-    function showChecklist(i) {
-        let o = orders[i]; let disAttr = isAdmin ? "" : "disabled";
-        document.getElementById('cl-title').innerText = `Projektiplaan: ${o.mt}`;
-        let html = `<div style="display:flex; flex-direction:column; gap:5px;">`;
-        html += `<label class="checklist-item"><input type="checkbox" onchange="u(${i},'done_ins',this.checked); showChecklist(${i});" ${String(o.done_ins)==='true'?'checked':''} ${disAttr}><span>Inseneeria / Joonised valmis</span></label>`;
-        html += `<label class="checklist-item"><input type="checkbox" onchange="u(${i},'chk_ost',this.checked); showChecklist(${i});" ${String(o.chk_ost)==='true'?'checked':''} ${disAttr}><span>Ost / Materjalid käes</span></label>`;
-        if (f(o.sub1) > 0) html += `<label class="checklist-item"><input type="checkbox" onchange="u(${i},'chk_ah1',this.checked); showChecklist(${i});" ${String(o.chk_ah1)==='true'?'checked':''} ${disAttr}><span>Allhange 1 (AH1) käes</span></label>`;
-        if (f(o.sub2) > 0) html += `<label class="checklist-item"><input type="checkbox" onchange="u(${i},'chk_ah2',this.checked); showChecklist(${i});" ${String(o.chk_ah2)==='true'?'checked':''} ${disAttr}><span>Allhange 2 (AH2) käes</span></label>`;
-        html += `</div><div style="margin-top: 15px;"><label style="font-size:12px; font-weight:bold; color:#555;">Märkmed / Kommentaarid:</label><textarea class="checklist-notes" placeholder="Kirjuta siia lisainfo (nt miks materjal viibib)..." onchange="u(${i},'chk_notes',this.value)" ${disAttr}>${o.chk_notes || ''}</textarea></div>`;
-        document.getElementById('cl-body').innerHTML = html; document.getElementById('checklistModal').style.display = 'block';
-    }
-
-    function showOrder(i) {
-        let o = orders[i]; document.getElementById('m-title').innerText = `Raport: ${o.mt} ${o.client ? '('+o.client+')' : ''}`;
-        let endD = new Date(o.end); endD.setHours(23,59,59,999);
-        let isLate = o.status !== 'Valmis' && endD.getTime() < new Date().getTime();
-        let statusHtml = o.status; if(isLate) statusHtml += ` <span style="color:red;font-weight:bold;">(Tähtaeg on möödas!)</span>`; if(o.kirjeldus.includes("LÕPETATUD HILINEMISEGA")) statusHtml += ` <span style="color:red;font-weight:bold;">(Lõpetatud hilinemisega)</span>`;
-
-        let html = `<div style="margin-bottom:15px; font-size:14px; background:#f8f9fa; padding:10px; border-radius:6px; border:1px solid #ddd;">
-            <div style="margin-bottom:5px;"><b>Tähtaeg:</b> ${safeISO(o.end)}</div><div style="margin-bottom:5px;"><b>Staatus:</b> ${statusHtml}</div>
-            <div><b>Projekti edenemine:</b> <span style="color:${o.progress>100?'#c62828':'#27ae60'}; font-weight:bold;">${o.progress}%</span></div></div>`;
-        html += `<table class="raport-table"><tr><th>Osakond</th><th>Plaan</th><th>Tehtud</th><th>Olek</th><th>Vahe</th></tr>`;
-        let depts = [ {k:'ins', p:'prog_ins', d:'done_ins', l:'Inseneeria'}, {k:'trei', p:'prog_tr', d:'done_tr', l:'Treial'}, {k:'must_k', p:'prog_mk', d:'done_mk', l:'Must Keevitus'}, {k:'rv_k', p:'prog_rk', d:'done_rk', l:'RV Keevitus'}, {k:'must_l', p:'prog_ml', d:'done_ml', l:'Must Lukksepp'}, {k:'rv_l', p:'prog_rl', d:'done_rl', l:'RV Lukksepp'}, {k:'kooste', p:'prog_ko', d:'done_ko', l:'Kooste'} ];
-        
-        let tP=0, tA=0;
-        depts.forEach(d => {
-            let p = f(o[d.k]), a = f(o[d.p]), diff = a - p; let isD = String(o[d.d]) === 'true'; tP += p; tA += a;
-            if(p > 0 || a > 0) {
-                let dColor = diff > 0 ? 'color:#c62828; font-weight:bold;' : 'color:#27ae60;'; let dText = diff > 0 ? `+${diff}h üle!` : `${Math.abs(diff)}h varu`; if(diff === 0) dText = 'Täpselt';
-                let dStatus = isD ? '☑️ Valmis' : '⏳ Töös'; html += `<tr><td><b>${d.l}</b></td><td>${p}h</td><td>${a}h</td><td>${dStatus}</td><td style="${dColor}">${dText}</td></tr>`;
-            }
-        });
-        let tDiff = tA - tP; let tColor = tDiff > 0 ? 'color:#c62828; font-weight:bold;' : 'color:#27ae60; font-weight:bold;'; let tText = tDiff > 0 ? `+${tDiff}h lõhki!` : `${Math.abs(tDiff)}h varu`; if(tDiff === 0) tText = 'Täpselt eelarves';
-        html += `<tr style="background:#eee; font-size:14px;"><td><b>KOKKU:</b></td><td><b>${tP}h</b></td><td><b>${tA}h</b></td><td></td><td style="${tColor}">${tText}</td></tr></table>`;
-        document.getElementById('m-body').innerHTML = html; document.getElementById('orderModal').style.display = 'block';
     }
 
     function renderDashboard() {
@@ -894,10 +902,9 @@
         let filteredOrders = orders.filter(o => o.status !== 'Valmis' && o.mt !== 'SYS_SETTINGS');
         if (gV) filteredOrders = filteredOrders.filter(o => (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
         if (filteredOrders.length === 0) bodyHtml += `<div class="empty-state">ℹ️ Ühtegi filtriga sobivat tellimust ei leitud.</div>`;
-        let disAttr = isAdmin ? "" : "disabled";
-
+        
         filteredOrders.forEach((o) => {
-            let gIdx = orders.indexOf(o); let bnds = getPhaseDates(o, START_VIEW);
+            let bnds = getPhaseDates(o, START_VIEW);
 
             let tPlan = f(o.ins)+f(o.trei)+f(o.must_k)+f(o.rv_k)+f(o.must_l)+f(o.rv_l)+f(o.kooste);
             let tAct = f(o.prog_ins)+f(o.prog_tr)+f(o.prog_mk)+f(o.prog_rk)+f(o.prog_ml)+f(o.prog_rl)+f(o.prog_ko);
@@ -957,10 +964,9 @@
         let filteredOrders = orders.filter(o => o[key] > 0 && o.status !== 'Valmis' && o.mt !== 'SYS_SETTINGS' && String(o[CONFIG[key].d]) !== 'true');
         if (gV) filteredOrders = filteredOrders.filter(o => (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
         if (filteredOrders.length === 0) bodyHtml += `<div class="empty-state">ℹ️ Selles osakonnas pole ühtegi töös tellimust.</div>`;
-        let disAttr = isAdmin ? "" : "disabled";
 
         filteredOrders.forEach((o) => {
-            let gIdx = orders.indexOf(o); let bnds = getPhaseDates(o, START_VIEW);
+            let bnds = getPhaseDates(o, START_VIEW);
             let myBnd = CONFIG[key].order === 0 ? bnds.ins : (CONFIG[key].order === 1 ? bnds.lukk : (CONFIG[key].order === 2 ? bnds.keev : bnds.kooste));
 
             let finalLeft = myBnd.s * 45; let taskDur = Math.max(1, myBnd.e - myBnd.s + 1);
@@ -969,7 +975,6 @@
             let fillW = Math.min(100, curProg);
             let overBg = curProg > 100 ? 'background: rgba(231, 76, 60, 0.7); border-right: 2px solid #c0392b;' : '';
 
-            // UUS: Näitame osakonna konkreetset tähtaega
             let deptEndStr = safeISO(myBnd.eDate);
 
             bodyHtml += `<div class="gantt-row">
@@ -1015,9 +1020,7 @@
     };
 
     window.handleCellClick = function(dept, dateStr, wsName) {
-        if(!isAdmin) {
-            openAllocModal(dept, dateStr, wsName, -1, 8); return;
-        }
+        if(!isAdmin) { openAllocModal(dept, dateStr, wsName, -1, 8); return; }
         if (activeBrushIdx !== null) {
             let o = orders[activeBrushIdx];
             let remaining = f(o[dept]) - getAllocated(o, dept);
@@ -1178,7 +1181,6 @@
             let rColor = remaining < 0 ? 'red' : (remaining === 0 ? 'var(--success)' : '#333');
             let isBrush = activeBrushIdx === i;
             
-            // UUS: Leiame osakonna alguse ja lõpu soovitusliku/faktilise kuupäeva
             let bnds = getPhaseDates(o, START_VIEW);
             let myBnd = CONFIG[k].order === 0 ? bnds.ins : (CONFIG[k].order === 1 ? bnds.lukk : (CONFIG[k].order === 2 ? bnds.keev : bnds.kooste));
             let sD = myBnd.sDate, eD = myBnd.eDate;
