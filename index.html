@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V121</title>
+    <title>TOCI Tootmisplaan V122</title>
     <style>
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -12,7 +12,7 @@
         .tabs { display: flex; background: #2c3e50; border-bottom: 3px solid var(--accent); overflow-x: auto; height: 45px; position: sticky; top: 50px; z-index: 9000; }
         .tab-btn { padding: 0 18px; color: white; cursor: pointer; border: none; background: none; font-weight: bold; white-space: nowrap; height: 100%; opacity: 0.8; transition: 0.2s; }
         .tab-btn.active { opacity: 1; background: rgba(255,255,255,0.15); box-shadow: inset 0 -4px 0 var(--accent); }
-        .content { height: calc(100vh - 95px); display: none; padding: 15px; box-sizing: border-box; }
+        .content { height: calc(100vh - 95px); display: none; padding: 15px; box-sizing: border-box; overflow-y: auto; }
         .content.active { display: block; }
         .flex-view { display: none !important; flex-direction: column; height: calc(100vh - 95px); box-sizing: border-box; }
         .flex-view.active { display: flex !important; }
@@ -193,7 +193,7 @@
         <div style="margin-top: 25px; display:flex; justify-content:space-between; border-top:1px solid #eee; padding-top:15px;">
             <button id="edit-delete-btn" onclick="deleteFromEdit()" style="padding:10px 20px; background:#e74c3c; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">🗑️ KUSTUTA TELLIMUS</button>
             <div style="display:flex; gap:10px;">
-                <button onclick="document.getElementById('editModal').style.display='none'" style="padding:10px 20px; background:#95a5a6; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">TÜHISTA</button>
+                <button onclick="document.getElementById('editModal').style.display='none'" style="padding:10px 20px; background:#95a5a6; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">SULGE</button>
                 <button id="edit-save-btn" onclick="saveEditModal()" style="padding:10px 30px; background:var(--success); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer; font-size:14px;">💾 SALVESTA KÕIK</button>
             </div>
         </div>
@@ -201,7 +201,7 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V121.0 (Puhas Kaart)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V122.0 (Kiire & Puhas Kaart)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI</button>
@@ -245,6 +245,7 @@
         <table class="data-table">
             <thead>
                 <tr>
+                    <th style="width:100px;">Kaart</th>
                     <th>MT Number</th>
                     <th>Klient</th>
                     <th>Töö sisu / Kirjeldus</th>
@@ -332,7 +333,7 @@
 </div>
 
 <script>
-    // === TÄHTIS: PANE SIIA OMA PÄRIS LIVE URL ===
+    // ⚠️ PANE SIIA OMA PÄRIS LIVE URL:
     const API_URL = "https://script.google.com/macros/s/AKfycbwGH8W-wlIs5sPRQqAUGPmRRyJjO9-5I1howW6tqVybo6NBIRLAEy4vmmBpEIyFvGBU/exec";
     
     let isAdmin = false; const ADMIN_PIN = "1234";
@@ -392,9 +393,7 @@
         return Math.ceil((((d2 - new Date(Date.UTC(d2.getUTCFullYear(),0,1))) / 86400000) + 1)/7); 
     }
     
-    window.onclick = function(event) {
-        if (event.target == document.getElementById('allocModal')) document.getElementById('allocModal').style.display = "none";
-    }
+    // NB: Eemaldasin window.onclick täielikult, et see ei läheks lolliks, kui elemente pole.
 
     function isHoliday(dateObj) {
         if (!customCap || !customCap.holidays || !Array.isArray(customCap.holidays)) return false;
@@ -524,7 +523,8 @@
         document.getElementById('addOrderBtn').style.display = (isAdmin && currentMainTabFilter === 'active') ? "block" : "none";
         document.getElementById('saveCapBtn').style.display = isAdmin ? "block" : "none";
         document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? "flex" : "none");
-        renderTable();
+        
+        try { renderTable(); } catch(e) { console.error("Tabeli renderdamise viga:", e); }
         
         const activeTab = document.querySelector('.content.active').id;
         if(activeTab === 'gantt_all') { renderMasterGantt('out-all'); } 
@@ -595,76 +595,82 @@
     }
 
     window.calcDiff = function(k) {
-        let c = CONFIG[k];
-        let pVal = f(document.getElementById(`edit-p-${k}`).value);
-        let aVal = f(document.getElementById(`edit-a-${c.p}`).value);
-        let diff = aVal - pVal;
-        
-        let el = document.getElementById(`diff-${k}`);
-        if(!el) return; 
-        
-        if(pVal > 0 || aVal > 0) {
-            if(diff > 0) {
-                el.innerHTML = `<span style="color:#c62828; font-size:11px; font-weight:bold; background:#ffebee; padding:2px 4px; border-radius:3px;">+${diff}h üle</span>`;
-            } else if(diff < 0) {
-                el.innerHTML = `<span style="color:#27ae60; font-size:11px; font-weight:bold;">${Math.abs(diff)}h varu</span>`;
+        try {
+            let c = CONFIG[k];
+            let pVal = f(document.getElementById(`edit-p-${k}`).value);
+            let aVal = f(document.getElementById(`edit-a-${c.p}`).value);
+            let diff = aVal - pVal;
+            
+            let el = document.getElementById(`diff-${k}`);
+            if(!el) return; 
+            
+            if(pVal > 0 || aVal > 0) {
+                if(diff > 0) {
+                    el.innerHTML = `<span style="color:#c62828; font-size:11px; font-weight:bold; background:#ffebee; padding:2px 4px; border-radius:3px;">+${diff}h üle</span>`;
+                } else if(diff < 0) {
+                    el.innerHTML = `<span style="color:#27ae60; font-size:11px; font-weight:bold;">${Math.abs(diff)}h varu</span>`;
+                } else {
+                    el.innerHTML = `<span style="color:#999; font-size:11px; font-weight:bold;">Täpselt</span>`;
+                }
             } else {
-                el.innerHTML = `<span style="color:#999; font-size:11px; font-weight:bold;">Täpselt</span>`;
+                el.innerHTML = `<span style="color:#ccc; font-size:11px;">-</span>`;
             }
-        } else {
-            el.innerHTML = `<span style="color:#ccc; font-size:11px;">-</span>`;
+        } catch(e) {}
+    };
+
+    window.openEditModal = function(i) {
+        try {
+            currentEditIndex = i; let o = orders[i]; let disAttr = isAdmin ? "" : "disabled";
+            document.getElementById('edit-modal-title').innerText = `🗂️ Tellimuse Kaart: ${o.mt === 'UUS' ? 'Uus Tellimus' : o.mt}`;
+            
+            document.getElementById('edit-mt').value = o.mt; document.getElementById('edit-client').value = o.client;
+            document.getElementById('edit-desc').value = o.kirjeldus; document.getElementById('edit-start').value = safeISO(o.start);
+            document.getElementById('edit-end').value = safeISO(o.end); document.getElementById('edit-ah1').value = f(o.sub1);
+            document.getElementById('edit-ah2').value = f(o.sub2); document.getElementById('edit-status').value = o.status;
+
+            document.getElementById('edit-chk-ins').checked = o.done_ins === true;
+            document.getElementById('edit-chk-ost').checked = o.chk_ost === true;
+            document.getElementById('edit-chk-ah1').checked = o.chk_ah1 === true;
+            document.getElementById('edit-chk-ah2').checked = o.chk_ah2 === true;
+            document.getElementById('edit-chk-notes').value = o.chk_notes || '';
+
+            document.getElementById('edit-mt').disabled = !isAdmin; document.getElementById('edit-client').disabled = !isAdmin;
+            document.getElementById('edit-desc').disabled = !isAdmin; document.getElementById('edit-start').disabled = !isAdmin;
+            document.getElementById('edit-end').disabled = !isAdmin; document.getElementById('edit-ah1').disabled = !isAdmin;
+            document.getElementById('edit-ah2').disabled = !isAdmin; document.getElementById('edit-status').disabled = !isAdmin;
+            
+            document.getElementById('edit-chk-ins').disabled = !isAdmin;
+            document.getElementById('edit-chk-ost').disabled = !isAdmin;
+            document.getElementById('edit-chk-ah1').disabled = !isAdmin;
+            document.getElementById('edit-chk-ah2').disabled = !isAdmin;
+            document.getElementById('edit-chk-notes').disabled = !isAdmin;
+
+            document.getElementById('edit-delete-btn').style.display = isAdmin ? "block" : "none";
+            document.getElementById('edit-save-btn').style.display = isAdmin ? "block" : "none";
+
+            let deptsHtml = "";
+            Object.keys(CONFIG).forEach(k => {
+                let c = CONFIG[k]; let pVal = f(o[k]); let aVal = f(o[c.p]); let isDone = String(o[c.d]) === 'true';
+                
+                deptsHtml += `
+                <div class="dept-edit-row">
+                    <strong>${c.l}</strong>
+                    <input type="number" id="edit-p-${k}" value="${pVal}" min="0" ${disAttr} title="Plaanitud tunnid" oninput="calcDiff('${k}')">
+                    <input type="number" id="edit-a-${c.p}" value="${aVal}" min="0" ${disAttr} title="Tehtud tunnid" oninput="calcDiff('${k}')">
+                    <div id="diff-${k}" style="width:65px; text-align:center;"></div>
+                    <label><input type="checkbox" id="edit-d-${c.d}" ${isDone ? 'checked' : ''} ${disAttr}> Valmis</label>
+                </div>`;
+            });
+            document.getElementById('edit-departments-container').innerHTML = deptsHtml;
+            Object.keys(CONFIG).forEach(k => window.calcDiff(k));
+            
+            document.getElementById('editModal').style.display = 'block';
+        } catch(e) {
+            console.error("Viga Edit Modali avamisel:", e);
         }
     };
 
-    function openEditModal(i) {
-        currentEditIndex = i; let o = orders[i]; let disAttr = isAdmin ? "" : "disabled";
-        document.getElementById('edit-modal-title').innerText = `🗂️ Tellimuse Kaart: ${o.mt === 'UUS' ? 'Uus Tellimus' : o.mt}`;
-        
-        document.getElementById('edit-mt').value = o.mt; document.getElementById('edit-client').value = o.client;
-        document.getElementById('edit-desc').value = o.kirjeldus; document.getElementById('edit-start').value = safeISO(o.start);
-        document.getElementById('edit-end').value = safeISO(o.end); document.getElementById('edit-ah1').value = o.sub1;
-        document.getElementById('edit-ah2').value = o.sub2; document.getElementById('edit-status').value = o.status;
-
-        document.getElementById('edit-chk-ins').checked = o.done_ins === true;
-        document.getElementById('edit-chk-ost').checked = o.chk_ost === true;
-        document.getElementById('edit-chk-ah1').checked = o.chk_ah1 === true;
-        document.getElementById('edit-chk-ah2').checked = o.chk_ah2 === true;
-        document.getElementById('edit-chk-notes').value = o.chk_notes || '';
-
-        document.getElementById('edit-mt').disabled = !isAdmin; document.getElementById('edit-client').disabled = !isAdmin;
-        document.getElementById('edit-desc').disabled = !isAdmin; document.getElementById('edit-start').disabled = !isAdmin;
-        document.getElementById('edit-end').disabled = !isAdmin; document.getElementById('edit-ah1').disabled = !isAdmin;
-        document.getElementById('edit-ah2').disabled = !isAdmin; document.getElementById('edit-status').disabled = !isAdmin;
-        
-        document.getElementById('edit-chk-ins').disabled = !isAdmin;
-        document.getElementById('edit-chk-ost').disabled = !isAdmin;
-        document.getElementById('edit-chk-ah1').disabled = !isAdmin;
-        document.getElementById('edit-chk-ah2').disabled = !isAdmin;
-        document.getElementById('edit-chk-notes').disabled = !isAdmin;
-
-        document.getElementById('edit-delete-btn').style.display = isAdmin ? "block" : "none";
-        document.getElementById('edit-save-btn').style.display = isAdmin ? "block" : "none";
-
-        let deptsHtml = "";
-        Object.keys(CONFIG).forEach(k => {
-            let c = CONFIG[k]; let pVal = f(o[k]); let aVal = f(o[c.p]); let isDone = String(o[c.d]) === 'true';
-            
-            deptsHtml += `
-            <div class="dept-edit-row">
-                <strong>${c.l}</strong>
-                <input type="number" id="edit-p-${k}" value="${pVal}" min="0" ${disAttr} title="Plaanitud tunnid" oninput="calcDiff('${k}')">
-                <input type="number" id="edit-a-${c.p}" value="${aVal}" min="0" ${disAttr} title="Tehtud tunnid" oninput="calcDiff('${k}')">
-                <div id="diff-${k}" style="width:65px; text-align:center;"></div>
-                <label><input type="checkbox" id="edit-d-${c.d}" ${isDone ? 'checked' : ''} ${disAttr}> Valmis</label>
-            </div>`;
-        });
-        document.getElementById('edit-departments-container').innerHTML = deptsHtml;
-        Object.keys(CONFIG).forEach(k => window.calcDiff(k));
-        
-        document.getElementById('editModal').style.display = 'block';
-    }
-
-    function saveEditModal() {
+    window.saveEditModal = function() {
         if (!isAdmin) return; let i = currentEditIndex; let newMt = document.getElementById('edit-mt').value.trim();
         if (newMt !== "UUS" && newMt !== "") {
             let isDuplicate = orders.some((o, idx) => idx !== i && String(o.mt).trim().toLowerCase() === newMt.toLowerCase());
@@ -673,7 +679,7 @@
         let o = orders[i];
         o.mt = newMt || "UUS"; o.client = document.getElementById('edit-client').value; o.kirjeldus = document.getElementById('edit-desc').value;
         o.start = document.getElementById('edit-start').value; o.end = document.getElementById('edit-end').value;
-        o.sub1 = parseFloat(document.getElementById('edit-ah1').value) || 0; o.sub2 = parseFloat(document.getElementById('edit-ah2').value) || 0;
+        o.sub1 = f(document.getElementById('edit-ah1').value); o.sub2 = f(document.getElementById('edit-ah2').value);
         
         o.chk_ost = document.getElementById('edit-chk-ost').checked;
         o.done_ins = document.getElementById('edit-chk-ins').checked;
@@ -694,8 +700,8 @@
 
         Object.keys(CONFIG).forEach(k => {
             let c = CONFIG[k];
-            o[k] = parseFloat(document.getElementById(`edit-p-${k}`).value) || 0;
-            o[c.p] = parseFloat(document.getElementById(`edit-a-${c.p}`).value) || 0;
+            o[k] = f(document.getElementById(`edit-p-${k}`).value);
+            o[c.p] = f(document.getElementById(`edit-a-${c.p}`).value);
             o[c.d] = document.getElementById(`edit-d-${c.d}`).checked;
         });
 
@@ -703,18 +709,18 @@
         document.getElementById('editModal').style.display = 'none';
         save(); 
         applyUIMode(); 
-    }
+    };
 
-    function deleteFromEdit() {
+    window.deleteFromEdit = function() {
         if(!isAdmin) return;
         if(confirm("Kas oled täiesti kindel, et soovid selle tellimuse kustutada?")) {
             orders.splice(currentEditIndex, 1);
             document.getElementById('editModal').style.display = 'none';
             save(); applyUIMode();
         }
-    }
+    };
 
-    function addNewRowAndEdit() { 
+    window.addNewRowAndEdit = function() { 
         if(!isAdmin) return; 
         orders.unshift({
             mt:"UUS", client:"", kirjeldus:"", start:safeISO(TODAY), end:safeISO(TODAY), 
@@ -732,7 +738,7 @@
         applyUIMode(); 
         save(); 
         openEditModal(0);
-    }
+    };
 
     function getGroupManualDates(o, deptsArray) {
         let dates = [];
@@ -838,6 +844,9 @@
                 let statusColor = o.status === 'Valmis' ? '#27ae60' : (o.status === 'Töös' ? '#3498db' : '#95a5a6');
 
                 b.innerHTML += `<tr class="${sCl} row-clickable" onclick="openEditModal(${i})">
+                    <td style="text-align:center;">
+                        <button onclick="openEditModal(${i}); event.stopPropagation();" style="padding:6px 12px; background:var(--accent); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer; width:100%; white-space:nowrap; box-shadow:0 2px 4px rgba(0,0,0,0.1);">Ava 🗂️</button>
+                    </td>
                     <td style="font-weight:bold; color:var(--accent); font-size:13px; text-align:center;">${o.mt}</td>
                     <td style="font-weight:bold;">${o.client || '-'}</td>
                     <td style="color:#555;">${o.kirjeldus || '-'}</td>
