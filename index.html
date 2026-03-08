@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V115.1</title>
+    <title>TOCI Tootmisplaan V116</title>
     <style>
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -84,7 +84,7 @@
         .daily-chart-area { display: flex; align-items: flex-end; height: 280px; min-height: 280px; gap: 4px; border-bottom: 2px solid #444; position: relative; margin-top: 40px; width: max-content; padding-right: 20px; }
         .day-column { flex: 1; min-width: 55px; display: flex; flex-direction: column-reverse; position: relative; height: 100%; }
         .day-label { position: absolute; top: 100%; left: 0; width: 100%; text-align: center; font-size: 9px; padding-top: 5px; line-height: 1.2; }
-        .order-segment { width: 100%; border: 1px solid rgba(255,255,255,0.3); border-radius: 2px; display: flex; align-items: center; justify-content: center; overflow: hidden; color: white; font-size: 8px; font-weight: bold; cursor: help; }
+        .order-segment { width: 100%; border: 1px solid rgba(255,255,255,0.3); border-radius: 2px; display: flex; align-items: center; justify-content: center; overflow: hidden; color: white; font-size: 8px; font-weight: bold; cursor: help; transition: 0.2s; }
         .holiday-bg { background: repeating-linear-gradient(45deg, #ffeeee, #ffebee 10px, #ffffff 10px, #ffffff 20px); border-bottom: 2px solid #e53935 !important; }
         
         .disp-cell { cursor:pointer; text-align:center; border-right:1px solid #eee; border-bottom:1px solid #eee; min-width:60px; position:relative; user-select: none; vertical-align: top; }
@@ -93,9 +93,11 @@
         .disp-alloc:hover { transform: scale(1.05); z-index: 10; box-shadow:0 3px 6px rgba(0,0,0,0.3); }
         .disp-bank-item { background:#fff; border:1px solid #ddd; padding:10px; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.05); min-width:200px; flex:1; cursor:pointer; transition:0.2s; user-select: none; }
         .disp-bank-item:hover { box-shadow:0 4px 8px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        
         .brush-active { border: 2px dashed #e74c3c !important; background: #fffdf5; transform: scale(1.03); box-shadow: 0 4px 15px rgba(231,76,60,0.2) !important; z-index:10; }
         .grid-brush-mode { cursor: crosshair !important; }
         .grid-brush-mode .disp-cell:hover { background: rgba(231,76,60,0.1) !important; }
+        
         .striped-bg { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.3), rgba(255,255,255,0.3) 5px, transparent 5px, transparent 10px); }
     </style>
 </head>
@@ -127,7 +129,7 @@
         <input type="hidden" id="alloc-dept">
         <input type="hidden" id="alloc-old-idx">
         <div style="margin-bottom:15px;">
-            <label style="font-weight:bold; color:#555;">Vali tellimus:</label>
+            <label style="font-weight:bold; color:#555;">Vali tellimus (Tundide Pangast):</label>
             <select id="alloc-mt" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc; margin-top:5px;"></select>
         </div>
         <div style="margin-bottom:20px;">
@@ -211,7 +213,7 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V115.1 (Süsteemiparandused)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V116.0 (Sünkroonitud Graafikud)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI VAADE</button>
@@ -232,7 +234,7 @@
     <button class="tab-btn" onclick="openTab(event, 'gantt_ml', null)">MUST LUKK</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_rl', null)">RV LUKK</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_ko', null)">KOOSTE</button>
-    <button class="tab-btn" onclick="openTab(event, 'dispatcher_view', null)" style="background:#e74c3c; box-shadow: inset 0 -4px 0 #c0392b;">🗓️ DISPETŠER</button>
+    <button class="tab-btn" onclick="openTab(event, 'dispatcher_view', null)" style="background:#e74c3c; box-shadow: inset 0 -4px 0 #c0392b;">🗓️ PLANEERIJA</button>
     <button class="tab-btn" onclick="openTab(event, 'paeva_koormus_graafik', null)" style="background:var(--accent)">📊 P. GRAAFIK</button>
     <button class="tab-btn" onclick="openTab(event, 'paeva_koormus_tabel', null)" style="background:#2980b9">📅 P. TABEL</button>
     <button class="tab-btn" onclick="openTab(event, 'voimekus_tab', null)" style="color:var(--warning)">⚙️ VÕIMEKUS</button>
@@ -293,7 +295,7 @@
     
     <div style="background:#eef2f5; border-radius:8px; border:1px solid #ccc; padding:15px; margin-bottom:15px;">
         <h3 style="margin-top:0; margin-bottom:10px; color:#2c3e50; display:flex; justify-content:space-between;">
-            <span>🏦 Tundide Pank (Kliki kastil, et valida PINTSEL 🖌️)</span>
+            <span>🏦 Tundide Pank (Kliki kastil, et valida )</span>
             <span style="font-size:12px; font-weight:normal; color:#666;" id="brush-status">Pintsel: VÄLJAS</span>
         </h3>
         <div id="disp-bank" style="display:flex; flex-wrap:wrap; gap:10px; max-height:150px; overflow-y:auto; padding-right:10px;"></div>
@@ -892,9 +894,10 @@
         let filteredOrders = orders.filter(o => o.status !== 'Valmis' && o.mt !== 'SYS_SETTINGS');
         if (gV) filteredOrders = filteredOrders.filter(o => (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
         if (filteredOrders.length === 0) bodyHtml += `<div class="empty-state">ℹ️ Ühtegi filtriga sobivat tellimust ei leitud.</div>`;
+        let disAttr = isAdmin ? "" : "disabled";
 
         filteredOrders.forEach((o) => {
-            let bnds = getPhaseDates(o, START_VIEW);
+            let gIdx = orders.indexOf(o); let bnds = getPhaseDates(o, START_VIEW);
 
             let tPlan = f(o.ins)+f(o.trei)+f(o.must_k)+f(o.rv_k)+f(o.must_l)+f(o.rv_l)+f(o.kooste);
             let tAct = f(o.prog_ins)+f(o.prog_tr)+f(o.prog_mk)+f(o.prog_rk)+f(o.prog_ml)+f(o.prog_rl)+f(o.prog_ko);
@@ -956,7 +959,7 @@
         if (filteredOrders.length === 0) bodyHtml += `<div class="empty-state">ℹ️ Selles osakonnas pole ühtegi töös tellimust.</div>`;
 
         filteredOrders.forEach((o) => {
-            let bnds = getPhaseDates(o, START_VIEW);
+            let gIdx = orders.indexOf(o); let bnds = getPhaseDates(o, START_VIEW);
             let myBnd = CONFIG[key].order === 0 ? bnds.ins : (CONFIG[key].order === 1 ? bnds.lukk : (CONFIG[key].order === 2 ? bnds.keev : bnds.kooste));
 
             let finalLeft = myBnd.s * 45; let taskDur = Math.max(1, myBnd.e - myBnd.s + 1);
@@ -1175,8 +1178,6 @@
                 <div style="display:flex; justify-content:space-between; font-size:11px;"><span>Plaan: <b>${planned}h</b></span><span>Jagatud: <b>${allocated}h</b></span></div>
                 <div style="margin-top:5px; font-size:12px; text-align:right;">Jääk: <b style="color:${rColor}; font-size:14px;">${remaining}h</b></div>
             </div>`;
-            
-            // LISAME RIPPMENÜÜSSE KÕIK TELLIMUSED (KA NEED MILLEL JÄÄK ON 0)
             allocOptions += `<option value="${i}">${o.mt} (Jääk: ${remaining}h)</option>`;
         });
         
@@ -1187,15 +1188,17 @@
         let bStatus = document.getElementById('brush-status');
         if(activeBrushIdx !== null) { bStatus.innerHTML = `Pintsel: <b style="color:var(--danger)">${orders[activeBrushIdx].mt}</b> (Vajuta uuesti, et tühistada)`; } else { bStatus.innerHTML = `Pintsel: <b style="color:#999">VÄLJAS</b>`; }
 
-        let validOrders = orders.filter(o => o.status !== 'Valmis' && o.mt !== 'SYS_SETTINGS');
-        validOrders.sort((a, b) => new Date(a.start) - new Date(b.start));
-        let smartLoad = calculateSmartDailyLoad(validOrders);
+        let allValidOrders = orders.filter(o => o.status !== 'Valmis' && o.mt !== 'SYS_SETTINGS');
+        allValidOrders.sort((a, b) => new Date(a.start) - new Date(b.start));
+        let smartLoad = calculateSmartDailyLoad(allValidOrders);
 
         let daysToShow = 30;
         let gridHtml = `<thead><tr><th style="position:sticky; left:0; top:0; z-index:30; background:#2c3e50; color:white; min-width:80px; padding:10px;">Töökoht</th>`;
         for(let d=0; d<daysToShow; d++) {
             let dObj = new Date(sDate.getTime() + d*86400000); let isW = dObj.getDay()===0||dObj.getDay()===6;
-            gridHtml += `<th style="position:sticky; top:0; z-index:20; background:${isW?'#34495e':'#2c3e50'}; color:white; min-width:80px; font-size:10px; text-align:center;">${dObj.getDate()}.${dObj.getMonth()+1}<br>${['P','E','T','K','N','R','L'][dObj.getDay()]}</th>`;
+            let isHol = isHoliday(dObj);
+            let headerBg = isHol ? '#c62828' : (isW ? '#34495e' : '#2c3e50');
+            gridHtml += `<th style="position:sticky; top:0; z-index:20; background:${headerBg}; color:white; min-width:80px; font-size:10px; text-align:center;">${dObj.getDate()}.${dObj.getMonth()+1}<br>${['P','E','T','K','N','R','L'][dObj.getDay()]}</th>`;
         }
         gridHtml += `</tr></thead><tbody class="${activeBrushIdx !== null ? 'grid-brush-mode' : ''}">`;
         
@@ -1231,7 +1234,10 @@
                 if(cellBlocks.length > 0) {
                     cellContent = `<div style="display:flex; flex-direction:column; gap:2px; padding:2px; height:100%; min-height:40px;">`;
                     cellBlocks.forEach(al => {
-                        let opacity = (activeBrushIdx !== null && activeBrushIdx !== al.idx) ? "0.4" : "1";
+                        let isSearchMatch = (!gV || (al.mt.toLowerCase().includes(gV)) || (al.client && al.client.toLowerCase().includes(gV)));
+                        let opacity = isSearchMatch ? "1" : "0.15";
+                        if (activeBrushIdx !== null && activeBrushIdx !== al.idx) opacity = "0.4";
+                        
                         let bgClass = al.isAuto ? "striped-bg" : "";
                         let titleEx = al.isAuto ? "(Automaatne soovitus)" : "(Käsitsi kinnitatud)";
                         let clickAction = al.isAuto ? `handleCellClick('${k}', '${dStr}', '${wsName}')` : `handleInnerBlockClick(event, '${k}', '${dStr}', '${wsName}', ${al.idx}, ${al.h})`;
@@ -1244,7 +1250,10 @@
                     cellContent = `<div style="color:#eee; font-size:16px; margin-top:2px;">+</div>`;
                 }
                 
-                let cellStyle = (dObj.getDay()===0||dObj.getDay()===6) ? "background:#fafafa;" : "background:#fff;";
+                let isHol = isHoliday(dObj);
+                let isWkend = (dObj.getDay()===0||dObj.getDay()===6);
+                let cellStyle = isHol ? "background: repeating-linear-gradient(45deg, #ffeeee, #ffebee 10px, #ffffff 10px, #ffffff 20px);" : (isWkend ? "background:#fafafa;" : "background:#fff;");
+                
                 if(totalCellH > 8) cellStyle += " border: 2px solid var(--danger); box-shadow: inset 0 0 5px rgba(231,76,60,0.5);";
                 
                 gridHtml += `<td class="disp-cell" style="${cellStyle}" onclick="handleCellClick('${k}', '${dStr}', '${wsName}')" ondblclick="openAllocModal('${k}', '${dStr}', '${wsName}', -1, 8)">${cellContent}</td>`;
@@ -1306,11 +1315,10 @@
         const container = document.getElementById('daily-load-container'); container.innerHTML = "";
         const daysToShow = 365, startDate = new Date(TODAY); startDate.setDate(startDate.getDate() - 2);
         const SCALE = 4;
-        let validOrders = orders.filter(o => o.status !== 'Valmis' && o.mt !== 'SYS_SETTINGS');
-        if (gV) validOrders = validOrders.filter(o => (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
-        validOrders.sort((a, b) => new Date(a.start) - new Date(b.start));
-
-        let smartLoad = calculateSmartDailyLoad(validOrders);
+        
+        let allValidOrders = orders.filter(o => o.status !== 'Valmis' && o.mt !== 'SYS_SETTINGS');
+        allValidOrders.sort((a, b) => new Date(a.start) - new Date(b.start));
+        let smartLoad = calculateSmartDailyLoad(allValidOrders);
 
         Object.keys(CONFIG).forEach(k => {
             let chartHtml = `<div class="daily-chart-wrapper" onscroll="syncDailyScroll(event)"><h3>${CONFIG[k].l} (Päeva koormus)</h3><div class="daily-chart-area">`;
@@ -1323,19 +1331,22 @@
                 let dailyCap = capCount * 8;
                 
                 if (!isRestDay) {
-                    validOrders.forEach(o => {
+                    allValidOrders.forEach(o => {
                         let manualH = o.allocs && o.allocs[k] && o.allocs[k][dateStr] ? Object.values(o.allocs[k][dateStr]).reduce((a,b)=>a+f(b), 0) : 0;
                         let autoH = 0;
                         let aObj = smartLoad.autoAllocs.find(a => a.mt === o.mt);
                         if (aObj && aObj.depts[k] && aObj.depts[k][dateStr]) autoH = Object.values(aObj.depts[k][dateStr]).reduce((sum, val) => sum + f(val), 0);
                         
+                        let isMatch = (!gV || (o.mt.toLowerCase().includes(gV)) || (o.client && o.client.toLowerCase().includes(gV)) || (o.kirjeldus && o.kirjeldus.toLowerCase().includes(gV)));
+                        let opacity = isMatch ? "1" : "0.15";
+
                         if (manualH > 0) {
                             totalH += manualH; 
-                            segmentsHtml += `<div class="order-segment" style="height:${manualH * SCALE}px; background:${CONFIG[k].color};" title="${o.mt} (Dispetšerist kindlalt määratud)\nKoormus: ${manualH.toFixed(1)}h">${manualH > 0.5 ? o.mt : ''}</div>`;
+                            segmentsHtml += `<div class="order-segment" style="height:${manualH * SCALE}px; background:${CONFIG[k].color}; opacity:${opacity};" title="${o.mt} (Dispetšerist kindlalt määratud)\nKoormus: ${manualH.toFixed(1)}h">${manualH > 0.5 ? o.mt : ''}</div>`;
                         }
                         if (autoH > 0) {
                             totalH += autoH; 
-                            segmentsHtml += `<div class="order-segment striped-bg" style="height:${autoH * SCALE}px; background-color:${CONFIG[k].color};" title="${o.mt} (Pangas olev jääk, süsteemi prognoos)\nKoormus: ${autoH.toFixed(1)}h"></div>`;
+                            segmentsHtml += `<div class="order-segment striped-bg" style="height:${autoH * SCALE}px; background-color:${CONFIG[k].color}; opacity:${opacity};" title="${o.mt} (Pangas olev jääk, süsteemi prognoos)\nKoormus: ${autoH.toFixed(1)}h"></div>`;
                         }
                     });
                 }
@@ -1348,14 +1359,12 @@
     }
 
     function renderDailyTable() {
-        const gV = document.getElementById('globalFilter').value.toLowerCase();
         const container = document.getElementById('daily-table-container'); 
         const daysToShow = 365; const startDate = new Date(TODAY); startDate.setDate(startDate.getDate() - 2);
-        let validOrders = orders.filter(o => o.status !== 'Valmis' && o.mt !== 'SYS_SETTINGS');
-        if (gV) validOrders = validOrders.filter(o => (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
-        validOrders.sort((a, b) => new Date(a.start) - new Date(b.start));
-
-        let smartLoad = calculateSmartDailyLoad(validOrders);
+        
+        let allValidOrders = orders.filter(o => o.status !== 'Valmis' && o.mt !== 'SYS_SETTINGS');
+        allValidOrders.sort((a, b) => new Date(a.start) - new Date(b.start));
+        let smartLoad = calculateSmartDailyLoad(allValidOrders);
 
         let html = `<div style="background:white; border-radius:8px; padding:0; box-shadow:0 4px 15px rgba(0,0,0,0.05); overflow:auto; height:100%;">
             <table class="data-table" style="min-width:max-content; border-collapse: separate; border-spacing: 0;">
@@ -1471,10 +1480,7 @@
             isSaving = true; updateSyncStatus("💾 Salvestan...", "warning");
             try {
                 let saveOrders = orders.map(o => { let copy = {...o}; copy.allocs = JSON.stringify(o.allocs || {}); return copy; });
-                
-                // VIGA PARANDATUD SIIN: mode: 'no-cors' ON TAGASI!
                 await fetch(API_URL, {method:"POST", body:JSON.stringify(saveOrders), mode:'no-cors'});
-                
                 isSaving = false; hasPendingChanges = false; updateSyncStatus("✅ Salvestatud", "success");
             } catch(e) { isSaving = false; updateSyncStatus("❌ Salvestamise viga", "danger"); }
         }, 1500);
