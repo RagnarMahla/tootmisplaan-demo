@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V112</title>
+    <title>TOCI Tootmisplaan V113</title>
     <style>
         /* AMETLIK LIVE STIIL */
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
@@ -18,43 +18,57 @@
         .flex-view { display: none !important; flex-direction: column; height: calc(100vh - 95px); box-sizing: border-box; }
         .flex-view.active { display: flex !important; }
 
-        .table-container { height: calc(100% - 60px); overflow: auto; background: white; border-radius: 8px; border: 1px solid #ddd; }
+        .table-container { height: calc(100% - 60px); overflow: auto; background: white; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .data-table { width: 100%; border-collapse: collapse; position: relative; }
-        .data-table thead th { position: sticky; top: 0; background: #eee; z-index: 10; border-bottom: 2px solid #ccc; padding: 10px 5px; text-align: left; }
-        .data-table td { border-bottom: 1px solid #eee; padding: 4px 5px; }
-        tr.status-ootel { background-color: #f8f9fa !important; }
+        .data-table thead th { position: sticky; top: 0; background: #eee; z-index: 10; border-bottom: 2px solid #ccc; padding: 12px 10px; text-align: left; color:#333; }
+        .data-table td { border-bottom: 1px solid #eee; padding: 8px 10px; vertical-align: middle; }
+        .data-table tbody tr:hover { background-color: #f1f8ff !important; transition: 0.2s; }
+        
+        tr.status-ootel { background-color: #fff !important; }
         tr.status-toos { background-color: #e3f2fd !important; }
         tr.status-valmis { background-color: #e8f5e9 !important; opacity: 0.8; }
         
-        .divider-right { border-right: 2px solid #95a5a6 !important; }
-        .dept-header { background: #d5dde5 !important; text-align: center !important; }
+        /* MT Lingi stiil */
+        .mt-link { font-size: 14px; font-weight: bold; color: var(--accent); text-decoration: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: 0.2s; display: inline-block; }
+        .mt-link:hover { background: var(--accent); color: white; }
 
-        .data-in { width: 100%; border: 1px solid transparent; padding: 4px; border-radius: 3px; background: transparent; font-size: 12px; }
-        .data-in:focus { border-color: var(--accent); outline: none; background: #fff; }
-        .data-in:disabled { color: #111; opacity: 1; background: transparent; border: none; appearance: none; cursor: default; }
-        
-        .num-in { width: 38px; text-align: center; font-weight: bold; border: 1px solid #ccc; border-radius: 3px; padding: 4px; background: #fff; }
-        .num-in:disabled { background: #f0f2f5; border: 1px solid #dcdde1; color: #222; opacity: 1; appearance: none; cursor: default; }
-        .cap-num-in { width: 48px; text-align: center; font-weight: bold; border: 1px solid #ccc; border-radius: 3px; padding: 5px 2px; background: #fff; }
-        .prog-in { width: 38px; text-align: center; font-weight: bold; border: 1px solid #27ae60; border-radius: 3px; padding: 4px; background: #eafff0; color: #1b5e20; transition: 0.2s; }
-        .prog-in:disabled { background: #eafff0; border: 1px solid #a5d6a7; color: #1b5e20; opacity: 1; appearance: none; cursor: default; }
-        
-        .overbudget { background-color: #ffebee !important; color: #c62828 !important; border-color: #ef5350 !important; }
-        .overbudget-tot { background-color: #c62828 !important; color: white !important; border-color: #b71c1c !important; }
-        .status-select { padding: 4px; border-radius: 4px; border: 1px solid #999; font-weight: bold; font-size: 11px; cursor: pointer; background: white; }
-        .cell-flex { display: flex; gap: 3px; align-items: center; justify-content: center; transition: 0.3s; }
+        .status-select { padding: 6px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; font-size: 11px; cursor: pointer; background: white; }
 
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 10px; overflow-y: auto; height: 100%; }
         .dash-card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 5px solid var(--accent); display: flex; flex-direction: column; justify-content: center; }
 
-        .modal { display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(3px); }
-        .modal-content { background-color: #fff; margin: 10vh auto; padding: 25px; border-radius: 12px; width: 450px; max-width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        /* MODAALAKNAD */
+        .modal { display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+        .modal-content { background-color: #fff; margin: 5vh auto; padding: 25px; border-radius: 12px; width: 450px; max-width: 95%; box-shadow: 0 15px 40px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
+        .modal-content.large { width: 800px; }
         .m-close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; margin-top:-10px; }
         .m-close:hover { color: #333; }
+        
         .raport-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
         .raport-table th { background: #f4f7f6; padding: 10px; text-align: left; border-bottom: 2px solid #ddd; }
         .raport-table td { padding: 10px; border-bottom: 1px solid #eee; }
 
+        /* TELLIMUSE DETAILIDE VORM */
+        .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 15px; }
+        .edit-group { margin-bottom: 15px; }
+        .edit-group label { display: block; font-size: 11px; font-weight: bold; color: #666; margin-bottom: 4px; }
+        .edit-input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; font-family: inherit; }
+        .edit-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2); }
+        
+        .dept-edit-row { display: grid; grid-template-columns: 100px 60px 60px 70px; gap: 10px; align-items: center; padding: 8px; background: #f8f9fa; border-radius: 6px; margin-bottom: 6px; border: 1px solid #eee; }
+        .dept-edit-row strong { font-size: 12px; color: #2c3e50; }
+        .dept-edit-row input[type="number"] { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: center; }
+        .dept-edit-row label { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: bold; color: var(--success); cursor: pointer; margin:0;}
+        .dept-edit-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--success); cursor: pointer; }
+
+        /* CHECKLIST */
+        .checklist-item { display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 8px; cursor: pointer; transition: 0.2s; }
+        .checklist-item:hover { background: #e1f5fe; border-color: #81d4fa; }
+        .checklist-item input { width: 18px; height: 18px; accent-color: var(--success); cursor: pointer; }
+        .checklist-item span { font-size: 14px; font-weight: bold; color: #333; }
+        .checklist-notes { width: 100%; height: 80px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; font-size: 13px; resize: vertical; margin-top: 10px; box-sizing: border-box; background: #fffdf5; }
+
+        /* GANTT & DISPETŠER */
         .gantt-outer { height: 100%; display: flex; flex-direction: column; background: white; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; }
         .gantt-header-wrapper { display: flex; background: #f8f9fa; border-bottom: 2px solid #ccc; height: 75px; }
         .header-corner { width: 340px; min-width: 340px; background: #eee; border-right: 3px solid #bbb; display: flex; align-items: center; padding-left: 15px; font-weight: bold; position: sticky; left: 0; z-index: 2500; }
@@ -81,26 +95,15 @@
         .order-segment { width: 100%; border: 1px solid rgba(255,255,255,0.3); border-radius: 2px; display: flex; align-items: center; justify-content: center; overflow: hidden; color: white; font-size: 8px; font-weight: bold; cursor: help; }
         .holiday-bg { background: repeating-linear-gradient(45deg, #ffeeee, #ffebee 10px, #ffffff 10px, #ffffff 20px); border-bottom: 2px solid #e53935 !important; }
         
-        .valmis-check { cursor: pointer; width: 16px; height: 16px; accent-color: var(--success); }
-        .checklist-item { display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 8px; cursor: pointer; transition: 0.2s; }
-        .checklist-item:hover { background: #e1f5fe; border-color: #81d4fa; }
-        .checklist-item input { width: 18px; height: 18px; accent-color: var(--success); cursor: pointer; }
-        .checklist-item span { font-size: 14px; font-weight: bold; color: #333; }
-        .checklist-notes { width: 100%; height: 80px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; font-size: 13px; resize: vertical; margin-top: 10px; box-sizing: border-box; background: #fffdf5; }
-        .checklist-notes:focus { outline: none; border-color: var(--accent); background: #fff; }
-
-        /* DISPETŠER & PINTSEL */
         .disp-cell { cursor:pointer; text-align:center; border-right:1px solid #eee; border-bottom:1px solid #eee; min-width:60px; position:relative; user-select: none; vertical-align: top; }
         .disp-cell:hover { background: rgba(0,0,0,0.05) !important; }
         .disp-alloc { font-size:10px; font-weight:bold; color:white; border-radius:3px; padding:2px; margin:1px; box-shadow:0 1px 3px rgba(0,0,0,0.2); pointer-events:auto; transition: 0.2s; }
         .disp-alloc:hover { transform: scale(1.05); z-index: 10; box-shadow:0 3px 6px rgba(0,0,0,0.3); }
         .disp-bank-item { background:#fff; border:1px solid #ddd; padding:10px; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.05); min-width:200px; flex:1; cursor:pointer; transition:0.2s; user-select: none; }
         .disp-bank-item:hover { box-shadow:0 4px 8px rgba(0,0,0,0.1); transform: translateY(-2px); }
-        
         .brush-active { border: 2px dashed #e74c3c !important; background: #fffdf5; transform: scale(1.03); box-shadow: 0 4px 15px rgba(231,76,60,0.2) !important; z-index:10; }
         .grid-brush-mode { cursor: crosshair !important; }
         .grid-brush-mode .disp-cell:hover { background: rgba(231,76,60,0.1) !important; }
-        
         .striped-bg { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.3), rgba(255,255,255,0.3) 5px, transparent 5px, transparent 10px); }
     </style>
 </head>
@@ -132,7 +135,7 @@
         <input type="hidden" id="alloc-dept">
         <input type="hidden" id="alloc-old-idx">
         <div style="margin-bottom:15px;">
-            <label style="font-weight:bold; color:#555;">Vali tellimus (Tundide Pangast):</label>
+            <label style="font-weight:bold; color:#555;">Vali tellimus:</label>
             <select id="alloc-mt" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc; margin-top:5px;"></select>
         </div>
         <div style="margin-bottom:20px;">
@@ -140,19 +143,93 @@
             <input type="number" id="alloc-h" value="8" min="0.5" step="0.5" max="24" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc; margin-top:5px; font-weight:bold;">
         </div>
         <button onclick="saveAllocationModal()" style="width:100%; padding:12px; background:var(--success); color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">💾 SALVESTA PLAAN</button>
-        <button onclick="deleteAllocationModal()" id="alloc-del-btn" style="width:100%; padding:12px; background:var(--danger); color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; margin-top:10px; display:none;">🗑️ KUSTUTA (Tagasta Tunnid)</button>
+        <button onclick="deleteAllocationModal()" id="alloc-del-btn" style="width:100%; padding:12px; background:var(--danger); color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; margin-top:10px; display:none;">🗑️ KUSTUTA</button>
+    </div>
+</div>
+
+<div id="editModal" class="modal">
+    <div class="modal-content large">
+        <span class="m-close" onclick="document.getElementById('editModal').style.display='none'">&times;</span>
+        <h2 id="edit-modal-title" style="margin-top:0; color:var(--primary); border-bottom:2px solid #eee; padding-bottom:10px;">Tellimuse Detailid</h2>
+        
+        <div class="edit-grid">
+            <div>
+                <h3 style="color:var(--accent); margin-top:0;">Põhiinfo</h3>
+                <div class="edit-group">
+                    <label>MT Number (Kohustuslik)</label>
+                    <input type="text" id="edit-mt" class="edit-input" placeholder="nt. MT-26.1234">
+                </div>
+                <div class="edit-group">
+                    <label>Klient</label>
+                    <input type="text" id="edit-client" class="edit-input" placeholder="Kliendi nimi">
+                </div>
+                <div class="edit-group">
+                    <label>Töö kirjeldus</label>
+                    <input type="text" id="edit-desc" class="edit-input" placeholder="Mida tehakse...">
+                </div>
+                <div style="display:flex; gap:15px;">
+                    <div class="edit-group" style="flex:1;">
+                        <label>Algus (Oletuslik)</label>
+                        <input type="date" id="edit-start" class="edit-input">
+                    </div>
+                    <div class="edit-group" style="flex:1;">
+                        <label>Lõpp (TÄHTAEG ⚓)</label>
+                        <input type="date" id="edit-end" class="edit-input" style="border-color:var(--danger); border-width:2px;">
+                    </div>
+                </div>
+                <div style="display:flex; gap:15px;">
+                    <div class="edit-group" style="flex:1;">
+                        <label>Allhange ENNE (päevi)</label>
+                        <input type="number" id="edit-ah1" class="edit-input" value="0" min="0">
+                    </div>
+                    <div class="edit-group" style="flex:1;">
+                        <label>Allhange PEALE (päevi)</label>
+                        <input type="number" id="edit-ah2" class="edit-input" value="0" min="0">
+                    </div>
+                </div>
+                <div class="edit-group">
+                    <label>Staatus</label>
+                    <select id="edit-status" class="edit-input" style="font-weight:bold;">
+                        <option value="Ootel">Ootel</option>
+                        <option value="Töös">Töös</option>
+                        <option value="Valmis">Valmis</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <h3 style="color:var(--accent); margin-top:0;">Töötunnid ja Osakonnad</h3>
+                <div style="display:grid; grid-template-columns: 100px 60px 60px 70px; gap: 10px; margin-bottom:5px; padding:0 8px;">
+                    <small style="color:#777; font-weight:bold;">Osakond</small>
+                    <small style="color:#777; font-weight:bold; text-align:center;">Plaan h</small>
+                    <small style="color:#777; font-weight:bold; text-align:center;">Tehtud h</small>
+                    <small style="color:#777; font-weight:bold;">Olek</small>
+                </div>
+                <div id="edit-departments-container">
+                    </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 25px; display:flex; justify-content:space-between; border-top:1px solid #eee; padding-top:15px;">
+            <button id="edit-delete-btn" onclick="deleteFromEdit()" style="padding:10px 20px; background:#e74c3c; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">🗑️ KUSTUTA TELLIMUS</button>
+            <div style="display:flex; gap:10px;">
+                <button onclick="document.getElementById('editModal').style.display='none'" style="padding:10px 20px; background:#95a5a6; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">TÜHISTA</button>
+                <button id="edit-save-btn" onclick="saveEditModal()" style="padding:10px 30px; background:var(--success); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer; font-size:14px;">💾 SALVESTA KÕIK</button>
+            </div>
+        </div>
     </div>
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V112.0 (Pudelikaela Mootor & Automaatika)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V113.0 (Puhas Disain & Detailkaart)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
-        <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;" title="Ekspordib selle vaate, kus sa parajasti oled">📥 EKSPORDI VAADE</button>
+        <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI VAADE</button>
         <div id="syncStatus" style="background:var(--warning); color:black; padding:4px 10px; border-radius:4px; font-weight:bold; transition: 0.3s;">Ühendan...</div>
         <button id="modeToggleBtn" onclick="toggleMode()" style="background:#95a5a6; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">🔒 VAATAJA</button>
     </div>
 </div>
+
 <div class="tabs">
     <button class="tab-btn active" onclick="openTab(event, 'main_view', 'active')">SISESTUS</button>
     <button class="tab-btn" onclick="openTab(event, 'main_view', 'archive')" style="color:#bdc3c7;">ARHIIV</button>
@@ -176,34 +253,25 @@
 
 <div id="main_view" class="content active">
     <div style="margin-bottom:15px; display:flex; gap:10px; align-items:center;">
-        <button id="addOrderBtn" onclick="addNewRow()" style="padding:8px 15px; background:var(--success); color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; display:none;">+ LISA TELLIMUS</button>
+        <button id="addOrderBtn" onclick="addNewRowAndEdit()" style="padding:10px 20px; background:var(--success); color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; display:none;">+ LISA UUS TELLIMUS</button>
         <select id="monthFilter" onchange="applyUIMode()" style="padding:8px; border-radius:4px; border:1px solid #ccc;">
             <option value="">Kõik kuud</option>
             <option value="-01-">Jaanuar</option><option value="-02-">Veebruar</option><option value="-03-">Märts</option><option value="-04-">Aprill</option><option value="-05-">Mai</option><option value="-06-">Juuni</option><option value="-07-">Juuli</option><option value="-08-">August</option><option value="-09-">September</option><option value="-10-">Oktoober</option><option value="-11-">November</option><option value="-12-">Detsember</option>
         </select>
         <div id="view-title" style="font-size:16px; font-weight:bold; color:var(--primary); margin-left:15px;">Aktiivsed tööd</div>
-        <div style="font-size:12px; color:#666; margin-left:auto;">💡 <b>📋 = Projektiplaan</b> | <b>🔍 = Raport</b> | <b>P</b> = Plaanitud | <b>T</b> = Tehtud h</div>
+        <div style="font-size:12px; color:#666; margin-left:auto;">💡 <b>Klõpsa MT numbril</b>, et muuta tunde ja detaile! | <b>📋 = Projektiplaan</b> | <b>🔍 = Raport</b></div>
     </div>
     <div class="table-container">
         <table class="data-table">
             <thead>
                 <tr>
-                    <th title="MT Number">MT</th>
+                    <th style="width: 80px; text-align:center;">Toimingud</th>
+                    <th title="MT Number (Kliki et muuta)">MT Number ✏️</th>
                     <th>Klient</th>
-                    <th title="Töö sisu / Lühikirjeldus">Kirjeldus</th>
-                    <th>Lõpp</th>
-                    <th title="Allhange enne (p)">AH1</th>
-                    <th class="divider-right" title="Allhange peale (p)">AH2</th>
-                    <th class="dept-header divider-right" title="Inseneeria (Plaan | Tehtud | Valmis)" style="background:#b3e5fc !important;">INS (P|T|☑️)</th>
-                    <th class="dept-header divider-right" title="Treial (Plaan | Tehtud | Valmis)">TR (P|T|☑️)</th>
-                    <th class="dept-header divider-right" title="Must Keevitus (Plaan | Tehtud | Valmis)">MK (P|T|☑️)</th>
-                    <th class="dept-header divider-right" title="RV Keevitus (Plaan | Tehtud | Valmis)">RK (P|T|☑️)</th>
-                    <th class="dept-header divider-right" title="Must Lukksepp (Plaan | Tehtud | Valmis)">ML (P|T|☑️)</th>
-                    <th class="dept-header divider-right" title="RV Lukksepp (Plaan | Tehtud | Valmis)">RL (P|T|☑️)</th>
-                    <th class="dept-header divider-right" title="Kooste (Plaan | Tehtud | Valmis)">KO (P|T|☑️)</th>
-                    <th class="divider-right" title="Kogu tellimuse valmisolek (Tehtud tunnid / Plaanitud tunnid)">Üld %</th>
+                    <th>Töö sisu / Kirjeldus</th>
+                    <th title="Kohustuslik Lõpptähtaeg">Lõpptähtaeg</th>
+                    <th title="Kogu tellimuse valmisolek">Üld %</th>
                     <th>Staatus</th>
-                    <th class="admin-only" style="display:none;">🗑️</th>
                 </tr>
             </thead>
             <tbody id="table-body"></tbody>
@@ -228,7 +296,7 @@
         </div>
         <div style="font-size:16px; font-weight:bold; color:var(--primary); margin-left:15px;">🗓️ Töökohtade Dispetšer</div>
         <div style="font-size:11px; color:#666; margin-left:auto;">
-            💡 <b>Triibulised klotsid:</b> Süsteemi automaatne soovitus. <b>Täisvärvi klotsid:</b> Sinu käsitsi kinnitatud plaan.<br>
+            💡 <b>Triibulised klotsid:</b> Automaatne soovitus. <b>Täisvärvi klotsid:</b> Käsitsi kinnitatud plaan.<br>
             <b>1 klõps pangas</b> valib "Pintsli". <b>1 klõps tabelis</b> kleebib lahtrisse. <b>Topeltklikk tabelis</b> avab täpse muutmise.
         </div>
     </div>
@@ -291,6 +359,7 @@
     let isAdmin = false; const ADMIN_PIN = "1234";
     let saveTimeout; let isSaving = false; let hasPendingChanges = false;
     let activeBrushIdx = null; 
+    let currentEditIndex = -1; // Hoiab meeles, millist rida parasjagu muudetakse
     
     const CONFIG = { 
         ins:    {l:'Inseneeria', c:100, color:'#0097e6', order:0, p:'prog_ins', d:'done_ins', ws: 2, prefix:'INS'}, 
@@ -319,6 +388,7 @@
         if (event.target == document.getElementById('orderModal')) document.getElementById('orderModal').style.display = "none";
         if (event.target == document.getElementById('checklistModal')) document.getElementById('checklistModal').style.display = "none";
         if (event.target == document.getElementById('allocModal')) document.getElementById('allocModal').style.display = "none";
+        // Edit modali taustal klikkimine ei sulge seda automaatselt, et andmed kaotsi ei läheks
     }
 
     function isHoliday(dateObj) {
@@ -350,66 +420,6 @@
         if (totalPlanned === 0) return 0;
         let totalActual = f(o.prog_ins) + f(o.prog_tr) + f(o.prog_mk) + f(o.prog_rk) + f(o.prog_ml) + f(o.prog_rl) + f(o.prog_ko);
         return Math.round((totalActual / totalPlanned) * 100);
-    }
-
-    function smartExport() {
-        const activeTab = document.querySelector('.content.active').id;
-        const gV = document.getElementById('globalFilter').value.toLowerCase();
-        let filteredOrders = orders.filter(o => o.mt !== 'SYS_SETTINGS');
-        if (activeTab === 'main_view') {
-            const mV = document.getElementById('monthFilter').value;
-            filteredOrders = filteredOrders.filter(o => {
-                if (currentMainTabFilter === 'active' && o.status === 'Valmis') return false;
-                if (currentMainTabFilter === 'archive' && o.status !== 'Valmis') return false;
-                if (mV && !safeISO(o.end).includes(mV)) return false;
-                return true;
-            });
-        } else if (activeTab.startsWith('gantt_') || activeTab === 'dispatcher_view') {
-            filteredOrders = filteredOrders.filter(o => o.status === 'Töös');
-        } else {
-            alert("Seda vaadet ei saa tabelina eksportida. Vali Sisestus või mõni Gantti graafik!"); return;
-        }
-
-        if (gV) filteredOrders = filteredOrders.filter(o => (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
-
-        let csv = "\uFEFF"; 
-        const clean = str => `"${String(str || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`;
-
-        if (activeTab === 'main_view') {
-            csv += "MT;Klient;Kirjeldus;Märkmed;Algus;Lõpp;AH1(p);AH2(p);INS Plaan;INS Tehtud;INS Valmis;TR Plaan;TR Tehtud;TR Valmis;MK Plaan;MK Tehtud;MK Valmis;RK Plaan;RK Tehtud;RK Valmis;ML Plaan;ML Tehtud;ML Valmis;RL Plaan;RL Tehtud;RL Valmis;KO Plaan;KO Tehtud;KO Valmis;Üld %;Staatus;Ost Valmis;AH1 Valmis;AH2 Valmis\n";
-            const isD = (v) => String(v)==='true' ? 'JAH' : 'EI';
-            filteredOrders.forEach(o => {
-                csv += `${clean(o.mt)};${clean(o.client)};${clean(o.kirjeldus)};${clean(o.chk_notes)};${safeISO(o.start)};${safeISO(o.end)};${o.sub1};${o.sub2};${o.ins};${o.prog_ins};${isD(o.done_ins)};${o.trei};${o.prog_tr};${isD(o.done_tr)};${o.must_k};${o.prog_mk};${isD(o.done_mk)};${o.rv_k};${o.prog_rk};${isD(o.done_rk)};${o.must_l};${o.prog_ml};${isD(o.done_ml)};${o.rv_l};${o.prog_rl};${isD(o.done_rl)};${o.kooste};${o.prog_ko};${isD(o.done_ko)};${o.progress}%;${o.status};${isD(o.chk_ost)};${isD(o.chk_ah1)};${isD(o.chk_ah2)}\n`;
-            });
-        } else if (activeTab === 'gantt_all') {
-            csv += "MT;Klient;INS Algus;INS Lõpp;AH1 Algus;AH1 Lõpp;LUKK/TREI Algus;LUKK/TREI Lõpp;KEEV Algus;KEEV Lõpp;AH2 Algus;AH2 Lõpp;KOOSTE Algus;KOOSTE Lõpp\n";
-            filteredOrders.forEach(o => {
-                let p = getPhaseDates(o, START_VIEW);
-                const fd = (bnd) => bnd && bnd.sDate ? safeISO(bnd.sDate) : '';
-                const fde = (bnd) => bnd && bnd.eDate ? safeISO(bnd.eDate) : '';
-                csv += `${clean(o.mt)};${clean(o.client)};${fd(p.ins)};${fde(p.ins)};${fd(p.ah1)};${fde(p.ah1)};${fd(p.lukk)};${fde(p.lukk)};${fd(p.keev)};${fde(p.keev)};${fd(p.ah2)};${fde(p.ah2)};${fd(p.kooste)};${fde(p.kooste)}\n`;
-            });
-        } else if (activeTab.startsWith('gantt_') && activeTab !== 'gantt_all') {
-            let key = activeTab.split('_')[1];
-            let realKey = key === 'in' ? 'ins' : key === 'tr' ? 'trei' : key === 'mk' ? 'must_k' : key === 'rk' ? 'rv_k' : key === 'ml' ? 'must_l' : key === 'rl' ? 'rv_l' : 'kooste';
-            csv += `MT;Klient;${CONFIG[realKey].l} Algus;${CONFIG[realKey].l} Lõpp;Kestvus (tööpäevi);Plaanitud (h);Tehtud (h);Eelarve Täituvus %\n`;
-            filteredOrders = filteredOrders.filter(o => f(o[realKey]) > 0);
-            filteredOrders.forEach(o => {
-                let p = getPhaseDates(o, START_VIEW);
-                let myBnd = CONFIG[realKey].order === 0 ? p.ins : (CONFIG[realKey].order === 1 ? p.lukk : (CONFIG[realKey].order === 2 ? p.keev : p.kooste));
-                let wDays = getWorkingDays(myBnd.sDate, myBnd.eDate);
-                let pH = f(o[realKey]), aH = f(o[CONFIG[realKey].p]);
-                let prog = pH > 0 ? Math.round((aH/pH)*100) : 0;
-                csv += `${clean(o.mt)};${clean(o.client)};${safeISO(myBnd.sDate)};${safeISO(myBnd.eDate)};${wDays};${pH};${aH};${prog}%\n`;
-            });
-        } else if (activeTab === 'dispatcher_view') {
-            csv += "Vabandust, Dispetšeri maatriksit ei saa otse alla laadida. Vali Päeva Tabeli vaade.\n";
-        }
-        let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        let link = document.createElement("a"); link.href = URL.createObjectURL(blob);
-        let titleName = activeTab === 'main_view' ? 'KoguPlaan' : activeTab.toUpperCase();
-        link.download = `TOCI_${titleName}_${new Date().toISOString().split('T')[0]}.csv`;
-        document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
 
     function toggleMode() {
@@ -482,125 +492,183 @@
         } catch(e) { updateSyncStatus("❌ Ühenduse viga", "danger"); }
     }
 
-    // V112: TARK ANKRUPÕHINE (KASKAAD) PLANEERIJA
-    function getGroupManualDates(o, deptsArray) {
-        let dates = [];
-        deptsArray.forEach(dept => {
-            if(o.allocs && o.allocs[dept]) {
-                Object.keys(o.allocs[dept]).forEach(dStr => {
-                    if(Object.values(o.allocs[dept][dStr]).some(h => f(h) > 0)) dates.push(new Date(dStr).getTime());
-                });
-            }
-        });
-        if(dates.length === 0) return null;
-        let minT = Math.min(...dates); let maxT = Math.max(...dates);
-        return { 
-            sDate: new Date(minT), eDate: new Date(maxT)
-        };
-    }
-
-    function getPhaseDates(o, startView) {
-        function isWDay(dStr) {
-            let d = new Date(dStr); let day = d.getDay();
-            return day !== 0 && day !== 6 && !isHoliday(dStr);
-        }
-        function addW(dStr, days) {
-            let d = new Date(dStr); let added = 0;
-            while(added < days) { d.setDate(d.getDate() + 1); if(isWDay(safeISO(d))) added++; }
-            return safeISO(d);
-        }
-        function subW(dStr, days) {
-            let d = new Date(dStr); let sub = 0;
-            while(sub < days) { d.setDate(d.getDate() - 1); if(isWDay(safeISO(d))) sub++; }
-            return safeISO(d);
-        }
-        function snapToW(dStr, dir="prev") {
-            let d = new Date(dStr);
-            while(!isWDay(safeISO(d))) d.setDate(d.getDate() + (dir==="prev" ? -1 : 1));
-            return safeISO(d);
-        }
-
-        let d = {};
-        d.ins = Math.ceil(f(o.ins)/8) || (f(o.ins)>0?1:0);
-        let lukkH = f(o.trei)+f(o.must_l)+f(o.rv_l); d.lukk = Math.ceil(lukkH/8) || (lukkH>0?1:0);
-        let keevH = f(o.must_k)+f(o.rv_k); d.keev = Math.ceil(keevH/8) || (keevH>0?1:0);
-        d.kooste = Math.ceil(f(o.kooste)/8) || (f(o.kooste)>0?1:0);
-        d.ah1 = f(o.sub1); d.ah2 = f(o.sub2);
-
-        let mDates = {
-            ins: getGroupManualDates(o, ['ins']),
-            lukk: getGroupManualDates(o, ['trei', 'must_l', 'rv_l']),
-            keev: getGroupManualDates(o, ['must_k', 'rv_k']),
-            kooste: getGroupManualDates(o, ['kooste'])
-        };
-
-        let phases = ['ins', 'ah1', 'lukk', 'keev', 'ah2', 'kooste'];
+    // --- UUS: EDIT MODALI LOOGIKA ---
+    function openEditModal(i) {
+        currentEditIndex = i;
+        let o = orders[i];
+        let disAttr = isAdmin ? "" : "disabled";
         
-        // Dünaamiline Ankur
-        let anchorIdx = -1;
-        if (mDates.keev) anchorIdx = 3;
-        else if (mDates.lukk) anchorIdx = 2;
-        else if (mDates.kooste) anchorIdx = 5;
-        else if (mDates.ins) anchorIdx = 0;
+        document.getElementById('edit-modal-title').innerText = `Tellimuse Detailid: ${o.mt === 'UUS' ? 'Uus Tellimus' : o.mt}`;
+        
+        // Põhiinfo täitmine
+        document.getElementById('edit-mt').value = o.mt;
+        document.getElementById('edit-client').value = o.client;
+        document.getElementById('edit-desc').value = o.kirjeldus;
+        document.getElementById('edit-start').value = safeISO(o.start);
+        document.getElementById('edit-end').value = safeISO(o.end);
+        document.getElementById('edit-ah1').value = o.sub1;
+        document.getElementById('edit-ah2').value = o.sub2;
+        document.getElementById('edit-status').value = o.status;
 
-        let P = {}; phases.forEach(p => P[p] = { sStr: null, eStr: null });
+        // Väljade lukustamine vastavalt õigustele
+        document.getElementById('edit-mt').disabled = !isAdmin;
+        document.getElementById('edit-client').disabled = !isAdmin;
+        document.getElementById('edit-desc').disabled = !isAdmin;
+        document.getElementById('edit-start').disabled = !isAdmin;
+        document.getElementById('edit-end').disabled = !isAdmin;
+        document.getElementById('edit-ah1').disabled = !isAdmin;
+        document.getElementById('edit-ah2').disabled = !isAdmin;
+        document.getElementById('edit-status').disabled = !isAdmin;
+        document.getElementById('edit-delete-btn').style.display = isAdmin ? "block" : "none";
+        document.getElementById('edit-save-btn').style.display = isAdmin ? "block" : "none";
 
-        if (anchorIdx === -1) {
-            // Ankruks on Lõppkuupäev
-            let endStr = o.end || safeISO(TODAY);
-            let cursor = snapToW(endStr, "prev");
+        // Osakondade genereerimine
+        let deptsHtml = "";
+        Object.keys(CONFIG).forEach(k => {
+            let c = CONFIG[k];
+            let pVal = f(o[k]);
+            let aVal = f(o[c.p]);
+            let isDone = String(o[c.d]) === 'true';
             
-            for(let i=5; i>=0; i--) {
-                let p = phases[i]; let dur = d[p];
-                P[p].eStr = cursor;
-                P[p].sStr = dur > 0 ? subW(cursor, Math.max(0, dur - 1)) : cursor;
-                cursor = dur > 0 ? subW(P[p].sStr, 1) : cursor;
-            }
-        } else {
-            // Edasi Planeerimine ankru pealt
-            for(let i=anchorIdx; i<=5; i++) {
-                let p = phases[i]; let dur = d[p];
-                if (mDates[p]) {
-                    P[p].sStr = safeISO(mDates[p].sDate); P[p].eStr = safeISO(mDates[p].eDate);
-                } else {
-                    let prevEnd = P[phases[i-1]].eStr;
-                    P[p].sStr = dur > 0 ? addW(prevEnd, 1) : prevEnd;
-                    P[p].eStr = dur > 0 ? addW(P[p].sStr, Math.max(0, dur - 1)) : P[p].sStr;
-                }
-            }
-            // Tagasi Planeerimine ankru pealt
-            for(let i=anchorIdx-1; i>=0; i--) {
-                let p = phases[i]; let dur = d[p];
-                if (mDates[p]) {
-                    P[p].sStr = safeISO(mDates[p].sDate); P[p].eStr = safeISO(mDates[p].eDate);
-                } else {
-                    let nextStart = P[phases[i+1]].sStr;
-                    P[p].eStr = dur > 0 ? subW(nextStart, 1) : nextStart;
-                    P[p].sStr = dur > 0 ? subW(P[p].eStr, Math.max(0, dur - 1)) : P[p].eStr;
+            deptsHtml += `
+            <div class="dept-edit-row">
+                <strong>${c.l}</strong>
+                <input type="number" id="edit-p-${k}" value="${pVal}" min="0" ${disAttr} title="Plaanitud tunnid">
+                <input type="number" id="edit-a-${c.p}" value="${aVal}" min="0" ${disAttr} title="Tehtud tunnid" style="${aVal > pVal && pVal > 0 ? 'background:#ffebee; border-color:#c62828; color:#c62828; font-weight:bold;' : ''}">
+                <label>
+                    <input type="checkbox" id="edit-d-${c.d}" ${isDone ? 'checked' : ''} ${disAttr}> Valmis
+                </label>
+            </div>`;
+        });
+        document.getElementById('edit-departments-container').innerHTML = deptsHtml;
+        
+        document.getElementById('editModal').style.display = 'block';
+    }
+
+    function saveEditModal() {
+        if (!isAdmin) return;
+        let i = currentEditIndex;
+        let newMt = document.getElementById('edit-mt').value.trim();
+        
+        // MT duplikaadi kontroll
+        if (newMt !== "UUS" && newMt !== "") {
+            let isDuplicate = orders.some((o, idx) => idx !== i && String(o.mt).trim().toLowerCase() === newMt.toLowerCase());
+            if (isDuplicate) { alert(`⚠️ VIGA: MT number '${newMt}' on juba süsteemis olemas! Dublikaadid ei ole lubatud.`); return; }
+        }
+
+        let o = orders[i];
+        o.mt = newMt || "UUS";
+        o.client = document.getElementById('edit-client').value;
+        o.kirjeldus = document.getElementById('edit-desc').value;
+        o.start = document.getElementById('edit-start').value;
+        o.end = document.getElementById('edit-end').value;
+        o.sub1 = parseFloat(document.getElementById('edit-ah1').value) || 0;
+        o.sub2 = parseFloat(document.getElementById('edit-ah2').value) || 0;
+        
+        let oldStatus = o.status;
+        o.status = document.getElementById('edit-status').value;
+
+        // Hilinemise tempel
+        if (o.status === 'Valmis' && oldStatus !== 'Valmis') {
+            let endD = new Date(o.end); endD.setHours(23, 59, 59, 999); let today = new Date();
+            if (endD.getTime() < today.getTime()) {
+                if (!o.kirjeldus.includes("LÕPETATUD HILINEMISEGA")) {
+                    let dateStr = today.getDate() + "." + (today.getMonth() + 1) + "." + today.getFullYear();
+                    o.kirjeldus = o.kirjeldus + " (⚠️ LÕPETATUD HILINEMISEGA: " + dateStr + ")";
                 }
             }
         }
 
-        let bounds = {};
-        phases.forEach(p => {
-            bounds[p] = { sDate: new Date(P[p].sStr), eDate: new Date(P[p].eStr) };
-            bounds[p].s = getDayIndexUTC(bounds[p].sDate, startView);
-            bounds[p].e = getDayIndexUTC(bounds[p].eDate, startView);
-            if (bounds[p].e < bounds[p].s) bounds[p].e = bounds[p].s;
+        // Osakondade salvestamine
+        Object.keys(CONFIG).forEach(k => {
+            let c = CONFIG[k];
+            o[k] = parseFloat(document.getElementById(`edit-p-${k}`).value) || 0;
+            o[c.p] = parseFloat(document.getElementById(`edit-a-${c.p}`).value) || 0;
+            o[c.d] = document.getElementById(`edit-d-${c.d}`).checked;
         });
 
-        return bounds;
+        o.progress = calcOverallProgress(o);
+        
+        document.getElementById('editModal').style.display = 'none';
+        save();
+        renderTable();
     }
 
-    const makeCell = (k, pK, dK, i, o, dis) => {
-        let p = f(o[k]), a = f(o[pK]); let over = (a > p && p > 0) ? 'overbudget' : '';
-        let isDone = String(o[dK]) === 'true'; let opacityStyle = isDone ? "opacity:0.4; filter:grayscale(1);" : "";
-        return `<div class="cell-flex" style="${opacityStyle}">
-            <input class="num-in" title="Plaanitud: ${o[k]}h" value="${o[k]}" onchange="u(${i},'${k}',this.value)" ${dis}>
-            <input class="prog-in ${over}" title="Tehtud: ${o[pK]}h" value="${o[pK]}" onchange="u(${i},'${pK}',this.value)" ${dis}>
-            <input type="checkbox" class="valmis-check" title="Märgi osakond valmiks" onchange="u(${i},'${dK}',this.checked); applyUIMode()" ${isDone?"checked":""} ${dis}>
-        </div>`;
-    };
+    function deleteFromEdit() {
+        if(!isAdmin) return;
+        if(confirm("Kas oled täiesti kindel, et soovid selle tellimuse kustutada?")) {
+            orders.splice(currentEditIndex, 1);
+            document.getElementById('editModal').style.display = 'none';
+            save();
+            renderTable();
+        }
+    }
+
+    function addNewRowAndEdit() { 
+        if(!isAdmin) return; 
+        orders.unshift({
+            mt:"UUS", client:"", kirjeldus:"", start:new Date().toISOString().split('T')[0], end:new Date().toISOString().split('T')[0], 
+            sub1:0, sub2:0, ins:0, trei:0, must_k:0, rv_k:0, must_l:0, rv_l:0, kooste:0, 
+            prog_ins:0, prog_tr:0, prog_mk:0, prog_rk:0, prog_ml:0, prog_rl:0, prog_ko:0, 
+            done_ins:false, done_tr:false, done_mk:false, done_rk:false, done_ml:false, done_rl:false, done_ko:false,
+            chk_ost:false, chk_ah1:false, chk_ah2:false, chk_notes:"", allocs:{},
+            progress:0, status:'Ootel'
+        }); 
+        currentMainTabFilter = 'active';
+        document.getElementById('view-title').innerText = "Aktiivsed tööd";
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('.tab-btn').classList.add('active'); 
+        
+        save(); // Teeb kiire salvestuse, et rida oleks pilves olemas
+        openEditModal(0); // Avab kohe uue rea muutmise akna!
+    }
+
+    // UUS PUHAS TABEL
+    function renderTable() {
+        const gV = document.getElementById('globalFilter').value.toLowerCase();
+        const mV = document.getElementById('monthFilter').value;
+        const b = document.getElementById('table-body'); b.innerHTML = '';
+        let todayTime = new Date(); todayTime.setHours(23, 59, 59, 999);
+        
+        orders.forEach((o, i) => {
+            if (o.mt === 'SYS_SETTINGS') return; 
+            if (currentMainTabFilter === 'active' && o.status === 'Valmis') return;
+            if (currentMainTabFilter === 'archive' && o.status !== 'Valmis') return;
+            let matchText = (!gV || (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
+            if ((!mV || safeISO(o.end).includes(mV)) && matchText) {
+                const sCl = o.status === 'Valmis' ? 'status-valmis' : o.status === 'Töös' ? 'status-toos' : 'status-ootel';
+                let isOverdue = false; if (o.status !== 'Valmis') { let endD = new Date(o.end); endD.setHours(23, 59, 59, 999); if (endD.getTime() < todayTime.getTime()) isOverdue = true; }
+                let overStyle = isOverdue ? 'color:#c62828; font-weight:bold;' : '';
+                let overBadge = isOverdue ? `<br><span style="color:#c62828; font-weight:bold; font-size:10px; background:#ffcdd2; padding:2px 4px; border-radius:3px;">⚠️ ÜLE AJA</span>` : '';
+                
+                let totOver = o.progress > 100 ? 'background:#c62828; color:white; border-color:#b71c1c;' : 'background:#e3f2fd; color:#0277bd; border-color:#0288d1;';
+
+                let ostDone = String(o.chk_ost) === 'true'; let insDone = String(o.done_ins) === 'true'; let ah1Done = f(o.sub1) === 0 || String(o.chk_ah1) === 'true'; let ah2Done = f(o.sub2) === 0 || String(o.chk_ah2) === 'true';
+                let listIcon = (ostDone && insDone && ah1Done && ah2Done) ? '✅' : '📋';
+                
+                let statusColor = o.status === 'Valmis' ? '#27ae60' : (o.status === 'Töös' ? '#3498db' : '#95a5a6');
+
+                b.innerHTML += `<tr class="${sCl}">
+                    <td style="text-align:center;">
+                        <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
+                            <button onclick="showChecklist(${i})" title="Projektiplaan" style="border:none; background:none; cursor:pointer; font-size:18px; padding:0;">${listIcon}</button>
+                            <button onclick="showOrder(${i})" title="Ava Raport" style="border:none; background:none; cursor:pointer; font-size:18px; padding:0;">🔍</button>
+                        </div>
+                    </td>
+                    <td><a href="#" class="mt-link" onclick="openEditModal(${i}); return false;">${o.mt}</a></td>
+                    <td style="font-weight:bold;">${o.client || '-'}</td>
+                    <td style="color:#555;">${o.kirjeldus || '-'}</td>
+                    <td><span style="${overStyle}">${safeISO(o.end)}</span>${overBadge}</td>
+                    <td style="text-align:center;">
+                        <div style="${totOver} border:1px solid; border-radius:4px; padding:4px 8px; font-weight:bold; display:inline-block;" title="Kogu progress">
+                            ${o.progress}%
+                        </div>
+                    </td>
+                    <td style="font-weight:bold; color:${statusColor};">${o.status}</td>
+                </tr>`;
+            }
+        });
+    }
 
     function showChecklist(i) {
         let o = orders[i]; let disAttr = isAdmin ? "" : "disabled";
@@ -639,50 +707,8 @@
         document.getElementById('m-body').innerHTML = html; document.getElementById('orderModal').style.display = 'block';
     }
 
-    function renderTable() {
-        const gV = document.getElementById('globalFilter').value.toLowerCase();
-        const mV = document.getElementById('monthFilter').value;
-        const b = document.getElementById('table-body'); b.innerHTML = '';
-        let disAttr = isAdmin ? "" : "disabled"; let hideTrash = isAdmin ? "display:table-cell;" : "display:none;";
-        let todayTime = new Date(); todayTime.setHours(23, 59, 59, 999);
-        
-        orders.forEach((o, i) => {
-            if (o.mt === 'SYS_SETTINGS') return; 
-            if (currentMainTabFilter === 'active' && o.status === 'Valmis') return;
-            if (currentMainTabFilter === 'archive' && o.status !== 'Valmis') return;
-            let matchText = (!gV || (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
-            if ((!mV || safeISO(o.end).includes(mV)) && matchText) {
-                const sCl = o.status === 'Valmis' ? 'status-valmis' : o.status === 'Töös' ? 'status-toos' : 'status-ootel';
-                let isOverdue = false; if (o.status !== 'Valmis') { let endD = new Date(o.end); endD.setHours(23, 59, 59, 999); if (endD.getTime() < todayTime.getTime()) isOverdue = true; }
-                let overStyle = isOverdue ? 'background-color:#ffebee; color:#c62828; font-weight:bold; border:1px solid #c62828;' : '';
-                let overBadge = isOverdue ? `<div style="color:#c62828; font-weight:bold; font-size:10px; text-align:center; background:#ffcdd2; padding:2px; border-radius:3px; margin-top:3px; border:1px solid #e53935;">⚠️ ÜLE AJA</div>` : '';
-                let totOver = o.progress > 100 ? 'overbudget-tot' : '';
-
-                let ostDone = String(o.chk_ost) === 'true'; let insDone = String(o.done_ins) === 'true'; let ah1Done = f(o.sub1) === 0 || String(o.chk_ah1) === 'true'; let ah2Done = f(o.sub2) === 0 || String(o.chk_ah2) === 'true';
-                let listIcon = (ostDone && insDone && ah1Done && ah2Done) ? '✅' : '📋';
-
-                b.innerHTML += `<tr class="${sCl}">
-                    <td><div style="display:flex; align-items:center; gap:5px;"><button onclick="showChecklist(${i})" title="Projektiplaan" style="border:none; background:none; cursor:pointer; font-size:16px;">${listIcon}</button><button onclick="showOrder(${i})" title="Ava Raport" style="border:none; background:none; cursor:pointer; font-size:16px;">🔍</button><input class="data-in" value="${o.mt}" onchange="u(${i},'mt',this.value)" ${disAttr}></div></td>
-                    <td><input class="data-in" value="${o.client}" onchange="u(${i},'client',this.value)" ${disAttr}></td>
-                    <td><input class="data-in" value="${o.kirjeldus||''}" placeholder="${isAdmin?'Töö sisu...':''}" onchange="u(${i},'kirjeldus',this.value)" ${disAttr}></td>
-                    <td class="divider-right" style="vertical-align: top; padding-top: 6px;"><input type="date" class="data-in" style="${overStyle}" value="${safeISO(o.end)}" onchange="u(${i},'end',this.value)" ${disAttr}>${overBadge}</td>
-                    <td><input class="num-in" title="AH1" value="${o.sub1}" onchange="u(${i},'sub1',this.value)" ${disAttr}></td>
-                    <td class="divider-right"><input class="num-in" title="AH2" value="${o.sub2}" onchange="u(${i},'sub2',this.value)" ${disAttr}></td>
-                    <td class="divider-right" style="background:#e1f5fe;">${makeCell('ins', 'prog_ins', 'done_ins', i, o, disAttr)}</td>
-                    <td class="divider-right">${makeCell('trei', 'prog_tr', 'done_tr', i, o, disAttr)}</td>
-                    <td class="divider-right">${makeCell('must_k', 'prog_mk', 'done_mk', i, o, disAttr)}</td>
-                    <td class="divider-right">${makeCell('rv_k', 'prog_rk', 'done_rk', i, o, disAttr)}</td>
-                    <td class="divider-right">${makeCell('must_l', 'prog_ml', 'done_ml', i, o, disAttr)}</td>
-                    <td class="divider-right">${makeCell('rv_l', 'prog_rl', 'done_rl', i, o, disAttr)}</td>
-                    <td class="divider-right">${makeCell('kooste', 'prog_ko', 'done_ko', i, o, disAttr)}</td>
-                    <td class="divider-right" style="text-align:center; vertical-align:middle;"><div id="prog_tot_${i}" class="${totOver}" style="background:#e3f2fd; color:#0277bd; border:1px solid #0288d1; border-radius:3px; padding:4px; font-weight:bold; font-size:11px; width:40px; margin:auto;" title="Tehtud tunnid / Plaanitud tunnid">${o.progress}%</div></td>
-                    <td style="vertical-align:middle;"><select class="status-select" onchange="u(${i},'status',this.value);renderTable()" ${disAttr}><option ${o.status==='Ootel'?'selected':''}>Ootel</option><option ${o.status==='Töös'?'selected':''}>Töös</option><option ${o.status==='Valmis'?'selected':''}>Valmis</option></select></td>
-                    <td class="admin-only" style="${hideTrash}; vertical-align:middle;"><button onclick="del(${i})" style="border:none; background:none; cursor:pointer;">🗑️</button></td>
-                </tr>`;
-            }
-        });
-    }
-
+    // --- KÕIK ÜLEJÄÄNUD FUNKTSIOONID ON TÄPSELT SAMAD MIS V112 ---
+    
     function renderDashboard() {
         const gV = document.getElementById('globalFilter').value.toLowerCase();
         let activeTotal = 0; let overdueTotal = 0;
@@ -841,6 +867,7 @@
         if(bS && hS) { bS.onscroll = () => { hS.scrollLeft = bS.scrollLeft; }; setTimeout(() => { bS.scrollLeft = (tIdx * 45) - 160; }, 100); }
     }
 
+    // DISPETŠER JA PINTSEL
     window.handleInnerBlockClick = function(e, dept, dateStr, wsName, oIdx, h) {
         e.stopPropagation(); 
         if(!isAdmin) return;
@@ -872,18 +899,13 @@
     function saveAllocationDirect(dept, dateStr, wsName, oIdx, h, append = false) {
         let o = orders[oIdx];
         if(!o.allocs) o.allocs = {}; if(!o.allocs[dept]) o.allocs[dept] = {}; if(!o.allocs[dept][dateStr]) o.allocs[dept][dateStr] = {};
-        if (append && o.allocs[dept][dateStr][wsName]) {
-            o.allocs[dept][dateStr][wsName] = f(o.allocs[dept][dateStr][wsName]) + h;
-        } else {
-            o.allocs[dept][dateStr][wsName] = h;
-        }
+        if (append && o.allocs[dept][dateStr][wsName]) o.allocs[dept][dateStr][wsName] = f(o.allocs[dept][dateStr][wsName]) + h;
+        else o.allocs[dept][dateStr][wsName] = h;
         save(); renderDispatcher();
     }
     
     function deleteAllocationDirect(dept, dateStr, wsName, oIdx) {
-        if(orders[oIdx].allocs && orders[oIdx].allocs[dept] && orders[oIdx].allocs[dept][dateStr]) {
-            delete orders[oIdx].allocs[dept][dateStr][wsName];
-        }
+        if(orders[oIdx].allocs && orders[oIdx].allocs[dept] && orders[oIdx].allocs[dept][dateStr]) delete orders[oIdx].allocs[dept][dateStr][wsName];
         save(); renderDispatcher();
     }
 
@@ -1054,7 +1076,7 @@
                 
                 let cellContent = ""; let totalCellH = 0; let cellBlocks = [];
                 
-                // Otsime manuaalsed klotsid
+                // Manuaalsed
                 orders.forEach((o, i) => {
                     if(o.allocs && o.allocs[k] && o.allocs[k][dStr] && o.allocs[k][dStr][wsName]) {
                         let h = f(o.allocs[k][dStr][wsName]);
@@ -1062,7 +1084,7 @@
                     }
                 });
                 
-                // Otsime automaatsed süsteemi soovitusklotsid (Triibulised!)
+                // Automaatsed
                 smartLoad.autoAllocs.forEach(alloc => {
                     if(alloc.depts[k] && alloc.depts[k][dStr] && alloc.depts[k][dStr][wsName]) {
                         let h = alloc.depts[k][dStr][wsName];
@@ -1099,6 +1121,44 @@
         }
         gridHtml += `</tbody>`;
         document.getElementById('disp-grid').innerHTML = gridHtml;
+    }
+
+    function openAllocModal(dept, dateStr, wsName, currentOIdx, currentH) {
+        if(!isAdmin) { alert("Ainult Administraator saab töökohti planeerida!"); return; }
+        let dObj = new Date(dateStr); let estDate = dObj.getDate() + "." + (dObj.getMonth()+1) + "." + dObj.getFullYear();
+        document.getElementById('alloc-title').innerText = `${wsName} | ${estDate}`;
+        document.getElementById('alloc-dept').value = dept; document.getElementById('alloc-date').value = dateStr; document.getElementById('alloc-ws').value = wsName;
+        document.getElementById('alloc-old-idx').value = currentOIdx >= 0 ? currentOIdx : "";
+        
+        let sel = document.getElementById('alloc-mt'); sel.innerHTML = window.currentAllocOptions;
+        if (currentOIdx >= 0) {
+            sel.value = currentOIdx; document.getElementById('alloc-h').value = currentH; document.getElementById('alloc-del-btn').style.display = 'block';
+        } else {
+            sel.value = ""; document.getElementById('alloc-h').value = 8; document.getElementById('alloc-del-btn').style.display = 'none';
+        }
+        document.getElementById('allocModal').style.display = 'block';
+    }
+    
+    function saveAllocationModal() {
+        let dept = document.getElementById('alloc-dept').value; let dateStr = document.getElementById('alloc-date').value;
+        let wsName = document.getElementById('alloc-ws').value; let newIdx = document.getElementById('alloc-mt').value;
+        let oldIdx = document.getElementById('alloc-old-idx').value; let h = parseFloat(document.getElementById('alloc-h').value);
+        
+        if (oldIdx !== "") deleteAllocationDirect(dept, dateStr, wsName, parseInt(oldIdx));
+        if (newIdx !== "" && h > 0) saveAllocationDirect(dept, dateStr, wsName, parseInt(newIdx), h, false);
+        document.getElementById('allocModal').style.display = 'none';
+    }
+    
+    function deleteAllocationModal() {
+        let dept = document.getElementById('alloc-dept').value; let dateStr = document.getElementById('alloc-date').value; let wsName = document.getElementById('alloc-ws').value;
+        let oldIdx = document.getElementById('alloc-old-idx').value;
+        if (oldIdx !== "") deleteAllocationDirect(dept, dateStr, wsName, parseInt(oldIdx));
+        document.getElementById('allocModal').style.display = 'none';
+    }
+
+    function syncDailyScroll(e) {
+        const scrollX = e.target.scrollLeft;
+        document.querySelectorAll('.daily-chart-wrapper').forEach(w => { if (w !== e.target && w.scrollLeft !== scrollX) w.scrollLeft = scrollX; });
     }
 
     function renderDailyCharts() {
@@ -1297,32 +1357,11 @@
         orders[i][k] = v; 
         if (['ins', 'trei', 'must_k', 'rv_k', 'must_l', 'rv_l', 'kooste', 'prog_ins', 'prog_tr', 'prog_mk', 'prog_rk', 'prog_ml', 'prog_rl', 'prog_ko'].includes(k)) {
             orders[i].progress = calcOverallProgress(orders[i]);
-            let pCell = document.getElementById('prog_tot_' + i);
-            if(pCell) { pCell.innerText = orders[i].progress + '%'; if(orders[i].progress > 100) pCell.className = 'overbudget-tot'; else pCell.className = ''; }
         }
         save(); 
         if (['chk_ost', 'done_ins', 'chk_ah1', 'chk_ah2'].includes(k)) renderTable();
     }
     
-    function del(i) { if(!isAdmin) return; if(confirm("Kustuta rida?")) { orders.splice(i,1); save(); renderTable(); } }
-    
-    function addNewRow() { 
-        if(!isAdmin) return; 
-        orders.unshift({
-            mt:"UUS", client:"", kirjeldus:"", start:new Date().toISOString().split('T')[0], end:new Date().toISOString().split('T')[0], 
-            sub1:0, sub2:0, ins:0, trei:0, must_k:0, rv_k:0, must_l:0, rv_l:0, kooste:0, 
-            prog_ins:0, prog_tr:0, prog_mk:0, prog_rk:0, prog_ml:0, prog_rl:0, prog_ko:0, 
-            done_ins:false, done_tr:false, done_mk:false, done_rk:false, done_ml:false, done_rl:false, done_ko:false,
-            chk_ost:false, chk_ah1:false, chk_ah2:false, chk_notes:"", allocs:{},
-            progress:0, status:'Ootel'
-        }); 
-        currentMainTabFilter = 'active';
-        document.getElementById('view-title').innerText = "Aktiivsed tööd";
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelector('.tab-btn').classList.add('active'); 
-        renderTable(); save();
-    }
-
     function openTab(e, viewId, filterType) {
         document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
