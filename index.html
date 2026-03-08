@@ -213,7 +213,7 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V117.0 (Kuupäevad Paneelides)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI VAADE</button>
@@ -234,7 +234,7 @@
     <button class="tab-btn" onclick="openTab(event, 'gantt_ml', null)">MUST LUKK</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_rl', null)">RV LUKK</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_ko', null)">KOOSTE</button>
-    <button class="tab-btn" onclick="openTab(event, 'dispatcher_view', null)" style="background:#e74c3c; box-shadow: inset 0 -4px 0 #c0392b;">🗓️ DISPETŠER</button>
+    <button class="tab-btn" onclick="openTab(event, 'dispatcher_view', null)" style="background:#e74c3c; box-shadow: inset 0 -4px 0 #c0392b;">🗓️ PLANEERIJA</button>
     <button class="tab-btn" onclick="openTab(event, 'paeva_koormus_graafik', null)" style="background:var(--accent)">📊 P. GRAAFIK</button>
     <button class="tab-btn" onclick="openTab(event, 'paeva_koormus_tabel', null)" style="background:#2980b9">📅 P. TABEL</button>
     <button class="tab-btn" onclick="openTab(event, 'voimekus_tab', null)" style="color:var(--warning)">⚙️ VÕIMEKUS</button>
@@ -295,7 +295,7 @@
     
     <div style="background:#eef2f5; border-radius:8px; border:1px solid #ccc; padding:15px; margin-bottom:15px;">
         <h3 style="margin-top:0; margin-bottom:10px; color:#2c3e50; display:flex; justify-content:space-between;">
-            <span>🏦 Tundide Pank (Kliki kastil, et valida PINTSEL 🖌️)</span>
+            <span>🏦 Tundide Pank</span>
             <span style="font-size:12px; font-weight:normal; color:#666;" id="brush-status">Pintsel: VÄLJAS</span>
         </h3>
         <div id="disp-bank" style="display:flex; flex-wrap:wrap; gap:10px; max-height:150px; overflow-y:auto; padding-right:10px;"></div>
@@ -333,7 +333,7 @@
             <div id="holidays-list" style="display:flex; flex-direction:column; gap:5px; max-height: 100px; overflow-y: auto;"></div>
         </div>
         <div id="ws-manager" style="width:350px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #ddd;">
-            <h3 style="margin-top:0; color:#2980b9;">🏭 Töökohtade arv (Dispetšer)</h3>
+            <h3 style="margin-top:0; color:#2980b9;">🏭 Töökohtade arv</h3>
             <p style="font-size:11px; color:#666; margin-top:-5px;">Määra, mitu paralleelset töökohta igas osakonnas tabelisse joonistatakse.</p>
             <div id="ws-list" style="display:flex; flex-direction:column; gap:5px;"></div>
         </div>
