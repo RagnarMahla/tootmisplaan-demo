@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V118</title>
+    <title>TOCI Tootmisplaan V118.1</title>
     <style>
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -30,8 +30,6 @@
         .mt-link { font-size: 14px; font-weight: bold; color: var(--accent); text-decoration: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: 0.2s; display: inline-block; }
         .mt-link:hover { background: var(--accent); color: white; }
 
-        .status-select { padding: 6px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; font-size: 11px; cursor: pointer; background: white; }
-
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 10px; overflow-y: auto; height: 100%; }
         .dash-card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 5px solid var(--accent); display: flex; flex-direction: column; justify-content: center; }
 
@@ -42,7 +40,6 @@
         .m-close:hover { color: #333; }
         
         .edit-section-title { font-size: 14px; font-weight: bold; color: var(--accent); border-bottom: 2px solid #eee; margin-top: 20px; margin-bottom: 10px; padding-bottom: 5px; }
-        
         .edit-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
         .edit-group { margin-bottom: 10px; }
         .edit-group label { display: block; font-size: 11px; font-weight: bold; color: #666; margin-bottom: 4px; }
@@ -109,7 +106,7 @@
         <input type="hidden" id="alloc-dept">
         <input type="hidden" id="alloc-old-idx">
         <div style="margin-bottom:15px;">
-            <label style="font-weight:bold; color:#555;">Vali tellimus:</label>
+            <label style="font-weight:bold; color:#555;">Vali tellimus (Tundide Pangast):</label>
             <select id="alloc-mt" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc; margin-top:5px;"></select>
         </div>
         <div style="margin-bottom:20px;">
@@ -117,14 +114,14 @@
             <input type="number" id="alloc-h" value="8" min="0.5" step="0.5" max="24" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc; margin-top:5px; font-weight:bold;">
         </div>
         <button onclick="saveAllocationModal()" style="width:100%; padding:12px; background:var(--success); color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">💾 SALVESTA PLAAN</button>
-        <button onclick="deleteAllocationModal()" id="alloc-del-btn" style="width:100%; padding:12px; background:var(--danger); color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; margin-top:10px; display:none;">🗑️ KUSTUTA KLOTS</button>
+        <button onclick="deleteAllocationModal()" id="alloc-del-btn" style="width:100%; padding:12px; background:var(--danger); color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; margin-top:10px; display:none;">🗑️ KUSTUTA (Tagasta Tunnid)</button>
     </div>
 </div>
 
 <div id="editModal" class="modal">
     <div class="modal-content large">
         <span class="m-close" onclick="document.getElementById('editModal').style.display='none'">&times;</span>
-        <h2 id="edit-modal-title" style="margin-top:0; color:var(--primary); font-size:22px;">🗂️ Tellimuse Kaart</h2>
+        <h2 id="edit-modal-title" style="margin-top:0; color:var(--primary); border-bottom:2px solid #eee; padding-bottom:10px;">Tellimuse Detailid</h2>
         
         <div class="edit-section-title">Põhiinfo</div>
         <div class="edit-grid">
@@ -199,10 +196,10 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V118.0 (Tellimuse Kaart + Fix)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V118.1 (Kõik-ühes Tellimuse Kaart)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
-        <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI</button>
+        <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI VAADE</button>
         <div id="syncStatus" style="background:var(--warning); color:black; padding:4px 10px; border-radius:4px; font-weight:bold; transition: 0.3s;">Ühendan...</div>
         <button id="modeToggleBtn" onclick="toggleMode()" style="background:#95a5a6; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">🔒 VAATAJA</button>
     </div>
@@ -237,7 +234,7 @@
             <option value="-01-">Jaanuar</option><option value="-02-">Veebruar</option><option value="-03-">Märts</option><option value="-04-">Aprill</option><option value="-05-">Mai</option><option value="-06-">Juuni</option><option value="-07-">Juuli</option><option value="-08-">August</option><option value="-09-">September</option><option value="-10-">Oktoober</option><option value="-11-">November</option><option value="-12-">Detsember</option>
         </select>
         <div id="view-title" style="font-size:16px; font-weight:bold; color:var(--primary); margin-left:15px;">Aktiivsed tööd</div>
-        <div style="font-size:12px; color:#666; margin-left:auto;">💡 <b>Klõpsa reale</b>, et avada Tellimuse Kaart.</div>
+        <div style="font-size:12px; color:#666; margin-left:auto;">💡 <b>Klõpsa Ava Nupul</b>, et avada Tellimuse Detailkaart.</div>
     </div>
     <div class="table-container">
         <table class="data-table">
@@ -274,7 +271,7 @@
         </div>
         <div style="font-size:16px; font-weight:bold; color:var(--primary); margin-left:15px;">🗓️ Töökohtade Dispetšer</div>
         <div style="font-size:11px; color:#666; margin-left:auto;">
-            💡 <b>Triibulised:</b> Süsteemi soovitus. <b>Täisvärvi:</b> Sinu plaan.<br>
+            💡 <b>Triibulised klotsid:</b> Automaatne soovitus. <b>Täisvärvi klotsid:</b> Käsitsi plaan.<br>
             <b>1 klõps pangas</b> = "Pintsel". <b>1 klõps tabelis</b> = kleebib/kustutab. <b>Topeltklikk</b> = täpne muutmine.
         </div>
     </div>
@@ -331,7 +328,7 @@
 </div>
 
 <script>
-    // ⚠️ PANE SIIA OMA PÄRIS LIVE URL:
+    // === TÄHTIS: PANE SIIA OMA PÄRIS LIVE URL ===
     const API_URL = "https://script.google.com/macros/s/AKfycbzbSXxZbgWYY6I0c58XGOu8AE3Pi6ibXPxjuGjQPRsdRCVijbtqIq8rTJYcTWewb9ilcw/exec";
     
     let isAdmin = false; const ADMIN_PIN = "1234";
@@ -351,7 +348,7 @@
     
     const START_VIEW = new Date("2026-01-01"), TODAY = new Date();
     
-    // PÜHADE MÄLU TAASTAMINE (et ei kaoks lehe uuenemisel)
+    // PÜHADE LOKAALNE TAASTAMINE (TURVAMEHHANISM)
     let customCap = JSON.parse(localStorage.getItem('prod_cap_live')) || {};
     if (!customCap.holidays) customCap.holidays = [];
     if (!customCap.wsCounts) customCap.wsCounts = {};
@@ -553,7 +550,6 @@
                             customCap = dbCap;
                             if (!customCap.holidays) customCap.holidays = [];
                             if (!customCap.wsCounts) customCap.wsCounts = {};
-                            // Uuendame ka lokaalset varukoopiat
                             localStorage.setItem('prod_cap_live', JSON.stringify(customCap)); 
                         }
                     } catch(e) {} 
@@ -586,7 +582,7 @@
         } catch(e) { updateSyncStatus("❌ Ühenduse viga", "danger"); }
     }
 
-    // --- UUS: EDIT MODALI DÜNAAMILINE ARVUTUS (VAHE) ---
+    // --- DÜNAAMILINE RAPORT KAARDIL ---
     window.calcDiff = function(k) {
         let c = CONFIG[k];
         let pVal = f(document.getElementById(`edit-p-${k}`).value);
@@ -611,35 +607,29 @@
         currentEditIndex = i; let o = orders[i]; let disAttr = isAdmin ? "" : "disabled";
         document.getElementById('edit-modal-title').innerText = `🗂️ Tellimuse Kaart: ${o.mt === 'UUS' ? 'Uus Tellimus' : o.mt}`;
         
-        // Põhiinfo
         document.getElementById('edit-mt').value = o.mt; document.getElementById('edit-client').value = o.client;
         document.getElementById('edit-desc').value = o.kirjeldus; document.getElementById('edit-start').value = safeISO(o.start);
         document.getElementById('edit-end').value = safeISO(o.end); document.getElementById('edit-ah1').value = o.sub1;
         document.getElementById('edit-ah2').value = o.sub2; document.getElementById('edit-status').value = o.status;
 
-        // Checklist ja Märkmed
         document.getElementById('edit-chk-ins').checked = String(o.done_ins) === 'true';
         document.getElementById('edit-chk-ost').checked = String(o.chk_ost) === 'true';
         document.getElementById('edit-chk-ah1').checked = String(o.chk_ah1) === 'true';
         document.getElementById('edit-chk-ah2').checked = String(o.chk_ah2) === 'true';
         document.getElementById('edit-chk-notes').value = o.chk_notes || '';
 
-        // Õigused
         document.getElementById('edit-mt').disabled = !isAdmin; document.getElementById('edit-client').disabled = !isAdmin;
         document.getElementById('edit-desc').disabled = !isAdmin; document.getElementById('edit-start').disabled = !isAdmin;
         document.getElementById('edit-end').disabled = !isAdmin; document.getElementById('edit-ah1').disabled = !isAdmin;
         document.getElementById('edit-ah2').disabled = !isAdmin; document.getElementById('edit-status').disabled = !isAdmin;
         
-        document.getElementById('edit-chk-ins').disabled = !isAdmin;
-        document.getElementById('edit-chk-ost').disabled = !isAdmin;
-        document.getElementById('edit-chk-ah1').disabled = !isAdmin;
-        document.getElementById('edit-chk-ah2').disabled = !isAdmin;
+        document.getElementById('edit-chk-ins').disabled = !isAdmin; document.getElementById('edit-chk-ost').disabled = !isAdmin;
+        document.getElementById('edit-chk-ah1').disabled = !isAdmin; document.getElementById('edit-chk-ah2').disabled = !isAdmin;
         document.getElementById('edit-chk-notes').disabled = !isAdmin;
 
         document.getElementById('edit-delete-btn').style.display = isAdmin ? "block" : "none";
         document.getElementById('edit-save-btn').style.display = isAdmin ? "block" : "none";
 
-        // Osakondade genereerimine
         let deptsHtml = "";
         Object.keys(CONFIG).forEach(k => {
             let c = CONFIG[k]; let pVal = f(o[k]); let aVal = f(o[c.p]); let isDone = String(o[c.d]) === 'true';
@@ -654,8 +644,6 @@
             </div>`;
         });
         document.getElementById('edit-departments-container').innerHTML = deptsHtml;
-        
-        // Arvutame kohe alguses diffid välja
         Object.keys(CONFIG).forEach(k => window.calcDiff(k));
         
         document.getElementById('editModal').style.display = 'block';
@@ -698,7 +686,8 @@
 
         o.progress = calcOverallProgress(o);
         document.getElementById('editModal').style.display = 'none';
-        save(); renderTable();
+        save(); 
+        applyUIMode(); // Uuendab peale salvestamist absoluutselt kõiki vaateid!
     }
 
     function deleteFromEdit() {
@@ -706,7 +695,7 @@
         if(confirm("Kas oled täiesti kindel, et soovid selle tellimuse kustutada?")) {
             orders.splice(currentEditIndex, 1);
             document.getElementById('editModal').style.display = 'none';
-            save(); renderTable();
+            save(); applyUIMode();
         }
     }
 
@@ -724,7 +713,10 @@
         document.getElementById('view-title').innerText = "Aktiivsed tööd";
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelector('.tab-btn').classList.add('active'); 
-        save(); openEditModal(0);
+        
+        applyUIMode(); // Renderdab taustal uue rea nähtavaks
+        save(); 
+        openEditModal(0);
     }
 
     function getGroupManualDates(o, deptsArray) {
@@ -738,10 +730,7 @@
         });
         if(dates.length === 0) return null;
         let minT = Math.min(...dates); let maxT = Math.max(...dates);
-        return { 
-            s: getDayIndexUTC(new Date(minT), START_VIEW), e: getDayIndexUTC(new Date(maxT), START_VIEW),
-            sDate: new Date(minT), eDate: new Date(maxT)
-        };
+        return { sDate: new Date(minT), eDate: new Date(maxT) };
     }
 
     function getPhaseDates(o, startView) {
@@ -771,7 +760,6 @@
         if (anchorIdx === -1) {
             let endStr = o.end || safeISO(TODAY);
             let cursor = snapToW(endStr, "prev");
-            
             for(let i=5; i>=0; i--) {
                 let p = phases[i]; let dur = d[p];
                 P[p].eStr = cursor;
@@ -812,7 +800,7 @@
         return bounds;
     }
 
-    // UUS TABEL: Eemaldatud 🔍 ja 📋, lisatud Nupp "Ava Kaart"
+    // UUS PUHAS TABEL
     function renderTable() {
         const gV = document.getElementById('globalFilter').value.toLowerCase();
         const mV = document.getElementById('monthFilter').value;
@@ -902,7 +890,7 @@
         let filteredOrders = orders.filter(o => o.status !== 'Valmis' && o.mt !== 'SYS_SETTINGS');
         if (gV) filteredOrders = filteredOrders.filter(o => (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
         if (filteredOrders.length === 0) bodyHtml += `<div class="empty-state">ℹ️ Ühtegi filtriga sobivat tellimust ei leitud.</div>`;
-        
+
         filteredOrders.forEach((o) => {
             let bnds = getPhaseDates(o, START_VIEW);
 
