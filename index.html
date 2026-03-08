@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V119</title>
+    <title>TOCI Tootmisplaan V120</title>
     <style>
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -20,23 +20,27 @@
         .table-container { height: calc(100% - 60px); overflow: auto; background: white; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .data-table { width: 100%; border-collapse: collapse; position: relative; }
         .data-table thead th { position: sticky; top: 0; background: #eee; z-index: 10; border-bottom: 2px solid #ccc; padding: 12px 10px; text-align: left; color:#333; }
-        .data-table td { border-bottom: 1px solid #eee; padding: 10px; vertical-align: middle; }
+        .data-table td { border-bottom: 1px solid #eee; padding: 8px 10px; vertical-align: middle; }
+        .data-table tbody tr:hover { background-color: #f1f8ff !important; transition: 0.2s; }
         
-        /* Terve rea klikitavaks tegemine */
+        tr.status-ootel { background-color: #fff !important; }
+        tr.status-toos { background-color: #e3f2fd !important; }
+        tr.status-valmis { background-color: #e8f5e9 !important; opacity: 0.8; }
+        
         .row-clickable { cursor: pointer; transition: background 0.2s; }
         .row-clickable:hover { background-color: #e1f5fe !important; }
-        
-        .status-select { padding: 6px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; font-size: 11px; cursor: pointer; background: white; }
 
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 10px; overflow-y: auto; height: 100%; }
         .dash-card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 5px solid var(--accent); display: flex; flex-direction: column; justify-content: center; }
 
+        /* MODAALAKNAD */
         .modal { display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
         .modal-content { background-color: #fff; margin: 5vh auto; padding: 25px; border-radius: 12px; width: 450px; max-width: 95%; box-shadow: 0 15px 40px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
         .modal-content.large { width: 850px; }
         .m-close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; margin-top:-10px; }
         .m-close:hover { color: #333; }
         
+        /* TELLIMUSE DETAILIDE KAART */
         .edit-section-title { font-size: 14px; font-weight: bold; color: var(--accent); border-bottom: 2px solid #eee; margin-top: 20px; margin-bottom: 10px; padding-bottom: 5px; }
         .edit-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
         .edit-group { margin-bottom: 10px; }
@@ -56,6 +60,7 @@
         .checklist-item span { font-size: 13px; font-weight: bold; color: #333; }
         .checklist-notes { width: 100%; height: 115px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; font-size: 13px; resize: vertical; box-sizing: border-box; background: #fffdf5; }
 
+        /* GANTT & DISPETŠER */
         .gantt-outer { height: 100%; display: flex; flex-direction: column; background: white; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; }
         .gantt-header-wrapper { display: flex; background: #f8f9fa; border-bottom: 2px solid #ccc; height: 75px; }
         .header-corner { width: 340px; min-width: 340px; background: #eee; border-right: 3px solid #bbb; display: flex; align-items: center; padding-left: 15px; font-weight: bold; position: sticky; left: 0; z-index: 2500; }
@@ -195,7 +200,7 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V119.0</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V120.0 (Kaart Korda Tehtud!)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI VAADE</button>
@@ -233,17 +238,18 @@
             <option value="-01-">Jaanuar</option><option value="-02-">Veebruar</option><option value="-03-">Märts</option><option value="-04-">Aprill</option><option value="-05-">Mai</option><option value="-06-">Juuni</option><option value="-07-">Juuli</option><option value="-08-">August</option><option value="-09-">September</option><option value="-10-">Oktoober</option><option value="-11-">November</option><option value="-12-">Detsember</option>
         </select>
         <div id="view-title" style="font-size:16px; font-weight:bold; color:var(--primary); margin-left:15px;">Aktiivsed tööd</div>
-        <div style="font-size:12px; color:#666; margin-left:auto;">💡 <b>Klõpsa reale</b>, et avada Tellimuse Kaart.</div>
+        <div style="font-size:12px; color:#666; margin-left:auto;">💡 <b>Klõpsa real</b>, et avada Tellimuse Detailkaart.</div>
     </div>
     <div class="table-container">
         <table class="data-table">
             <thead>
                 <tr>
+                    <th style="width: 80px; text-align:center;">Kaart</th>
                     <th>MT Number</th>
                     <th>Klient</th>
                     <th>Töö sisu / Kirjeldus</th>
                     <th>Lõpptähtaeg</th>
-                    <th title="Kogu tellimuse valmisolek">Valmidus</th>
+                    <th style="text-align:center;">Üld %</th>
                     <th>Staatus</th>
                 </tr>
             </thead>
@@ -326,8 +332,8 @@
 </div>
 
 <script>
-    // ⚠️ PANE SIIA OMA PÄRIS LIVE URL:
-    const API_URL = "https://script.google.com/macros/s/AKfycbwGH8W-wlIs5sPRQqAUGPmRRyJjO9-5I1howW6tqVybo6NBIRLAEy4vmmBpEIyFvGBU/exec";
+    // === TÄHTIS: PANE SIIA OMA PÄRIS LIVE URL ===
+    const API_URL = "https://script.google.com/macros/s/AKfycbzbSXxZbgWYY6I0c58XGOu8AE3Pi6ibXPxjuGjQPRsdRCVijbtqIq8rTJYcTWewb9ilcw/exec";
     
     let isAdmin = false; const ADMIN_PIN = "1234";
     let saveTimeout; let isSaving = false; let hasPendingChanges = false;
@@ -346,7 +352,7 @@
     
     const START_VIEW = new Date("2026-01-01"), TODAY = new Date();
     
-    // PÜHADE LOKAALNE TAASTAMINE (TURVAMEHHANISM)
+    // PÜHADE LOKAALNE TAASTAMINE
     let customCap = JSON.parse(localStorage.getItem('prod_cap_live')) || {};
     if (!customCap.holidays) customCap.holidays = [];
     if (!customCap.wsCounts) customCap.wsCounts = {};
@@ -539,7 +545,6 @@
             if(Array.isArray(rawData)) {
                 let cleanedData = []; let seenMt = new Set(); let duplicatesFound = 0;
                 
-                // Loeme andmebaasist seaded
                 let sysRow = rawData.find(o => o.mt === 'SYS_SETTINGS');
                 if (sysRow && sysRow.kirjeldus) { 
                     try { 
@@ -570,7 +575,7 @@
                         prog_ins:f(o.prog_ins), prog_tr:f(o.prog_tr), prog_mk:f(o.prog_mk), prog_rk:f(o.prog_rk), prog_ml:f(o.prog_ml), prog_rl:f(o.prog_rl), prog_ko:f(o.prog_ko),
                         status: o.status || 'Töös'
                     };
-                    // Taastame andmebaasi booleanid
+                    
                     obj.done_ins = String(o.done_ins) === 'true';
                     obj.chk_ost = String(o.chk_ost) === 'true';
                     obj.chk_ah1 = String(o.chk_ah1) === 'true';
@@ -594,16 +599,18 @@
         let diff = aVal - pVal;
         
         let el = document.getElementById(`diff-${k}`);
+        if(!el) return; // Ohutus eelkõige
+        
         if(pVal > 0 || aVal > 0) {
             if(diff > 0) {
                 el.innerHTML = `<span style="color:#c62828; font-size:11px; font-weight:bold; background:#ffebee; padding:2px 4px; border-radius:3px;">+${diff}h üle</span>`;
             } else if(diff < 0) {
-                el.innerHTML = `<span style="color:#27ae60; font-size:11px;">${Math.abs(diff)}h varu</span>`;
+                el.innerHTML = `<span style="color:#27ae60; font-size:11px; font-weight:bold;">${Math.abs(diff)}h varu</span>`;
             } else {
-                el.innerHTML = `<span style="color:#999; font-size:11px;">Täpselt</span>`;
+                el.innerHTML = `<span style="color:#999; font-size:11px; font-weight:bold;">Täpselt</span>`;
             }
         } else {
-            el.innerHTML = "";
+            el.innerHTML = `<span style="color:#ccc; font-size:11px;">-</span>`;
         }
     };
 
@@ -611,20 +618,17 @@
         currentEditIndex = i; let o = orders[i]; let disAttr = isAdmin ? "" : "disabled";
         document.getElementById('edit-modal-title').innerText = `🗂️ Tellimuse Kaart: ${o.mt === 'UUS' ? 'Uus Tellimus' : o.mt}`;
         
-        // Põhiinfo
         document.getElementById('edit-mt').value = o.mt; document.getElementById('edit-client').value = o.client;
         document.getElementById('edit-desc').value = o.kirjeldus; document.getElementById('edit-start').value = safeISO(o.start);
         document.getElementById('edit-end').value = safeISO(o.end); document.getElementById('edit-ah1').value = o.sub1;
         document.getElementById('edit-ah2').value = o.sub2; document.getElementById('edit-status').value = o.status;
 
-        // Checklist ja Märkmed
         document.getElementById('edit-chk-ins').checked = o.done_ins === true;
         document.getElementById('edit-chk-ost').checked = o.chk_ost === true;
         document.getElementById('edit-chk-ah1').checked = o.chk_ah1 === true;
         document.getElementById('edit-chk-ah2').checked = o.chk_ah2 === true;
         document.getElementById('edit-chk-notes').value = o.chk_notes || '';
 
-        // Õigused
         document.getElementById('edit-mt').disabled = !isAdmin; document.getElementById('edit-client').disabled = !isAdmin;
         document.getElementById('edit-desc').disabled = !isAdmin; document.getElementById('edit-start').disabled = !isAdmin;
         document.getElementById('edit-end').disabled = !isAdmin; document.getElementById('edit-ah1').disabled = !isAdmin;
@@ -639,7 +643,6 @@
         document.getElementById('edit-delete-btn').style.display = isAdmin ? "block" : "none";
         document.getElementById('edit-save-btn').style.display = isAdmin ? "block" : "none";
 
-        // Osakondade genereerimine
         let deptsHtml = "";
         Object.keys(CONFIG).forEach(k => {
             let c = CONFIG[k]; let pVal = f(o[k]); let aVal = f(o[c.p]); let isDone = String(o[c.d]) === 'true';
@@ -654,6 +657,8 @@
             </div>`;
         });
         document.getElementById('edit-departments-container').innerHTML = deptsHtml;
+        
+        // Pärast HTMLi joonistamist arvutame kohe diffid välja
         Object.keys(CONFIG).forEach(k => window.calcDiff(k));
         
         document.getElementById('editModal').style.display = 'block';
@@ -810,7 +815,7 @@
         return bounds;
     }
 
-    // UUS: TABEL - Klõpsates real, avaneb detailide kaart
+    // UUS: TABEL - Terve rida on klikitav!
     function renderTable() {
         const gV = document.getElementById('globalFilter').value.toLowerCase();
         const mV = document.getElementById('monthFilter').value;
@@ -834,6 +839,9 @@
                 let statusColor = o.status === 'Valmis' ? '#27ae60' : (o.status === 'Töös' ? '#3498db' : '#95a5a6');
 
                 b.innerHTML += `<tr class="${sCl} row-clickable" onclick="openEditModal(${i})">
+                    <td style="text-align:center;">
+                        <button style="padding:6px 12px; background:var(--accent); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer; width:100%; white-space:nowrap; box-shadow:0 2px 4px rgba(0,0,0,0.1);">Ava 🗂️</button>
+                    </td>
                     <td style="font-weight:bold; color:var(--accent); font-size:13px;">${o.mt}</td>
                     <td style="font-weight:bold;">${o.client || '-'}</td>
                     <td style="color:#555;">${o.kirjeldus || '-'}</td>
@@ -1003,7 +1011,6 @@
         if(bS && hS) { bS.onscroll = () => { hS.scrollLeft = bS.scrollLeft; }; setTimeout(() => { bS.scrollLeft = (tIdx * 45) - 160; }, 100); }
     }
 
-    // DISPETŠER JA PINTSEL
     window.handleInnerBlockClick = function(e, dept, dateStr, wsName, oIdx, h) {
         e.stopPropagation(); 
         if(!isAdmin) return;
