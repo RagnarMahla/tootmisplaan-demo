@@ -1127,7 +1127,7 @@
 
     window.resetBrushAndRender = function() { activeBrushIdx = null; renderDispatcher(); };
     window.toggleBrush = function(idx) {
-        if(!isAdmin) { alert("Ainult Administraator saab Pintsli režiimi kasutada!"); return; }
+        if(!isAdmin) { alert("Ainult Administraator saab Planeerimis režiimi kasutada!"); return; }
         if (activeBrushIdx === idx) activeBrushIdx = null; else activeBrushIdx = idx;
         renderDispatcher();
     };
