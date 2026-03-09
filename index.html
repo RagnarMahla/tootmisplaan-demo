@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V128.0</title>
+    <title>TOCI Tootmisplaan V129</title>
     <style>
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -136,18 +136,13 @@
                 <label>Klient</label>
                 <input type="text" id="edit-client" class="edit-input" placeholder="Kliendi nimi">
             </div>
-            <div class="edit-group" style="grid-column: span 1;">
-                <label>Töö kirjeldus</label>
-                <input type="text" id="edit-desc" class="edit-input" placeholder="Mida tehakse...">
-            </div>
-            
-            <div class="edit-group">
-                <label>Algus (Pole oluline)</label>
-                <input type="date" id="edit-start" class="edit-input" style="color:#666;">
-            </div>
             <div class="edit-group">
                 <label>Lõpp (TÄHTAEG ⚓)</label>
                 <input type="date" id="edit-end" class="edit-input" style="border-color:var(--danger); border-width:2px; font-weight:bold;">
+            </div>
+            <div class="edit-group" style="grid-column: span 2;">
+                <label>Töö kirjeldus</label>
+                <input type="text" id="edit-desc" class="edit-input" placeholder="Mida tehakse...">
             </div>
             <div class="edit-group">
                 <label>Staatus</label>
@@ -157,7 +152,6 @@
                     <option value="Valmis">Valmis</option>
                 </select>
             </div>
-            
         </div>
 
         <div class="edit-section-title" style="margin-top:5px;">Projektiplaan (Eeltööd) & Märkmed</div>
@@ -205,7 +199,7 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V128.0 (Pilve Sünkroniseerimine)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V129.0 (Veaparandused)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI</button>
@@ -337,7 +331,7 @@
 </div>
 
 <script>
-    // === API LINK ===
+    // === API LINK SIIN ===
     const API_URL = "https://script.google.com/macros/s/AKfycbwGH8W-wlIs5sPRQqAUGPmRRyJjO9-5I1howW6tqVybo6NBIRLAEy4vmmBpEIyFvGBU/exec";
     
     let isAdmin = false; const ADMIN_PIN = "1234";
@@ -374,7 +368,6 @@
 
     const f = (v) => parseFloat(v) || 0;
 
-    // Hoiatame kasutajat, kui ta üritab lehte sulgeda salvestamise ajal
     window.onbeforeunload = function(e) {
         if (isSaving || hasPendingChanges) {
             e.preventDefault();
@@ -497,10 +490,10 @@
             const clean = str => `"${String(str || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`;
 
             if (activeTab === 'main_view') {
-                csv += "MT;Klient;Kirjeldus;Märkmed;Algus;Lõpp;AH1(p);AH2(p);INS Plaan;INS Tehtud;INS Valmis;TR Plaan;TR Tehtud;TR Valmis;MK Plaan;MK Tehtud;MK Valmis;RK Plaan;RK Tehtud;RK Valmis;ML Plaan;ML Tehtud;ML Valmis;RL Plaan;RL Tehtud;RL Valmis;KO Plaan;KO Tehtud;KO Valmis;Üld %;Staatus;Ost Valmis;AH1 Valmis;AH2 Valmis\n";
+                csv += "MT;Klient;Kirjeldus;Märkmed;Lõpp;AH1(p);AH2(p);INS Plaan;INS Tehtud;INS Valmis;TR Plaan;TR Tehtud;TR Valmis;MK Plaan;MK Tehtud;MK Valmis;RK Plaan;RK Tehtud;RK Valmis;ML Plaan;ML Tehtud;ML Valmis;RL Plaan;RL Tehtud;RL Valmis;KO Plaan;KO Tehtud;KO Valmis;Üld %;Staatus;Ost Valmis;AH1 Valmis;AH2 Valmis\n";
                 const isD = (v) => String(v)==='true' ? 'JAH' : 'EI';
                 filteredOrders.forEach(o => {
-                    csv += `${clean(o.mt)};${clean(o.client)};${clean(o.kirjeldus)};${clean(o.chk_notes)};${safeISO(o.start)};${safeISO(o.end)};${o.sub1};${o.sub2};${o.ins};${o.prog_ins};${isD(o.done_ins)};${o.trei};${o.prog_tr};${isD(o.done_tr)};${o.must_k};${o.prog_mk};${isD(o.done_mk)};${o.rv_k};${o.prog_rk};${isD(o.done_rk)};${o.must_l};${o.prog_ml};${isD(o.done_ml)};${o.rv_l};${o.prog_rl};${isD(o.done_rl)};${o.kooste};${o.prog_ko};${isD(o.done_ko)};${o.progress}%;${o.status};${isD(o.chk_ost)};${isD(o.chk_ah1)};${isD(o.chk_ah2)}\n`;
+                    csv += `${clean(o.mt)};${clean(o.client)};${clean(o.kirjeldus)};${clean(o.chk_notes)};${safeISO(o.end)};${o.sub1};${o.sub2};${o.ins};${o.prog_ins};${isD(o.done_ins)};${o.trei};${o.prog_tr};${isD(o.done_tr)};${o.must_k};${o.prog_mk};${isD(o.done_mk)};${o.rv_k};${o.prog_rk};${isD(o.done_rk)};${o.must_l};${o.prog_ml};${isD(o.done_ml)};${o.rv_l};${o.prog_rl};${isD(o.done_rl)};${o.kooste};${o.prog_ko};${isD(o.done_ko)};${o.progress}%;${o.status};${isD(o.chk_ost)};${isD(o.chk_ah1)};${isD(o.chk_ah2)}\n`;
                 });
             } else if (activeTab === 'gantt_all') {
                 csv += "MT;Klient;INS Algus;INS Lõpp;AH1 Algus;AH1 Lõpp;LUKK/TREI Algus;LUKK/TREI Lõpp;KEEV Algus;KEEV Lõpp;AH2 Algus;AH2 Lõpp;KOOSTE Algus;KOOSTE Lõpp\n";
@@ -588,7 +581,6 @@
         if (hasPendingChanges || isSaving) { return; }
         updateSyncStatus("🔄 Värskendan...", "warning");
         try {
-            // LISATUD ?nocache= ET BRAUSER EI KASUTAKS VANA MÄLU!
             const r = await fetch(API_URL + "?nocache=" + new Date().getTime(), { cache: "no-store" }); 
             const rawData = await r.json();
             if(Array.isArray(rawData)) {
@@ -629,6 +621,9 @@
                     obj.chk_ost = String(o.chk_ost) === 'true';
                     obj.chk_ah1 = String(o.chk_ah1) === 'true';
                     obj.chk_ah2 = String(o.chk_ah2) === 'true';
+
+                    // Tagame, et o.start eksisteerib mälus (kasutame vajadusel tänast päeva)
+                    obj.start = obj.start || safeISO(TODAY);
 
                     obj.progress = calcOverallProgress(obj); return obj;
                 });
@@ -683,38 +678,36 @@
             let titleEl = document.getElementById('edit-modal-title');
             if(titleEl) titleEl.innerText = `🗂️ Tellimuse Kaart: ${o.mt === 'UUS' ? 'Uus Tellimus' : o.mt}`;
             
-            document.getElementById('edit-mt').value = o.mt === 'UUS' ? '' : o.mt; 
-            document.getElementById('edit-client').value = o.client || '';
-            document.getElementById('edit-desc').value = o.kirjeldus || ''; 
-            document.getElementById('edit-start').value = safeISO(o.start || TODAY); // TAGASI!
-            document.getElementById('edit-end').value = safeISO(o.end); 
-            document.getElementById('edit-ah1').value = f(o.sub1);
-            document.getElementById('edit-ah2').value = f(o.sub2); 
-            document.getElementById('edit-status').value = o.status || 'Ootel';
+            let mtEl = document.getElementById('edit-mt'); if(mtEl) mtEl.value = o.mt === 'UUS' ? '' : o.mt; 
+            let clientEl = document.getElementById('edit-client'); if(clientEl) clientEl.value = o.client || '';
+            let descEl = document.getElementById('edit-desc'); if(descEl) descEl.value = o.kirjeldus || ''; 
+            let endEl = document.getElementById('edit-end'); if(endEl) endEl.value = safeISO(o.end); 
+            let ah1El = document.getElementById('edit-ah1'); if(ah1El) ah1El.value = f(o.sub1);
+            let ah2El = document.getElementById('edit-ah2'); if(ah2El) ah2El.value = f(o.sub2); 
+            let statusEl = document.getElementById('edit-status'); if(statusEl) statusEl.value = o.status || 'Ootel';
 
-            document.getElementById('edit-chk-ins').checked = o.done_ins === true;
-            document.getElementById('edit-chk-ost').checked = o.chk_ost === true;
-            document.getElementById('edit-chk-ah1').checked = o.chk_ah1 === true;
-            document.getElementById('edit-chk-ah2').checked = o.chk_ah2 === true;
-            document.getElementById('edit-chk-notes').value = o.chk_notes || '';
+            let chkInsEl = document.getElementById('edit-chk-ins'); if(chkInsEl) chkInsEl.checked = o.done_ins === true;
+            let chkOstEl = document.getElementById('edit-chk-ost'); if(chkOstEl) chkOstEl.checked = o.chk_ost === true;
+            let chkAh1El = document.getElementById('edit-chk-ah1'); if(chkAh1El) chkAh1El.checked = o.chk_ah1 === true;
+            let chkAh2El = document.getElementById('edit-chk-ah2'); if(chkAh2El) chkAh2El.checked = o.chk_ah2 === true;
+            let notesEl = document.getElementById('edit-chk-notes'); if(notesEl) notesEl.value = o.chk_notes || '';
 
-            document.getElementById('edit-mt').disabled = !isAdmin; 
-            document.getElementById('edit-client').disabled = !isAdmin;
-            document.getElementById('edit-desc').disabled = !isAdmin; 
-            document.getElementById('edit-start').disabled = !isAdmin;
-            document.getElementById('edit-end').disabled = !isAdmin; 
-            document.getElementById('edit-ah1').disabled = !isAdmin;
-            document.getElementById('edit-ah2').disabled = !isAdmin; 
-            document.getElementById('edit-status').disabled = !isAdmin;
+            if(mtEl) mtEl.disabled = !isAdmin; 
+            if(clientEl) clientEl.disabled = !isAdmin;
+            if(descEl) descEl.disabled = !isAdmin; 
+            if(endEl) endEl.disabled = !isAdmin; 
+            if(ah1El) ah1El.disabled = !isAdmin;
+            if(ah2El) ah2El.disabled = !isAdmin; 
+            if(statusEl) statusEl.disabled = !isAdmin;
             
-            document.getElementById('edit-chk-ins').disabled = !isAdmin;
-            document.getElementById('edit-chk-ost').disabled = !isAdmin;
-            document.getElementById('edit-chk-ah1').disabled = !isAdmin;
-            document.getElementById('edit-chk-ah2').disabled = !isAdmin;
-            document.getElementById('edit-chk-notes').disabled = !isAdmin;
+            if(chkInsEl) chkInsEl.disabled = !isAdmin;
+            if(chkOstEl) chkOstEl.disabled = !isAdmin;
+            if(chkAh1El) chkAh1El.disabled = !isAdmin;
+            if(chkAh2El) chkAh2El.disabled = !isAdmin;
+            if(notesEl) notesEl.disabled = !isAdmin;
 
-            document.getElementById('edit-delete-btn').style.display = isAdmin && !isNewOrder ? "block" : "none";
-            document.getElementById('edit-save-btn').style.display = isAdmin ? "block" : "none";
+            let delBtn = document.getElementById('edit-delete-btn'); if(delBtn) delBtn.style.display = isAdmin && !isNewOrder ? "block" : "none";
+            let saveBtn = document.getElementById('edit-save-btn'); if(saveBtn) saveBtn.style.display = isAdmin ? "block" : "none";
 
             let deptsHtml = "";
             Object.keys(CONFIG).forEach(k => {
@@ -729,7 +722,10 @@
                     <label><input type="checkbox" id="edit-d-${c.d}" ${isDone ? 'checked' : ''} ${disAttr}> Valmis</label>
                 </div>`;
             });
-            document.getElementById('edit-departments-container').innerHTML = deptsHtml;
+            
+            let deptsContainer = document.getElementById('edit-departments-container');
+            if(deptsContainer) deptsContainer.innerHTML = deptsHtml;
+            
             Object.keys(CONFIG).forEach(k => window.calcDiff(k));
             
             let modalEl = document.getElementById('editModal');
@@ -752,7 +748,11 @@
 
     window.saveEditModal = async function() {
         try {
-            if (!isAdmin) return; let i = currentEditIndex; let newMt = document.getElementById('edit-mt').value.trim();
+            if (!isAdmin) return; let i = currentEditIndex; 
+            
+            let mtEl = document.getElementById('edit-mt');
+            if (!mtEl) return;
+            let newMt = mtEl.value.trim();
             if (newMt === "") { alert("MT Number on kohustuslik!"); return; }
             
             let isDuplicate = orders.some((o, idx) => idx !== i && String(o.mt).trim().toLowerCase() === newMt.toLowerCase());
@@ -760,35 +760,38 @@
             
             let o = orders[i];
             o.mt = newMt; 
-            o.client = document.getElementById('edit-client').value; 
-            o.kirjeldus = document.getElementById('edit-desc').value;
-            o.start = document.getElementById('edit-start').value;
-            o.end = document.getElementById('edit-end').value;
-            o.sub1 = f(document.getElementById('edit-ah1').value); 
-            o.sub2 = f(document.getElementById('edit-ah2').value);
             
-            o.chk_ost = document.getElementById('edit-chk-ost').checked;
-            o.done_ins = document.getElementById('edit-chk-ins').checked;
-            o.chk_ah1 = document.getElementById('edit-chk-ah1').checked;
-            o.chk_ah2 = document.getElementById('edit-chk-ah2').checked;
-            o.chk_notes = document.getElementById('edit-chk-notes').value;
+            let clientEl = document.getElementById('edit-client'); if (clientEl) o.client = clientEl.value; 
+            let descEl = document.getElementById('edit-desc'); if (descEl) o.kirjeldus = descEl.value;
+            let endEl = document.getElementById('edit-end'); if (endEl) o.end = endEl.value;
+            let ah1El = document.getElementById('edit-ah1'); if (ah1El) o.sub1 = f(ah1El.value); 
+            let ah2El = document.getElementById('edit-ah2'); if (ah2El) o.sub2 = f(ah2El.value);
+            
+            let chkOstEl = document.getElementById('edit-chk-ost'); if (chkOstEl) o.chk_ost = chkOstEl.checked;
+            let chkInsEl = document.getElementById('edit-chk-ins'); if (chkInsEl) o.done_ins = chkInsEl.checked;
+            let chkAh1El = document.getElementById('edit-chk-ah1'); if (chkAh1El) o.chk_ah1 = chkAh1El.checked;
+            let chkAh2El = document.getElementById('edit-chk-ah2'); if (chkAh2El) o.chk_ah2 = chkAh2El.checked;
+            let notesEl = document.getElementById('edit-chk-notes'); if (notesEl) o.chk_notes = notesEl.value;
 
-            let oldStatus = o.status; o.status = document.getElementById('edit-status').value;
-            if (o.status === 'Valmis' && oldStatus !== 'Valmis') {
-                let endD = new Date(o.end); endD.setHours(23, 59, 59, 999); let today = new Date();
-                if (endD.getTime() < today.getTime()) {
-                    if (!o.kirjeldus.includes("LÕPETATUD HILINEMISEGA")) {
-                        let dateStr = today.getDate() + "." + (today.getMonth() + 1) + "." + today.getFullYear();
-                        o.kirjeldus = o.kirjeldus + " (⚠️ LÕPETATUD HILINEMISEGA: " + dateStr + ")";
+            let statusEl = document.getElementById('edit-status');
+            if (statusEl) {
+                let oldStatus = o.status; o.status = statusEl.value;
+                if (o.status === 'Valmis' && oldStatus !== 'Valmis') {
+                    let endD = new Date(o.end); endD.setHours(23, 59, 59, 999); let today = new Date();
+                    if (endD.getTime() < today.getTime()) {
+                        if (!o.kirjeldus.includes("LÕPETATUD HILINEMISEGA")) {
+                            let dateStr = today.getDate() + "." + (today.getMonth() + 1) + "." + today.getFullYear();
+                            o.kirjeldus = o.kirjeldus + " (⚠️ LÕPETATUD HILINEMISEGA: " + dateStr + ")";
+                        }
                     }
                 }
             }
 
             Object.keys(CONFIG).forEach(k => {
                 let c = CONFIG[k];
-                o[k] = f(document.getElementById(`edit-p-${k}`).value);
-                o[c.p] = f(document.getElementById(`edit-a-${c.p}`).value);
-                o[c.d] = document.getElementById(`edit-d-${c.d}`).checked;
+                let pEl = document.getElementById(`edit-p-${k}`); if(pEl) o[k] = f(pEl.value);
+                let aEl = document.getElementById(`edit-a-${c.p}`); if(aEl) o[c.p] = f(aEl.value);
+                let dEl = document.getElementById(`edit-d-${c.d}`); if(dEl) o[c.d] = dEl.checked;
             });
 
             o.progress = calcOverallProgress(o);
@@ -796,7 +799,7 @@
             
             document.getElementById('editModal').style.display = 'none';
             applyUIMode(); 
-            await window.save(true); // Ootab salvestamise ära
+            await window.save(true); 
         } catch(e) {
             console.error("Salvestamise viga:", e);
         }
@@ -827,7 +830,7 @@
             currentMainTabFilter = 'active';
             isNewOrder = true; 
             
-            document.getElementById('view-title').innerText = "Aktiivsed tööd";
+            let vtEl = document.getElementById('view-title'); if(vtEl) vtEl.innerText = "Aktiivsed tööd";
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelector('.tab-btn').classList.add('active'); 
             
