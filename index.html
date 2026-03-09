@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V126.0</title>
+    <title>TOCI Tootmisplaan V127.0</title>
     <style>
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -199,7 +199,7 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V125.0 (Puhas Kaart)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V127.0 (Turvaline & Kiire)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI</button>
@@ -243,7 +243,7 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th style="width:70px; text-align:center;">Toiming</th>
+                    <th style="width:80px; text-align:center;">Toiming</th>
                     <th>MT Number</th>
                     <th>Klient</th>
                     <th>Töö sisu / Kirjeldus</th>
@@ -352,6 +352,7 @@
     
     const START_VIEW = new Date("2026-01-01"), TODAY = new Date();
     
+    // MÄLU TAASTAMINE
     let customCap = {};
     try {
         let loaded = localStorage.getItem('prod_cap_live');
@@ -367,6 +368,15 @@
     let currentMainTabFilter = 'active'; 
 
     const f = (v) => parseFloat(v) || 0;
+
+    // Hoiatame kasutajat, kui ta üritab lehte sulgeda salvestamise ajal
+    window.onbeforeunload = function(e) {
+        if (isSaving || hasPendingChanges) {
+            e.preventDefault();
+            e.returnValue = "Andmete salvestamine on pooleli! Oota korraks.";
+            return "Andmete salvestamine on pooleli! Oota korraks.";
+        }
+    };
 
     function getValidDate(dStr) {
         let d = new Date(dStr);
@@ -482,10 +492,10 @@
             const clean = str => `"${String(str || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`;
 
             if (activeTab === 'main_view') {
-                csv += "MT;Klient;Kirjeldus;Märkmed;Algus;Lõpp;AH1(p);AH2(p);INS Plaan;INS Tehtud;INS Valmis;TR Plaan;TR Tehtud;TR Valmis;MK Plaan;MK Tehtud;MK Valmis;RK Plaan;RK Tehtud;RK Valmis;ML Plaan;ML Tehtud;ML Valmis;RL Plaan;RL Tehtud;RL Valmis;KO Plaan;KO Tehtud;KO Valmis;Üld %;Staatus;Ost Valmis;AH1 Valmis;AH2 Valmis\n";
+                csv += "MT;Klient;Kirjeldus;Märkmed;Lõpp;AH1(p);AH2(p);INS Plaan;INS Tehtud;INS Valmis;TR Plaan;TR Tehtud;TR Valmis;MK Plaan;MK Tehtud;MK Valmis;RK Plaan;RK Tehtud;RK Valmis;ML Plaan;ML Tehtud;ML Valmis;RL Plaan;RL Tehtud;RL Valmis;KO Plaan;KO Tehtud;KO Valmis;Üld %;Staatus;Ost Valmis;AH1 Valmis;AH2 Valmis\n";
                 const isD = (v) => String(v)==='true' ? 'JAH' : 'EI';
                 filteredOrders.forEach(o => {
-                    csv += `${clean(o.mt)};${clean(o.client)};${clean(o.kirjeldus)};${clean(o.chk_notes)};${safeISO(o.start)};${safeISO(o.end)};${o.sub1};${o.sub2};${o.ins};${o.prog_ins};${isD(o.done_ins)};${o.trei};${o.prog_tr};${isD(o.done_tr)};${o.must_k};${o.prog_mk};${isD(o.done_mk)};${o.rv_k};${o.prog_rk};${isD(o.done_rk)};${o.must_l};${o.prog_ml};${isD(o.done_ml)};${o.rv_l};${o.prog_rl};${isD(o.done_rl)};${o.kooste};${o.prog_ko};${isD(o.done_ko)};${o.progress}%;${o.status};${isD(o.chk_ost)};${isD(o.chk_ah1)};${isD(o.chk_ah2)}\n`;
+                    csv += `${clean(o.mt)};${clean(o.client)};${clean(o.kirjeldus)};${clean(o.chk_notes)};${safeISO(o.end)};${o.sub1};${o.sub2};${o.ins};${o.prog_ins};${isD(o.done_ins)};${o.trei};${o.prog_tr};${isD(o.done_tr)};${o.must_k};${o.prog_mk};${isD(o.done_mk)};${o.rv_k};${o.prog_rk};${isD(o.done_rk)};${o.must_l};${o.prog_ml};${isD(o.done_ml)};${o.rv_l};${o.prog_rl};${isD(o.done_rl)};${o.kooste};${o.prog_ko};${isD(o.done_ko)};${o.progress}%;${o.status};${isD(o.chk_ost)};${isD(o.chk_ah1)};${isD(o.chk_ah2)}\n`;
                 });
             } else if (activeTab === 'gantt_all') {
                 csv += "MT;Klient;INS Algus;INS Lõpp;AH1 Algus;AH1 Lõpp;LUKK/TREI Algus;LUKK/TREI Lõpp;KEEV Algus;KEEV Lõpp;AH2 Algus;AH2 Lõpp;KOOSTE Algus;KOOSTE Lõpp\n";
@@ -563,7 +573,7 @@
             if(activeTab === 'paeva_koormus_tabel') renderDailyTable();
             if(activeTab === 'voimekus_tab') { renderHolidays(); renderWSManager(); renderCapacity(); }
             if(activeTab === 'dashboard_view') renderDashboard();
-            if(activeTab === 'dispatcher_view') renderDispatcher();
+            if(activeTab === 'dispatcher_view') window.renderDispatcher();
         } catch(e) {
             console.error("UI Uuendamise viga:", e);
         }
@@ -718,7 +728,7 @@
 
         } catch(e) {
             console.error("Viga Edit Modali avamisel:", e);
-            alert("Viga kaardi avamisel: " + e.message);
+            alert("Viga kaardi avamisel: Palun värskenda lehte ja proovi uuesti!");
         }
     };
 
@@ -746,6 +756,8 @@
             o.end = document.getElementById('edit-end').value;
             o.sub1 = f(document.getElementById('edit-ah1').value); 
             o.sub2 = f(document.getElementById('edit-ah2').value);
+            
+            // "Algus" on koodist ja mälust nüüd 100% kadunud, me ei kirjuta o.start enam üle!
             
             o.chk_ost = document.getElementById('edit-chk-ost').checked;
             o.done_ins = document.getElementById('edit-chk-ins').checked;
@@ -775,7 +787,7 @@
             isNewOrder = false; 
             
             document.getElementById('editModal').style.display = 'none';
-            window.save(true); 
+            window.save(true); // TÄITSA KOHENE SALVESTAMINE
             applyUIMode(); 
         } catch(e) {
             console.error("Salvestamise viga:", e);
@@ -1572,7 +1584,7 @@
             orders.push(sysRow);
         }
         sysRow.kirjeldus = JSON.stringify(customCap);
-        alert("Seaded salvestatud PILVE!"); applyUIMode(); window.save(true); 
+        applyUIMode(); window.save(true); 
     };
 
     window.save = function(immediate = false) { 
@@ -1582,12 +1594,14 @@
             isSaving = true; updateSyncStatus("💾 Salvestan...", "warning");
             try {
                 let saveOrders = orders.map(o => { let copy = {...o}; copy.allocs = JSON.stringify(o.allocs || {}); return copy; });
+                
+                // VIGA PARANDATUD SIIN: Eemaldatud custom headers, mis Google no-cors päringut tapavad!
                 await fetch(API_URL, {
                     method: "POST", 
                     body: JSON.stringify(saveOrders), 
-                    mode: 'no-cors',
-                    headers: { "Content-Type": "text/plain;charset=utf-8" } 
+                    mode: 'no-cors'
                 });
+                
                 isSaving = false; hasPendingChanges = false; updateSyncStatus("✅ Salvestatud", "success");
             } catch(e) { 
                 isSaving = false; updateSyncStatus("❌ Salvestamise viga", "danger"); 
