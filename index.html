@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan</title>
+    <title>TOCI Tootmisplaan V126.0</title>
     <style>
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -92,11 +92,9 @@
         .disp-alloc:hover { transform: scale(1.05); z-index: 10; box-shadow:0 3px 6px rgba(0,0,0,0.3); }
         .disp-bank-item { background:#fff; border:1px solid #ddd; padding:10px; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.05); min-width:200px; flex:1; cursor:pointer; transition:0.2s; user-select: none; }
         .disp-bank-item:hover { box-shadow:0 4px 8px rgba(0,0,0,0.1); transform: translateY(-2px); }
-        
         .brush-active { border: 2px dashed #e74c3c !important; background: #fffdf5; transform: scale(1.03); box-shadow: 0 4px 15px rgba(231,76,60,0.2) !important; z-index:10; }
         .grid-brush-mode { cursor: crosshair !important; }
         .grid-brush-mode .disp-cell:hover { background: rgba(231,76,60,0.1) !important; }
-        
         .striped-bg { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.3), rgba(255,255,255,0.3) 5px, transparent 5px, transparent 10px); }
     </style>
 </head>
@@ -125,7 +123,7 @@
 
 <div id="editModal" class="modal">
     <div class="modal-content large">
-        <span class="m-close" onclick="document.getElementById('editModal').style.display='none'">&times;</span>
+        <span class="m-close" onclick="window.cancelEditModal()">&times;</span>
         <h2 id="edit-modal-title" style="margin-top:0; color:var(--primary); font-size:22px;">🗂️ Tellimuse Kaart</h2>
         
         <div class="edit-section-title">Põhiinfo</div>
@@ -193,7 +191,7 @@
         <div style="margin-top: 25px; display:flex; justify-content:space-between; border-top:1px solid #eee; padding-top:15px;">
             <button id="edit-delete-btn" onclick="deleteFromEdit()" style="padding:10px 20px; background:#e74c3c; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">🗑️ KUSTUTA TELLIMUS</button>
             <div style="display:flex; gap:10px;">
-                <button onclick="document.getElementById('editModal').style.display='none'" style="padding:10px 20px; background:#95a5a6; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">SULGE</button>
+                <button onclick="window.cancelEditModal()" style="padding:10px 20px; background:#95a5a6; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">TÜHISTA</button>
                 <button id="edit-save-btn" onclick="saveEditModal()" style="padding:10px 30px; background:var(--success); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer; font-size:14px;">💾 SALVESTA KÕIK</button>
             </div>
         </div>
@@ -201,7 +199,7 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V126.0 (Turvaline & Kiire)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI</button>
@@ -222,7 +220,7 @@
     <button class="tab-btn" onclick="openTab(event, 'gantt_ml', null)">MUST LUKK</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_rl', null)">RV LUKK</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_ko', null)">KOOSTE</button>
-    <button class="tab-btn" onclick="openTab(event, 'dispatcher_view', null)" style="background:#e74c3c; box-shadow: inset 0 -4px 0 #c0392b;">🗓️ PLANEERIJA</button>
+    <button class="tab-btn" onclick="openTab(event, 'dispatcher_view', null)" style="background:#e74c3c; box-shadow: inset 0 -4px 0 #c0392b;">🗓️ DISPETŠER</button>
     <button class="tab-btn" onclick="openTab(event, 'paeva_koormus_graafik', null)" style="background:var(--accent)">📊 P. GRAAFIK</button>
     <button class="tab-btn" onclick="openTab(event, 'paeva_koormus_tabel', null)" style="background:#2980b9">📅 P. TABEL</button>
     <button class="tab-btn" onclick="openTab(event, 'voimekus_tab', null)" style="color:var(--warning)">⚙️ VÕIMEKUS</button>
@@ -245,7 +243,7 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th style="width:70px; text-align:center;">Toiming</th>
+                    <th style="width:80px; text-align:center;">Toiming</th>
                     <th>MT Number</th>
                     <th>Klient</th>
                     <th>Töö sisu / Kirjeldus</th>
@@ -274,7 +272,7 @@
             <label style="font-size:11px; font-weight:bold; color:#666;">Alguskuupäev:</label><br>
             <input type="date" id="disp-start" onchange="renderDispatcher()" style="padding:6px; border-radius:4px; border:1px solid #ccc;">
         </div>
-        <div style="font-size:16px; font-weight:bold; color:var(--primary); margin-left:15px;">🗓️ Töökohtade Planeerimine</div>
+        <div style="font-size:16px; font-weight:bold; color:var(--primary); margin-left:15px;">🗓️ Töökohtade Dispetšer</div>
         <div style="font-size:11px; color:#666; margin-left:auto;">
             💡 <b>Triibulised klotsid:</b> Automaatne soovitus. <b>Täisvärvi klotsid:</b> Käsitsi plaan.<br>
             <b>1 klõps pangas</b> = "Pintsel". <b>1 klõps tabelis</b> = kleebib/kustutab. <b>Topeltklikk</b> = täpne muutmine.
@@ -283,8 +281,8 @@
     
     <div style="background:#eef2f5; border-radius:8px; border:1px solid #ccc; padding:15px; margin-bottom:15px;">
         <h3 style="margin-top:0; margin-bottom:10px; color:#2c3e50; display:flex; justify-content:space-between;">
-            <span>🏦 Tundide Pank</span>
-            <span style="font-size:12px; font-weight:normal; color:#666;" id="brush-status">Marker: VÄLJAS</span>
+            <span>🏦 Tundide Pank (Kliki kastil, et valida PINTSEL 🖌️)</span>
+            <span style="font-size:12px; font-weight:normal; color:#666;" id="brush-status">Pintsel: VÄLJAS</span>
         </h3>
         <div id="disp-bank" style="display:flex; flex-wrap:wrap; gap:10px; max-height:150px; overflow-y:auto; padding-right:10px;"></div>
     </div>
@@ -321,7 +319,7 @@
             <div id="holidays-list" style="display:flex; flex-direction:column; gap:5px; max-height: 100px; overflow-y: auto;"></div>
         </div>
         <div id="ws-manager" style="width:350px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #ddd;">
-            <h3 style="margin-top:0; color:#2980b9;">🏭 Töökohtade arv</h3>
+            <h3 style="margin-top:0; color:#2980b9;">🏭 Töökohtade arv (Dispetšer)</h3>
             <p style="font-size:11px; color:#666; margin-top:-5px;">Määra, mitu paralleelset töökohta igas osakonnas tabelisse joonistatakse.</p>
             <div id="ws-list" style="display:flex; flex-direction:column; gap:5px;"></div>
         </div>
@@ -333,13 +331,14 @@
 </div>
 
 <script>
-    // === API LINK ===
+    // === TÄHTIS: PANE SIIA OMA PÄRIS LIVE URL ===
     const API_URL = "https://script.google.com/macros/s/AKfycbwGH8W-wlIs5sPRQqAUGPmRRyJjO9-5I1howW6tqVybo6NBIRLAEy4vmmBpEIyFvGBU/exec";
     
     let isAdmin = false; const ADMIN_PIN = "0987";
     let saveTimeout; let isSaving = false; let hasPendingChanges = false;
     let activeBrushIdx = null; 
     let currentEditIndex = -1; 
+    let isNewOrder = false; // Turvalipp
     
     const CONFIG = { 
         ins:    {l:'Inseneeria', c:100, color:'#0097e6', order:0, p:'prog_ins', d:'done_ins', ws: 2, prefix:'INS'}, 
@@ -360,7 +359,6 @@
     } catch(e) {
         console.error("Viga mälu lugemisel:", e);
     }
-    
     if (!customCap.holidays) customCap.holidays = [];
     if (!customCap.wsCounts) customCap.wsCounts = {};
     
@@ -564,7 +562,7 @@
             if(activeTab === 'paeva_koormus_tabel') renderDailyTable();
             if(activeTab === 'voimekus_tab') { renderHolidays(); renderWSManager(); renderCapacity(); }
             if(activeTab === 'dashboard_view') renderDashboard();
-            if(activeTab === 'dispatcher_view') renderDispatcher();
+            if(activeTab === 'dispatcher_view') window.renderDispatcher();
         } catch(e) {
             console.error("UI Uuendamise viga:", e);
         }
@@ -617,7 +615,7 @@
                     obj.progress = calcOverallProgress(obj); return obj;
                 });
 
-                if (duplicatesFound > 0 && isAdmin) window.save(); 
+                if (duplicatesFound > 0 && isAdmin) window.save(true); 
                 
                 let dsInput = document.getElementById('disp-start');
                 if(dsInput && !dsInput.value) dsInput.value = safeISO(TODAY);
@@ -667,9 +665,10 @@
             let titleEl = document.getElementById('edit-modal-title');
             if(titleEl) titleEl.innerText = `🗂️ Tellimuse Kaart: ${o.mt === 'UUS' ? 'Uus Tellimus' : o.mt}`;
             
-            document.getElementById('edit-mt').value = o.mt || ''; 
+            document.getElementById('edit-mt').value = o.mt === 'UUS' ? '' : o.mt; 
             document.getElementById('edit-client').value = o.client || '';
             document.getElementById('edit-desc').value = o.kirjeldus || ''; 
+            document.getElementById('edit-start').value = safeISO(o.start || TODAY); // Et viga ei tekiks
             document.getElementById('edit-end').value = safeISO(o.end); 
             document.getElementById('edit-ah1').value = f(o.sub1);
             document.getElementById('edit-ah2').value = f(o.sub2); 
@@ -684,6 +683,7 @@
             document.getElementById('edit-mt').disabled = !isAdmin; 
             document.getElementById('edit-client').disabled = !isAdmin;
             document.getElementById('edit-desc').disabled = !isAdmin; 
+            document.getElementById('edit-start').disabled = !isAdmin;
             document.getElementById('edit-end').disabled = !isAdmin; 
             document.getElementById('edit-ah1').disabled = !isAdmin;
             document.getElementById('edit-ah2').disabled = !isAdmin; 
@@ -695,7 +695,7 @@
             document.getElementById('edit-chk-ah2').disabled = !isAdmin;
             document.getElementById('edit-chk-notes').disabled = !isAdmin;
 
-            document.getElementById('edit-delete-btn').style.display = isAdmin ? "block" : "none";
+            document.getElementById('edit-delete-btn').style.display = isAdmin && !isNewOrder ? "block" : "none";
             document.getElementById('edit-save-btn').style.display = isAdmin ? "block" : "none";
 
             let deptsHtml = "";
@@ -723,17 +723,28 @@
         }
     };
 
+    window.cancelEditModal = function() {
+        if (isNewOrder) {
+            orders.splice(currentEditIndex, 1); // Kustutab mustandi ära
+            isNewOrder = false;
+            applyUIMode();
+        }
+        document.getElementById('editModal').style.display = 'none';
+    };
+
     window.saveEditModal = function() {
         try {
             if (!isAdmin) return; let i = currentEditIndex; let newMt = document.getElementById('edit-mt').value.trim();
-            if (newMt !== "UUS" && newMt !== "") {
-                let isDuplicate = orders.some((o, idx) => idx !== i && String(o.mt).trim().toLowerCase() === newMt.toLowerCase());
-                if (isDuplicate) { alert(`⚠️ VIGA: MT number '${newMt}' on juba süsteemis olemas! Dublikaadid ei ole lubatud.`); return; }
-            }
+            if (newMt === "") { alert("MT Number on kohustuslik!"); return; }
+            
+            let isDuplicate = orders.some((o, idx) => idx !== i && String(o.mt).trim().toLowerCase() === newMt.toLowerCase());
+            if (isDuplicate) { alert(`⚠️ VIGA: MT number '${newMt}' on juba süsteemis olemas! Dublikaadid ei ole lubatud.`); return; }
+            
             let o = orders[i];
-            o.mt = newMt || "UUS"; 
+            o.mt = newMt; 
             o.client = document.getElementById('edit-client').value; 
             o.kirjeldus = document.getElementById('edit-desc').value;
+            o.start = document.getElementById('edit-start').value;
             o.end = document.getElementById('edit-end').value;
             o.sub1 = f(document.getElementById('edit-ah1').value); 
             o.sub2 = f(document.getElementById('edit-ah2').value);
@@ -763,8 +774,10 @@
             });
 
             o.progress = calcOverallProgress(o);
+            isNewOrder = false; // Muudetud püsivaks
+            
             document.getElementById('editModal').style.display = 'none';
-            window.save(); 
+            window.save(true); // SALVESTAB KOHESELT ILMA VIIVITUSETA!
             applyUIMode(); 
         } catch(e) {
             console.error("Salvestamise viga:", e);
@@ -776,7 +789,9 @@
         if(confirm("Kas oled täiesti kindel, et soovid selle tellimuse kustutada?")) {
             orders.splice(currentEditIndex, 1);
             document.getElementById('editModal').style.display = 'none';
-            window.save(); applyUIMode();
+            isNewOrder = false;
+            window.save(true); // KOHENE SALVESTUS
+            applyUIMode();
         }
     };
 
@@ -792,12 +807,13 @@
                 progress:0, status:'Ootel'
             }); 
             currentMainTabFilter = 'active';
+            isNewOrder = true; // Kui vajutab tühista, kaob ära!
+            
             document.getElementById('view-title').innerText = "Aktiivsed tööd";
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelector('.tab-btn').classList.add('active'); 
             
             applyUIMode(); 
-            window.save(); 
             window.openEditModal(0);
         } catch(e) {
             console.error("Uue rea lisamise viga:", e);
@@ -1085,7 +1101,7 @@
         if(!isAdmin) return;
         if (activeBrushIdx !== null) {
             if (activeBrushIdx === oIdx) deleteAllocationDirect(dept, dateStr, wsName, oIdx);
-            else handleCellClick(dept, dateStr, wsName);
+            else window.handleCellClick(dept, dateStr, wsName);
         } else {
             window.openAllocModal(dept, dateStr, wsName, oIdx, h);
         }
@@ -1115,21 +1131,21 @@
         if(!o.allocs) o.allocs = {}; if(!o.allocs[dept]) o.allocs[dept] = {}; if(!o.allocs[dept][dateStr]) o.allocs[dept][dateStr] = {};
         if (append && o.allocs[dept][dateStr][wsName]) o.allocs[dept][dateStr][wsName] = f(o.allocs[dept][dateStr][wsName]) + h;
         else o.allocs[dept][dateStr][wsName] = h;
-        window.save(); renderDispatcher();
+        window.save(true); window.renderDispatcher();
     }
     
     function deleteAllocationDirect(dept, dateStr, wsName, oIdx) {
         if(orders[oIdx].allocs && orders[oIdx].allocs[dept] && orders[oIdx].allocs[dept][dateStr]) {
             delete orders[oIdx].allocs[dept][dateStr][wsName];
         }
-        window.save(); renderDispatcher();
+        window.save(true); window.renderDispatcher();
     }
 
-    window.resetBrushAndRender = function() { activeBrushIdx = null; renderDispatcher(); };
+    window.resetBrushAndRender = function() { activeBrushIdx = null; window.renderDispatcher(); };
     window.toggleBrush = function(idx) {
-        if(!isAdmin) { alert("Ainult Administraator saab Planeerimis režiimi kasutada!"); return; }
+        if(!isAdmin) { alert("Ainult Administraator saab Pintsli režiimi kasutada!"); return; }
         if (activeBrushIdx === idx) activeBrushIdx = null; else activeBrushIdx = idx;
-        renderDispatcher();
+        window.renderDispatcher();
     };
 
     function getAllocated(o, dept) {
@@ -1558,21 +1574,37 @@
             orders.push(sysRow);
         }
         sysRow.kirjeldus = JSON.stringify(customCap);
-        alert("Seaded salvestatud PILVE!"); applyUIMode(); window.save(); 
+        applyUIMode(); window.save(true); 
     };
 
-    window.save = function() { 
+    // --- PARANDATUD KOHENE SALVESTAMINE ---
+    window.save = function(immediate = false) { 
         if(!isAdmin) return; 
-        hasPendingChanges = true; updateSyncStatus("⏳ Ootan...", "warning");
-        clearTimeout(saveTimeout);
-        saveTimeout = setTimeout(async () => {
+        
+        const executeSave = async () => {
             isSaving = true; updateSyncStatus("💾 Salvestan...", "warning");
             try {
                 let saveOrders = orders.map(o => { let copy = {...o}; copy.allocs = JSON.stringify(o.allocs || {}); return copy; });
-                await fetch(API_URL, {method:"POST", body:JSON.stringify(saveOrders), mode:'no-cors'});
+                await fetch(API_URL, {
+                    method: "POST", 
+                    body: JSON.stringify(saveOrders), 
+                    mode: 'no-cors',
+                    headers: { "Content-Type": "text/plain;charset=utf-8" } 
+                });
                 isSaving = false; hasPendingChanges = false; updateSyncStatus("✅ Salvestatud", "success");
-            } catch(e) { isSaving = false; updateSyncStatus("❌ Salvestamise viga", "danger"); }
-        }, 1500);
+            } catch(e) { 
+                isSaving = false; updateSyncStatus("❌ Salvestamise viga", "danger"); 
+            }
+        };
+
+        if (immediate) {
+            clearTimeout(saveTimeout);
+            executeSave();
+        } else {
+            hasPendingChanges = true; updateSyncStatus("⏳ Ootan...", "warning");
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(executeSave, 1500);
+        }
     };
     
     window.openTab = function(e, viewId, filterType) {
