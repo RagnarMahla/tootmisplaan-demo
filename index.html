@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V130</title>
+    <title>TOCI Tootmisplaan V131.0</title>
     <style>
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -352,28 +352,12 @@
     
     const START_VIEW = new Date("2026-01-01"), TODAY = new Date();
     
-    // MÄLU TAASTAMINE (PUHASTAME PRAHIST)
-    let customCap = {};
-    try {
-        let loaded = localStorage.getItem('prod_cap_live');
-        if (loaded && loaded.length < 50000) { // Kui on liiga suur, on see katki!
-            customCap = JSON.parse(loaded);
-        } else {
-            localStorage.removeItem('prod_cap_live');
-        }
-    } catch(e) {
-        localStorage.removeItem('prod_cap_live');
-    }
-    
-    if (!customCap.holidays) customCap.holidays = [];
-    if (!customCap.wsCounts) customCap.wsCounts = {};
-    
+    let customCap = { holidays: [], wsCounts: {} };
     let orders = [];
     let currentMainTabFilter = 'active'; 
 
     const f = (v) => parseFloat(v) || 0;
 
-    // Hoiatame kasutajat, kui ta üritab lehte sulgeda salvestamise ajal
     window.onbeforeunload = function(e) {
         if (isSaving || hasPendingChanges) {
             e.preventDefault();
@@ -413,11 +397,6 @@
         return Math.ceil((((d2 - new Date(Date.UTC(d2.getUTCFullYear(),0,1))) / 86400000) + 1)/7); 
     }
     
-    window.onclick = function(event) {
-        let alloc = document.getElementById('allocModal');
-        if (alloc && event.target == alloc) alloc.style.display = "none";
-    };
-
     function isHoliday(dateObj) {
         if (!customCap || !customCap.holidays || !Array.isArray(customCap.holidays)) return false;
         let dStr = safeISO(dateObj); let time = new Date(dStr).getTime();
@@ -590,7 +569,7 @@
             const r = await fetch(API_URL + "?nocache=" + new Date().getTime(), { cache: "no-store" }); 
             const rawData = await r.json();
             if(Array.isArray(rawData)) {
-                let cleanedData = []; let seenMt = new Set(); let duplicatesFound = 0;
+                let cleanedData = []; let seenMt = new Set();
                 
                 let sysRow = rawData.find(o => o.mt === 'SYS_SETTINGS');
                 if (sysRow && sysRow.kirjeldus) { 
@@ -600,7 +579,6 @@
                             customCap = dbCap;
                             if (!customCap.holidays) customCap.holidays = [];
                             if (!customCap.wsCounts) customCap.wsCounts = {};
-                            localStorage.setItem('prod_cap_live', JSON.stringify(customCap)); 
                         }
                     } catch(e) {} 
                 }
@@ -609,9 +587,9 @@
                     let cleanMt = String(o.mt).trim();
                     if (cleanMt === "SYS_SETTINGS") { cleanedData.push(o); return; } 
                     cleanMt = cleanMt.toLowerCase();
-                    if (cleanMt === "uus" || cleanMt === "") { cleanedData.push(o); } 
-                    else if (!seenMt.has(cleanMt)) { seenMt.add(cleanMt); cleanedData.push(o); } 
-                    else { duplicatesFound++; }
+                    if (cleanMt !== "uus" && cleanMt !== "") {
+                        if (!seenMt.has(cleanMt)) { seenMt.add(cleanMt); cleanedData.push(o); }
+                    }
                 });
 
                 orders = cleanedData.map(o => {
@@ -635,10 +613,9 @@
                     obj.chk_ah1 = String(o.chk_ah1) === 'true';
                     obj.chk_ah2 = String(o.chk_ah2) === 'true';
 
+                    obj.start = obj.start || safeISO(TODAY);
                     obj.progress = calcOverallProgress(obj); return obj;
                 });
-
-                if (duplicatesFound > 0 && isAdmin) window.save(true); 
                 
                 let dsInput = document.getElementById('disp-start');
                 if(dsInput && !dsInput.value) dsInput.value = safeISO(TODAY);
@@ -650,6 +627,31 @@
             console.error(e);
             updateSyncStatus("❌ Ühenduse viga", "danger"); 
         }
+    }
+
+    // --- PUHASTAJA ANDMEBAASILE SAATMISEKS ---
+    function cleanAllocs(allocsObj) {
+        if (!allocsObj || typeof allocsObj !== 'object') return {};
+        let clean = {};
+        for (let dept in allocsObj) {
+            let deptHasData = false;
+            clean[dept] = {};
+            for (let date in allocsObj[dept]) {
+                let dateHasData = false;
+                clean[dept][date] = {};
+                for (let ws in allocsObj[dept][date]) {
+                    let h = parseFloat(allocsObj[dept][date][ws]) || 0;
+                    if (h > 0) {
+                        clean[dept][date][ws] = h;
+                        dateHasData = true;
+                        deptHasData = true;
+                    }
+                }
+                if (!dateHasData) delete clean[dept][date];
+            }
+            if (!deptHasData) delete clean[dept];
+        }
+        return clean;
     }
 
     // --- DÜNAAMILINE RAPORT ---
@@ -678,7 +680,7 @@
             } else {
                 el.innerHTML = `<span style="color:#ccc; font-size:11px;">-</span>`;
             }
-        } catch(e) {}
+        } catch(e) { console.error("calcDiff viga:", e); }
     };
 
     window.openEditModal = function(i) {
@@ -1620,25 +1622,48 @@
         
         applyUIMode(); 
         await window.save(true); 
-        alert("✅ Seaded ja puhkused salvestatud PILVE!");
     };
+
+    // Tolmuimeja - puhastab andmed enne salvestamist, et serverit ei tapaks
+    function cleanAllocs(allocsObj) {
+        if (!allocsObj || typeof allocsObj !== 'object') return {};
+        let clean = {};
+        for (let dept in allocsObj) {
+            let deptHasData = false;
+            clean[dept] = {};
+            for (let date in allocsObj[dept]) {
+                let dateHasData = false;
+                clean[dept][date] = {};
+                for (let ws in allocsObj[dept][date]) {
+                    let h = parseFloat(allocsObj[dept][date][ws]) || 0;
+                    if (h > 0) {
+                        clean[dept][date][ws] = h;
+                        dateHasData = true;
+                        deptHasData = true;
+                    }
+                }
+                if (!dateHasData) delete clean[dept][date];
+            }
+            if (!deptHasData) delete clean[dept];
+        }
+        return clean;
+    }
 
     window.save = async function(immediate = false) { 
         if(!isAdmin) return; 
         
         const executeSave = async () => {
-            isSaving = true; updateSyncStatus("💾 Salvestan pilve...", "warning");
+            isSaving = true; updateSyncStatus("💾 Salvestan...", "warning");
             try {
-                // Tugev filteerimine ja puhastamine enne saatmist (Garanteerib, et praht ei lenda Google'isse)
                 let cleanOrders = orders.filter(o => o.mt && String(o.mt).trim() !== '').map(o => { 
                     return {
-                        mt: o.mt, client: o.client, kirjeldus: o.kirjeldus, start: o.start, end: o.end,
+                        mt: o.mt, client: o.client, kirjeldus: o.kirjeldus, end: o.end,
                         sub1: o.sub1, sub2: o.sub2, status: o.status,
                         ins: o.ins, trei: o.trei, must_k: o.must_k, rv_k: o.rv_k, must_l: o.must_l, rv_l: o.rv_l, kooste: o.kooste,
                         prog_ins: o.prog_ins, prog_tr: o.prog_tr, prog_mk: o.prog_mk, prog_rk: o.prog_rk, prog_ml: o.prog_ml, prog_rl: o.prog_rl, prog_ko: o.prog_ko,
                         done_ins: o.done_ins, chk_ost: o.chk_ost, chk_ah1: o.chk_ah1, chk_ah2: o.chk_ah2,
                         chk_notes: o.chk_notes,
-                        allocs: JSON.stringify(o.allocs || {})
+                        allocs: JSON.stringify(cleanAllocs(o.allocs)) 
                     };
                 });
                 
