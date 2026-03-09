@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V131.0</title>
+    <title>TOCI Tootmisplaan V132.0</title>
     <style>
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -199,7 +199,7 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V130.0 (Garbage Collector)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V131.0 (Dublikaatide Puhastaja)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI</button>
@@ -352,7 +352,21 @@
     
     const START_VIEW = new Date("2026-01-01"), TODAY = new Date();
     
-    let customCap = { holidays: [], wsCounts: {} };
+    let customCap = {};
+    try {
+        let loaded = localStorage.getItem('prod_cap_live');
+        if (loaded && loaded.length < 50000) { 
+            customCap = JSON.parse(loaded);
+        } else {
+            localStorage.removeItem('prod_cap_live');
+        }
+    } catch(e) {
+        localStorage.removeItem('prod_cap_live');
+    }
+    
+    if (!customCap.holidays) customCap.holidays = [];
+    if (!customCap.wsCounts) customCap.wsCounts = {};
+    
     let orders = [];
     let currentMainTabFilter = 'active'; 
 
@@ -397,6 +411,11 @@
         return Math.ceil((((d2 - new Date(Date.UTC(d2.getUTCFullYear(),0,1))) / 86400000) + 1)/7); 
     }
     
+    window.onclick = function(event) {
+        let alloc = document.getElementById('allocModal');
+        if (alloc && event.target == alloc) alloc.style.display = "none";
+    };
+
     function isHoliday(dateObj) {
         if (!customCap || !customCap.holidays || !Array.isArray(customCap.holidays)) return false;
         let dStr = safeISO(dateObj); let time = new Date(dStr).getTime();
@@ -571,21 +590,23 @@
             if(Array.isArray(rawData)) {
                 let cleanedData = []; let seenMt = new Set();
                 
-                let sysRow = rawData.find(o => o.mt === 'SYS_SETTINGS');
-                if (sysRow && sysRow.kirjeldus) { 
+                let sysRows = rawData.filter(o => String(o.mt).trim() === 'SYS_SETTINGS');
+                if (sysRows.length > 0) { 
+                    let latestSys = sysRows[sysRows.length - 1];
                     try { 
-                        let dbCap = JSON.parse(sysRow.kirjeldus);
+                        let dbCap = JSON.parse(latestSys.kirjeldus);
                         if (dbCap && typeof dbCap === 'object') {
                             customCap = dbCap;
                             if (!customCap.holidays) customCap.holidays = [];
                             if (!customCap.wsCounts) customCap.wsCounts = {};
+                            localStorage.setItem('prod_cap_live', JSON.stringify(customCap)); 
                         }
                     } catch(e) {} 
                 }
 
                 rawData.forEach(o => {
                     let cleanMt = String(o.mt).trim();
-                    if (cleanMt === "SYS_SETTINGS") { cleanedData.push(o); return; } 
+                    if (cleanMt === "SYS_SETTINGS") return; 
                     cleanMt = cleanMt.toLowerCase();
                     if (cleanMt !== "uus" && cleanMt !== "") {
                         if (!seenMt.has(cleanMt)) { seenMt.add(cleanMt); cleanedData.push(o); }
@@ -593,7 +614,6 @@
                 });
 
                 orders = cleanedData.map(o => {
-                    if (o.mt === "SYS_SETTINGS") return o;
                     let parsedAllocs = {}; 
                     if(o.allocs) { 
                         try { 
@@ -629,7 +649,7 @@
         }
     }
 
-    // --- PUHASTAJA ANDMEBAASILE SAATMISEKS ---
+    // ANDMETE "TOLMUIMEJA"
     function cleanAllocs(allocsObj) {
         if (!allocsObj || typeof allocsObj !== 'object') return {};
         let clean = {};
@@ -1613,18 +1633,12 @@
         customCap = newCap;
         localStorage.setItem('prod_cap_live', JSON.stringify(customCap)); 
         
-        let sysRow = orders.find(o => o.mt === 'SYS_SETTINGS');
-        if(!sysRow) {
-            sysRow = {mt:"SYS_SETTINGS", client:"SYSTEM", kirjeldus:"", start:safeISO(new Date()), end:safeISO(new Date()), sub1:0, sub2:0, ins:0, trei:0, must_k:0, rv_k:0, must_l:0, rv_l:0, kooste:0, prog_ins:0, prog_tr:0, prog_mk:0, prog_rk:0, prog_ml:0, prog_rl:0, prog_ko:0, progress:0, status:'Valmis'};
-            orders.push(sysRow);
-        }
-        sysRow.kirjeldus = JSON.stringify(customCap);
-        
         applyUIMode(); 
         await window.save(true); 
+        alert("✅ Seaded ja puhkused salvestatud PILVE!");
     };
 
-    // Tolmuimeja - puhastab andmed enne salvestamist, et serverit ei tapaks
+    // ANDMETE "TOLMUIMEJA"
     function cleanAllocs(allocsObj) {
         if (!allocsObj || typeof allocsObj !== 'object') return {};
         let clean = {};
@@ -1653,9 +1667,10 @@
         if(!isAdmin) return; 
         
         const executeSave = async () => {
-            isSaving = true; updateSyncStatus("💾 Salvestan...", "warning");
+            isSaving = true; updateSyncStatus("💾 Salvestan pilve...", "warning");
             try {
-                let cleanOrders = orders.filter(o => o.mt && String(o.mt).trim() !== '').map(o => { 
+                // Tugev filteerimine ja puhastamine enne saatmist (Garanteerib, et praht ei lenda Google'isse)
+                let cleanOrders = orders.filter(o => o.mt && String(o.mt).trim() !== '' && String(o.mt) !== 'SYS_SETTINGS').map(o => { 
                     return {
                         mt: o.mt, client: o.client, kirjeldus: o.kirjeldus, end: o.end,
                         sub1: o.sub1, sub2: o.sub2, status: o.status,
@@ -1665,6 +1680,16 @@
                         chk_notes: o.chk_notes,
                         allocs: JSON.stringify(cleanAllocs(o.allocs)) 
                     };
+                });
+
+                // LISAME AINULT ÜHE AINSA PUHTA SEADETEREA
+                cleanOrders.push({
+                    mt: "SYS_SETTINGS", client: "SYSTEM", kirjeldus: JSON.stringify(customCap), end: safeISO(new Date()),
+                    sub1: 0, sub2: 0, status: 'Valmis',
+                    ins: 0, trei: 0, must_k: 0, rv_k: 0, must_l: 0, rv_l: 0, kooste: 0,
+                    prog_ins: 0, prog_tr: 0, prog_mk: 0, prog_rk: 0, prog_ml: 0, prog_rl: 0, prog_ko: 0,
+                    done_ins: false, chk_ost: false, chk_ah1: false, chk_ah2: false,
+                    chk_notes: "", allocs: "{}"
                 });
                 
                 await fetch(API_URL, {
