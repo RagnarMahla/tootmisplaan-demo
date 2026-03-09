@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V129</title>
+    <title>TOCI Tootmisplaan V130</title>
     <style>
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -199,7 +199,7 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V129.0 (Veaparandused)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V130.0 (Garbage Collector)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI</button>
@@ -331,7 +331,7 @@
 </div>
 
 <script>
-    // === API LINK SIIN ===
+    // === API LINK ===
     const API_URL = "https://script.google.com/macros/s/AKfycbwGH8W-wlIs5sPRQqAUGPmRRyJjO9-5I1howW6tqVybo6NBIRLAEy4vmmBpEIyFvGBU/exec";
     
     let isAdmin = false; const ADMIN_PIN = "1234";
@@ -352,12 +352,17 @@
     
     const START_VIEW = new Date("2026-01-01"), TODAY = new Date();
     
+    // MÄLU TAASTAMINE (PUHASTAME PRAHIST)
     let customCap = {};
     try {
         let loaded = localStorage.getItem('prod_cap_live');
-        if (loaded) customCap = JSON.parse(loaded);
+        if (loaded && loaded.length < 50000) { // Kui on liiga suur, on see katki!
+            customCap = JSON.parse(loaded);
+        } else {
+            localStorage.removeItem('prod_cap_live');
+        }
     } catch(e) {
-        console.error("Viga mälu lugemisel:", e);
+        localStorage.removeItem('prod_cap_live');
     }
     
     if (!customCap.holidays) customCap.holidays = [];
@@ -368,6 +373,7 @@
 
     const f = (v) => parseFloat(v) || 0;
 
+    // Hoiatame kasutajat, kui ta üritab lehte sulgeda salvestamise ajal
     window.onbeforeunload = function(e) {
         if (isSaving || hasPendingChanges) {
             e.preventDefault();
@@ -610,7 +616,14 @@
 
                 orders = cleanedData.map(o => {
                     if (o.mt === "SYS_SETTINGS") return o;
-                    let parsedAllocs = {}; if(o.allocs) { try { parsedAllocs = JSON.parse(o.allocs); } catch(e){} }
+                    let parsedAllocs = {}; 
+                    if(o.allocs) { 
+                        try { 
+                            let parsed = JSON.parse(o.allocs); 
+                            if(typeof parsed === 'object' && parsed !== null) parsedAllocs = parsed;
+                        } catch(e){} 
+                    }
+                    
                     let obj = {...o, kirjeldus: o.kirjeldus||'', chk_notes: o.chk_notes||'', allocs: parsedAllocs,
                         ins:f(o.ins), trei:f(o.trei), must_k:f(o.must_k), rv_k:f(o.rv_k), must_l:f(o.must_l), rv_l:f(o.rv_l), kooste:f(o.kooste), 
                         prog_ins:f(o.prog_ins), prog_tr:f(o.prog_tr), prog_mk:f(o.prog_mk), prog_rk:f(o.prog_rk), prog_ml:f(o.prog_ml), prog_rl:f(o.prog_rl), prog_ko:f(o.prog_ko),
@@ -621,9 +634,6 @@
                     obj.chk_ost = String(o.chk_ost) === 'true';
                     obj.chk_ah1 = String(o.chk_ah1) === 'true';
                     obj.chk_ah2 = String(o.chk_ah2) === 'true';
-
-                    // Tagame, et o.start eksisteerib mälus (kasutame vajadusel tänast päeva)
-                    obj.start = obj.start || safeISO(TODAY);
 
                     obj.progress = calcOverallProgress(obj); return obj;
                 });
@@ -668,7 +678,7 @@
             } else {
                 el.innerHTML = `<span style="color:#ccc; font-size:11px;">-</span>`;
             }
-        } catch(e) { console.error("calcDiff viga:", e); }
+        } catch(e) {}
     };
 
     window.openEditModal = function(i) {
@@ -802,6 +812,7 @@
             await window.save(true); 
         } catch(e) {
             console.error("Salvestamise viga:", e);
+            alert("Salvestamisel tekkis viga!");
         }
     };
 
@@ -1583,18 +1594,30 @@
 
     window.saveCapacity = async function() {
         if(!isAdmin) return;
-        document.querySelectorAll('.cap-num-in').forEach(i => { if(!customCap[i.dataset.k]) customCap[i.dataset.k] = {}; customCap[i.dataset.k][i.dataset.w] = parseInt(i.value); });
         
-        if(!customCap.wsCounts) customCap.wsCounts = {};
-        document.querySelectorAll('.ws-num-in').forEach(i => { customCap.wsCounts[i.dataset.k] = parseInt(i.value) || 1; });
+        let newCap = { holidays: customCap.holidays || [], wsCounts: {} };
         
+        document.querySelectorAll('.ws-num-in').forEach(i => { 
+            newCap.wsCounts[i.dataset.k] = parseInt(i.value) || 1; 
+        });
+        
+        Object.keys(CONFIG).forEach(k => {
+            newCap[k] = {};
+            document.querySelectorAll(`.cap-num-in[data-k="${k}"]`).forEach(i => {
+                newCap[k][i.dataset.w] = parseInt(i.value);
+            });
+        });
+        
+        customCap = newCap;
         localStorage.setItem('prod_cap_live', JSON.stringify(customCap)); 
+        
         let sysRow = orders.find(o => o.mt === 'SYS_SETTINGS');
         if(!sysRow) {
             sysRow = {mt:"SYS_SETTINGS", client:"SYSTEM", kirjeldus:"", start:safeISO(new Date()), end:safeISO(new Date()), sub1:0, sub2:0, ins:0, trei:0, must_k:0, rv_k:0, must_l:0, rv_l:0, kooste:0, prog_ins:0, prog_tr:0, prog_mk:0, prog_rk:0, prog_ml:0, prog_rl:0, prog_ko:0, progress:0, status:'Valmis'};
             orders.push(sysRow);
         }
         sysRow.kirjeldus = JSON.stringify(customCap);
+        
         applyUIMode(); 
         await window.save(true); 
         alert("✅ Seaded ja puhkused salvestatud PILVE!");
@@ -1606,10 +1629,22 @@
         const executeSave = async () => {
             isSaving = true; updateSyncStatus("💾 Salvestan pilve...", "warning");
             try {
-                let saveOrders = orders.map(o => { let copy = {...o}; copy.allocs = JSON.stringify(o.allocs || {}); return copy; });
+                // Tugev filteerimine ja puhastamine enne saatmist (Garanteerib, et praht ei lenda Google'isse)
+                let cleanOrders = orders.filter(o => o.mt && String(o.mt).trim() !== '').map(o => { 
+                    return {
+                        mt: o.mt, client: o.client, kirjeldus: o.kirjeldus, start: o.start, end: o.end,
+                        sub1: o.sub1, sub2: o.sub2, status: o.status,
+                        ins: o.ins, trei: o.trei, must_k: o.must_k, rv_k: o.rv_k, must_l: o.must_l, rv_l: o.rv_l, kooste: o.kooste,
+                        prog_ins: o.prog_ins, prog_tr: o.prog_tr, prog_mk: o.prog_mk, prog_rk: o.prog_rk, prog_ml: o.prog_ml, prog_rl: o.prog_rl, prog_ko: o.prog_ko,
+                        done_ins: o.done_ins, chk_ost: o.chk_ost, chk_ah1: o.chk_ah1, chk_ah2: o.chk_ah2,
+                        chk_notes: o.chk_notes,
+                        allocs: JSON.stringify(o.allocs || {})
+                    };
+                });
+                
                 await fetch(API_URL, {
                     method: "POST", 
-                    body: JSON.stringify(saveOrders), 
+                    body: JSON.stringify(cleanOrders), 
                     mode: 'no-cors'
                 });
                 isSaving = false; hasPendingChanges = false; updateSyncStatus("✅ Salvestatud!", "success");
