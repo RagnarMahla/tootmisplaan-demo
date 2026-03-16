@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V134.1</title>
+    <title>TOCI Tootmisplaan V135.0</title>
     <style>
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -35,7 +35,7 @@
         /* MODAALAKNAD */
         .modal { display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
         .modal-content { background-color: #fff; margin: 5vh auto; padding: 25px; border-radius: 12px; width: 450px; max-width: 95%; box-shadow: 0 15px 40px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
-        .modal-content.large { width: 900px; }
+        .modal-content.large { width: 850px; }
         .m-close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; margin-top:-10px; }
         .m-close:hover { color: #333; }
         
@@ -57,7 +57,7 @@
         .checklist-item:hover { background: #e1f5fe; border-color: #81d4fa; }
         .checklist-item input { width: 18px; height: 18px; accent-color: var(--success); cursor: pointer; }
         .checklist-item span { font-size: 13px; font-weight: bold; color: #333; }
-        .checklist-notes { width: 100%; height: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; font-size: 13px; resize: vertical; box-sizing: border-box; background: #fffdf5; min-height: 250px;}
+        .checklist-notes { width: 100%; height: 115px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; font-size: 13px; resize: vertical; box-sizing: border-box; background: #fffdf5; }
 
         /* GANTT & DISPETŠER */
         .gantt-outer { height: 100%; display: flex; flex-direction: column; background: white; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; }
@@ -228,7 +228,7 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V134.1 (Salvestuse Parandus)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V135.0 (Täielik Puhastus & AH Taskid)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI</button>
@@ -433,7 +433,7 @@
 
     function getUTCDate(d) { 
         let dt = getValidDate(d);
-        return Date.UTC(dt.getFullYear(), dt.getMonth(), getDate()); 
+        return Date.UTC(dt.getFullYear(), dt.getMonth(), dt.getDate()); 
     }
 
     function getDayIndexUTC(target, base) { 
@@ -531,10 +531,12 @@
             const formatTasks = (tasks) => (tasks||[]).map(t => (t.done?'[x] ':'[ ] ')+t.name+(t.comment?' ('+t.comment+')':'')).join(', ');
 
             if (activeTab === 'main_view') {
-                csv += "MT;Klient;Kirjeldus;Märkmed;Lõpp;AH1(p);AH1 Tegevused;AH2(p);AH2 Tegevused;INS Plaan;INS Tehtud;INS Valmis;TR Plaan;TR Tehtud;TR Valmis;MK Plaan;MK Tehtud;MK Valmis;RK Plaan;RK Tehtud;RK Valmis;ML Plaan;ML Tehtud;ML Valmis;RL Plaan;RL Tehtud;RL Valmis;KO Plaan;KO Tehtud;KO Valmis;Üld %;Staatus;Ost Valmis;AH1 Valmis;AH2 Valmis\n";
+                csv += "MT;Klient;Kirjeldus;Märkmed;Algus;Lõpp;AH1(p);AH1 Tegevused;AH2(p);AH2 Tegevused;INS Plaan;INS Tehtud;INS Valmis;TR Plaan;TR Tehtud;TR Valmis;MK Plaan;MK Tehtud;MK Valmis;RK Plaan;RK Tehtud;RK Valmis;ML Plaan;ML Tehtud;ML Valmis;RL Plaan;RL Tehtud;RL Valmis;KO Plaan;KO Tehtud;KO Valmis;Üld %;Staatus;Ost Valmis;AH1 Valmis;AH2 Valmis\n";
                 const isD = (v) => String(v)==='true' ? 'JAH' : 'EI';
                 filteredOrders.forEach(o => {
-                    csv += `${clean(o.mt)};${clean(o.client)};${clean(o.kirjeldus)};${clean(o.chk_notes)};${safeISO(o.end)};${o.sub1};${clean(formatTasks(o.ah1_tasks))};${o.sub2};${clean(formatTasks(o.ah2_tasks))};${o.ins};${o.prog_ins};${isD(o.done_ins)};${o.trei};${o.prog_tr};${isD(o.done_tr)};${o.must_k};${o.prog_mk};${isD(o.done_mk)};${o.rv_k};${o.prog_rk};${isD(o.done_rk)};${o.must_l};${o.prog_ml};${isD(o.done_ml)};${o.rv_l};${o.prog_rl};${isD(o.done_rl)};${o.kooste};${o.prog_ko};${isD(o.done_ko)};${o.progress}%;${o.status};${isD(o.chk_ost)};${isD(o.chk_ah1)};${isD(o.chk_ah2)}\n`;
+                    let ah1T = o.allocs && o.allocs.ah_tasks ? o.allocs.ah_tasks.ah1 : [];
+                    let ah2T = o.allocs && o.allocs.ah_tasks ? o.allocs.ah_tasks.ah2 : [];
+                    csv += `${clean(o.mt)};${clean(o.client)};${clean(o.kirjeldus)};${clean(o.chk_notes)};${safeISO(o.start)};${safeISO(o.end)};${o.sub1};${clean(formatTasks(ah1T))};${o.sub2};${clean(formatTasks(ah2T))};${o.ins};${o.prog_ins};${isD(o.done_ins)};${o.trei};${o.prog_tr};${isD(o.done_tr)};${o.must_k};${o.prog_mk};${isD(o.done_mk)};${o.rv_k};${o.prog_rk};${isD(o.done_rk)};${o.must_l};${o.prog_ml};${isD(o.done_ml)};${o.rv_l};${o.prog_rl};${isD(o.done_rl)};${o.kooste};${o.prog_ko};${isD(o.done_ko)};${o.progress}%;${o.status};${isD(o.chk_ost)};${isD(o.chk_ah1)};${isD(o.chk_ah2)}\n`;
                 });
             } else if (activeTab === 'gantt_all') {
                 csv += "MT;Klient;INS Algus;INS Lõpp;AH1 Algus;AH1 Lõpp;LUKK/TREI Algus;LUKK/TREI Lõpp;KEEV Algus;KEEV Lõpp;AH2 Algus;AH2 Lõpp;KOOSTE Algus;KOOSTE Lõpp\n";
@@ -665,8 +667,12 @@
                         } catch(e){} 
                     }
                     
-                    let ah1_tasks = []; try { ah1_tasks = JSON.parse(o.ah1_tasks); if(!Array.isArray(ah1_tasks)) ah1_tasks=[]; } catch(e){}
-                    let ah2_tasks = []; try { ah2_tasks = JSON.parse(o.ah2_tasks); if(!Array.isArray(ah2_tasks)) ah2_tasks=[]; } catch(e){}
+                    let ah1_tasks = [];
+                    let ah2_tasks = [];
+                    if (parsedAllocs.ah_tasks) {
+                        ah1_tasks = parsedAllocs.ah_tasks.ah1 || [];
+                        ah2_tasks = parsedAllocs.ah_tasks.ah2 || [];
+                    }
                     
                     let obj = {...o, kirjeldus: o.kirjeldus||'', chk_notes: o.chk_notes||'', 
                         ah1_tasks: ah1_tasks, ah2_tasks: ah2_tasks,
@@ -800,7 +806,6 @@
             let chkAh2El = document.getElementById('edit-chk-ah2'); if(chkAh2El) chkAh2El.checked = o.chk_ah2 === true;
             let notesEl = document.getElementById('edit-chk-notes'); if(notesEl) notesEl.value = o.chk_notes || '';
 
-            // TAASTAME MÄLUS OLEVAD TASKSID JA RENDERDAME
             window.tempAHTasks.ah1 = JSON.parse(JSON.stringify(o.ah1_tasks || []));
             window.tempAHTasks.ah2 = JSON.parse(JSON.stringify(o.ah2_tasks || []));
             window.renderAHTasks('ah1');
@@ -890,7 +895,6 @@
             let chkAh2El = document.getElementById('edit-chk-ah2'); if (chkAh2El) o.chk_ah2 = chkAh2El.checked;
             let notesEl = document.getElementById('edit-chk-notes'); if (notesEl) o.chk_notes = notesEl.value;
             
-            // KANNAME TEMP MÄLUST TASKSID ÜLE
             o.ah1_tasks = window.tempAHTasks.ah1;
             o.ah2_tasks = window.tempAHTasks.ah2;
 
@@ -1805,11 +1809,12 @@
         alert("✅ Seaded ja puhkused salvestatud PILVE!");
     };
 
-    // ANDMETE "TOLMUIMEJA" (KUSTUTAB TÜHJAD KLOTSID ENNE PILVE SAATMIST)
     window.cleanAllocs = function(allocsObj) {
         if (!allocsObj || typeof allocsObj !== 'object') return {};
         let clean = {};
         for (let dept in allocsObj) {
+            if (dept === 'ah_tasks') continue;
+            
             let deptHasData = false;
             clean[dept] = {};
             for (let date in allocsObj[dept]) {
@@ -1837,26 +1842,27 @@
             isSaving = true; updateSyncStatus("💾 Salvestan pilve...", "warning");
             try {
                 let cleanOrders = orders.filter(o => o.mt && String(o.mt).trim() !== '' && String(o.mt) !== 'SYS_SETTINGS').map(o => { 
+                    let safeAllocs = window.cleanAllocs(o.allocs);
+                    safeAllocs.ah_tasks = { ah1: o.ah1_tasks || [], ah2: o.ah2_tasks || [] };
+
                     return {
-                        mt: o.mt, client: o.client, kirjeldus: o.kirjeldus, end: o.end,
+                        mt: o.mt, client: o.client, kirjeldus: o.kirjeldus, start: o.start, end: o.end, 
                         sub1: o.sub1, sub2: o.sub2, status: o.status,
                         ins: o.ins, trei: o.trei, must_k: o.must_k, rv_k: o.rv_k, must_l: o.must_l, rv_l: o.rv_l, kooste: o.kooste,
                         prog_ins: o.prog_ins, prog_tr: o.prog_tr, prog_mk: o.prog_mk, prog_rk: o.prog_rk, prog_ml: o.prog_ml, prog_rl: o.prog_rl, prog_ko: o.prog_ko,
                         done_ins: o.done_ins, chk_ost: o.chk_ost, chk_ah1: o.chk_ah1, chk_ah2: o.chk_ah2,
                         chk_notes: o.chk_notes,
-                        ah1_tasks: JSON.stringify(o.ah1_tasks || []),
-                        ah2_tasks: JSON.stringify(o.ah2_tasks || []),
-                        allocs: JSON.stringify(window.cleanAllocs(o.allocs)) 
+                        allocs: JSON.stringify(safeAllocs) 
                     };
                 });
 
                 cleanOrders.push({
-                    mt: "SYS_SETTINGS", client: "SYSTEM", kirjeldus: JSON.stringify(customCap), end: safeISO(new Date()),
+                    mt: "SYS_SETTINGS", client: "SYSTEM", kirjeldus: JSON.stringify(customCap), start: safeISO(new Date()), end: safeISO(new Date()),
                     sub1: 0, sub2: 0, status: 'Valmis',
                     ins: 0, trei: 0, must_k: 0, rv_k: 0, must_l: 0, rv_l: 0, kooste: 0,
                     prog_ins: 0, prog_tr: 0, prog_mk: 0, prog_rk: 0, prog_ml: 0, prog_rl: 0, prog_ko: 0,
                     done_ins: false, chk_ost: false, chk_ah1: false, chk_ah2: false,
-                    chk_notes: "", ah1_tasks: "[]", ah2_tasks: "[]", allocs: "{}"
+                    chk_notes: "", allocs: "{}"
                 });
                 
                 await fetch(API_URL, {
@@ -1910,7 +1916,6 @@
         if (viewId === 'voimekus_tab') { renderHolidays(); renderWSManager(); renderCapacity(); }
     };
     
-    // Alustame tööga!
     fetchData();
 
 </script>
