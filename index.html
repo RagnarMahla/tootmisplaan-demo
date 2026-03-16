@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V134.0</title>
+    <title>TOCI Tootmisplaan V134.1</title>
     <style>
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -228,7 +228,7 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V134.0 (AH Ülesanded)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V134.1 (Salvestuse Parandus)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI</button>
@@ -433,7 +433,7 @@
 
     function getUTCDate(d) { 
         let dt = getValidDate(d);
-        return Date.UTC(dt.getFullYear(), dt.getMonth(), dt.getDate()); 
+        return Date.UTC(dt.getFullYear(), dt.getMonth(), getDate()); 
     }
 
     function getDayIndexUTC(target, base) { 
@@ -1805,6 +1805,31 @@
         alert("✅ Seaded ja puhkused salvestatud PILVE!");
     };
 
+    // ANDMETE "TOLMUIMEJA" (KUSTUTAB TÜHJAD KLOTSID ENNE PILVE SAATMIST)
+    window.cleanAllocs = function(allocsObj) {
+        if (!allocsObj || typeof allocsObj !== 'object') return {};
+        let clean = {};
+        for (let dept in allocsObj) {
+            let deptHasData = false;
+            clean[dept] = {};
+            for (let date in allocsObj[dept]) {
+                let dateHasData = false;
+                clean[dept][date] = {};
+                for (let ws in allocsObj[dept][date]) {
+                    let h = parseFloat(allocsObj[dept][date][ws]) || 0;
+                    if (h > 0) {
+                        clean[dept][date][ws] = h;
+                        dateHasData = true;
+                        deptHasData = true;
+                    }
+                }
+                if (!dateHasData) delete clean[dept][date];
+            }
+            if (!deptHasData) delete clean[dept];
+        }
+        return clean;
+    };
+
     window.save = async function(immediate = false) { 
         if(!isAdmin) return; 
         
@@ -1821,7 +1846,7 @@
                         chk_notes: o.chk_notes,
                         ah1_tasks: JSON.stringify(o.ah1_tasks || []),
                         ah2_tasks: JSON.stringify(o.ah2_tasks || []),
-                        allocs: JSON.stringify(cleanAllocs(o.allocs)) 
+                        allocs: JSON.stringify(window.cleanAllocs(o.allocs)) 
                     };
                 });
 
