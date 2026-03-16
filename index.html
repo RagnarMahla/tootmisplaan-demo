@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V132.0</title>
+    <title>TOCI Tootmisplaan V133.0</title>
     <style>
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -160,15 +160,17 @@
                 <label class="checklist-item"><input type="checkbox" id="edit-chk-ins"><span>📐 Inseneeria / Joonised valmis</span></label>
                 <label class="checklist-item"><input type="checkbox" id="edit-chk-ost"><span>📦 Ost / Materjalid käes</span></label>
                 <div style="display:flex; gap:10px;">
-                    <div style="flex:1;">
+                    <div style="flex:1; background:#f8f9fa; padding:8px; border-radius:6px; border:1px solid #eee;">
                         <label style="font-size:10px; color:#666; font-weight:bold;">AH 1 (Päevi enne)</label>
                         <input type="number" id="edit-ah1" class="edit-input" value="0" min="0" style="margin-bottom:5px;">
-                        <label class="checklist-item" style="padding:6px;"><input type="checkbox" id="edit-chk-ah1"><span style="font-size:11px;">AH1 Käes</span></label>
+                        <input type="text" id="edit-ah1-notes" class="edit-input" placeholder="AH1 Tegevused (nt. laser)" style="margin-bottom:5px; font-size:11px;">
+                        <label class="checklist-item" style="padding:6px; margin:0;"><input type="checkbox" id="edit-chk-ah1"><span style="font-size:11px;">AH1 Käes</span></label>
                     </div>
-                    <div style="flex:1;">
+                    <div style="flex:1; background:#f8f9fa; padding:8px; border-radius:6px; border:1px solid #eee;">
                         <label style="font-size:10px; color:#666; font-weight:bold;">AH 2 (Päevi peale)</label>
                         <input type="number" id="edit-ah2" class="edit-input" value="0" min="0" style="margin-bottom:5px;">
-                        <label class="checklist-item" style="padding:6px;"><input type="checkbox" id="edit-chk-ah2"><span style="font-size:11px;">AH2 Käes</span></label>
+                        <input type="text" id="edit-ah2-notes" class="edit-input" placeholder="AH2 Tegevused (nt. värv)" style="margin-bottom:5px; font-size:11px;">
+                        <label class="checklist-item" style="padding:6px; margin:0;"><input type="checkbox" id="edit-chk-ah2"><span style="font-size:11px;">AH2 Käes</span></label>
                     </div>
                 </div>
             </div>
@@ -199,7 +201,7 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V131.0 (Dublikaatide Puhastaja)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V133.0 (AH Gantt + Hoiatused)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI</button>
@@ -220,6 +222,8 @@
     <button class="tab-btn" onclick="openTab(event, 'gantt_ml', null)">MUST LUKK</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_rl', null)">RV LUKK</button>
     <button class="tab-btn" onclick="openTab(event, 'gantt_ko', null)">KOOSTE</button>
+    <button class="tab-btn" onclick="openTab(event, 'gantt_ah1', null)" style="color:#bdc3c7;">AH1</button>
+    <button class="tab-btn" onclick="openTab(event, 'gantt_ah2', null)" style="color:#bdc3c7;">AH2</button>
     <button class="tab-btn" onclick="openTab(event, 'dispatcher_view', null)" style="background:#e74c3c; box-shadow: inset 0 -4px 0 #c0392b;">🗓️ DISPETŠER</button>
     <button class="tab-btn" onclick="openTab(event, 'paeva_koormus_graafik', null)" style="background:var(--accent)">📊 P. GRAAFIK</button>
     <button class="tab-btn" onclick="openTab(event, 'paeva_koormus_tabel', null)" style="background:#2980b9">📅 P. TABEL</button>
@@ -300,6 +304,8 @@
 <div id="gantt_ml" class="content"><div class="gantt-outer" id="out-ml"></div></div>
 <div id="gantt_rl" class="content"><div class="gantt-outer" id="out-rl"></div></div>
 <div id="gantt_ko" class="content"><div class="gantt-outer" id="out-ko"></div></div>
+<div id="gantt_ah1" class="content"><div class="gantt-outer" id="out-ah1"></div></div>
+<div id="gantt_ah2" class="content"><div class="gantt-outer" id="out-ah2"></div></div>
 
 <div id="paeva_koormus_graafik" class="content"><div id="daily-load-container" class="daily-charts-container"></div></div>
 <div id="paeva_koormus_tabel" class="content"><div id="daily-table-container" style="height:100%;"></div></div>
@@ -494,10 +500,10 @@
             const clean = str => `"${String(str || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`;
 
             if (activeTab === 'main_view') {
-                csv += "MT;Klient;Kirjeldus;Märkmed;Lõpp;AH1(p);AH2(p);INS Plaan;INS Tehtud;INS Valmis;TR Plaan;TR Tehtud;TR Valmis;MK Plaan;MK Tehtud;MK Valmis;RK Plaan;RK Tehtud;RK Valmis;ML Plaan;ML Tehtud;ML Valmis;RL Plaan;RL Tehtud;RL Valmis;KO Plaan;KO Tehtud;KO Valmis;Üld %;Staatus;Ost Valmis;AH1 Valmis;AH2 Valmis\n";
+                csv += "MT;Klient;Kirjeldus;Märkmed;Lõpp;AH1(p);AH1 Tegevused;AH2(p);AH2 Tegevused;INS Plaan;INS Tehtud;INS Valmis;TR Plaan;TR Tehtud;TR Valmis;MK Plaan;MK Tehtud;MK Valmis;RK Plaan;RK Tehtud;RK Valmis;ML Plaan;ML Tehtud;ML Valmis;RL Plaan;RL Tehtud;RL Valmis;KO Plaan;KO Tehtud;KO Valmis;Üld %;Staatus;Ost Valmis;AH1 Valmis;AH2 Valmis\n";
                 const isD = (v) => String(v)==='true' ? 'JAH' : 'EI';
                 filteredOrders.forEach(o => {
-                    csv += `${clean(o.mt)};${clean(o.client)};${clean(o.kirjeldus)};${clean(o.chk_notes)};${safeISO(o.end)};${o.sub1};${o.sub2};${o.ins};${o.prog_ins};${isD(o.done_ins)};${o.trei};${o.prog_tr};${isD(o.done_tr)};${o.must_k};${o.prog_mk};${isD(o.done_mk)};${o.rv_k};${o.prog_rk};${isD(o.done_rk)};${o.must_l};${o.prog_ml};${isD(o.done_ml)};${o.rv_l};${o.prog_rl};${isD(o.done_rl)};${o.kooste};${o.prog_ko};${isD(o.done_ko)};${o.progress}%;${o.status};${isD(o.chk_ost)};${isD(o.chk_ah1)};${isD(o.chk_ah2)}\n`;
+                    csv += `${clean(o.mt)};${clean(o.client)};${clean(o.kirjeldus)};${clean(o.chk_notes)};${safeISO(o.end)};${o.sub1};${clean(o.ah1_notes)};${o.sub2};${clean(o.ah2_notes)};${o.ins};${o.prog_ins};${isD(o.done_ins)};${o.trei};${o.prog_tr};${isD(o.done_tr)};${o.must_k};${o.prog_mk};${isD(o.done_mk)};${o.rv_k};${o.prog_rk};${isD(o.done_rk)};${o.must_l};${o.prog_ml};${isD(o.done_ml)};${o.rv_l};${o.prog_rl};${isD(o.done_rl)};${o.kooste};${o.prog_ko};${isD(o.done_ko)};${o.progress}%;${o.status};${isD(o.chk_ost)};${isD(o.chk_ah1)};${isD(o.chk_ah2)}\n`;
                 });
             } else if (activeTab === 'gantt_all') {
                 csv += "MT;Klient;INS Algus;INS Lõpp;AH1 Algus;AH1 Lõpp;LUKK/TREI Algus;LUKK/TREI Lõpp;KEEV Algus;KEEV Lõpp;AH2 Algus;AH2 Lõpp;KOOSTE Algus;KOOSTE Lõpp\n";
@@ -509,17 +515,21 @@
                 });
             } else if (activeTab.startsWith('gantt_') && activeTab !== 'gantt_all') {
                 let key = activeTab.split('_')[1];
-                let realKey = key === 'in' ? 'ins' : key === 'tr' ? 'trei' : key === 'mk' ? 'must_k' : key === 'rk' ? 'rv_k' : key === 'ml' ? 'must_l' : key === 'rl' ? 'rv_l' : 'kooste';
-                csv += `MT;Klient;${CONFIG[realKey].l} Algus;${CONFIG[realKey].l} Lõpp;Kestvus (tööpäevi);Plaanitud (h);Tehtud (h);Eelarve Täituvus %\n`;
-                filteredOrders = filteredOrders.filter(o => f(o[realKey]) > 0);
-                filteredOrders.forEach(o => {
-                    let p = getPhaseDates(o, START_VIEW);
-                    let myBnd = CONFIG[realKey].order === 0 ? p.ins : (CONFIG[realKey].order === 1 ? p.lukk : (CONFIG[realKey].order === 2 ? p.keev : p.kooste));
-                    let wDays = getWorkingDays(myBnd.sDate, myBnd.eDate);
-                    let pH = f(o[realKey]), aH = f(o[CONFIG[realKey].p]);
-                    let prog = pH > 0 ? Math.round((aH/pH)*100) : 0;
-                    csv += `${clean(o.mt)};${clean(o.client)};${safeISO(myBnd.sDate)};${safeISO(myBnd.eDate)};${wDays};${pH};${aH};${prog}%\n`;
-                });
+                if (key === 'ah1' || key === 'ah2') {
+                    csv += "Seda vaadet ei saa otse alla laadida.\n";
+                } else {
+                    let realKey = key === 'in' ? 'ins' : key === 'tr' ? 'trei' : key === 'mk' ? 'must_k' : key === 'rk' ? 'rv_k' : key === 'ml' ? 'must_l' : key === 'rl' ? 'rv_l' : 'kooste';
+                    csv += `MT;Klient;${CONFIG[realKey].l} Algus;${CONFIG[realKey].l} Lõpp;Kestvus (tööpäevi);Plaanitud (h);Tehtud (h);Eelarve Täituvus %\n`;
+                    filteredOrders = filteredOrders.filter(o => f(o[realKey]) > 0);
+                    filteredOrders.forEach(o => {
+                        let p = getPhaseDates(o, START_VIEW);
+                        let myBnd = CONFIG[realKey].order === 0 ? p.ins : (CONFIG[realKey].order === 1 ? p.lukk : (CONFIG[realKey].order === 2 ? p.keev : p.kooste));
+                        let wDays = getWorkingDays(myBnd.sDate, myBnd.eDate);
+                        let pH = f(o[realKey]), aH = f(o[CONFIG[realKey].p]);
+                        let prog = pH > 0 ? Math.round((aH/pH)*100) : 0;
+                        csv += `${clean(o.mt)};${clean(o.client)};${safeISO(myBnd.sDate)};${safeISO(myBnd.eDate)};${wDays};${pH};${aH};${prog}%\n`;
+                    });
+                }
             } else {
                 csv += "Vabandust, seda vaadet ei saa otse alla laadida.\n";
             }
@@ -566,6 +576,8 @@
             
             const activeTab = document.querySelector('.content.active').id;
             if(activeTab === 'gantt_all') { renderMasterGantt('out-all'); } 
+            else if(activeTab === 'gantt_ah1') { renderAHGantt('out-ah1', 'ah1'); }
+            else if(activeTab === 'gantt_ah2') { renderAHGantt('out-ah2', 'ah2'); }
             else if(activeTab.startsWith('gantt_')) {
                 let key = activeTab.split('_')[1];
                 let realKey = key === 'in' ? 'ins' : key === 'tr' ? 'trei' : key === 'mk' ? 'must_k' : key === 'rk' ? 'rv_k' : key === 'ml' ? 'must_l' : key === 'rl' ? 'rv_l' : 'kooste';
@@ -622,7 +634,9 @@
                         } catch(e){} 
                     }
                     
-                    let obj = {...o, kirjeldus: o.kirjeldus||'', chk_notes: o.chk_notes||'', allocs: parsedAllocs,
+                    let obj = {...o, kirjeldus: o.kirjeldus||'', chk_notes: o.chk_notes||'', 
+                        ah1_notes: o.ah1_notes || '', ah2_notes: o.ah2_notes || '',
+                        allocs: parsedAllocs,
                         ins:f(o.ins), trei:f(o.trei), must_k:f(o.must_k), rv_k:f(o.rv_k), must_l:f(o.must_l), rv_l:f(o.rv_l), kooste:f(o.kooste), 
                         prog_ins:f(o.prog_ins), prog_tr:f(o.prog_tr), prog_mk:f(o.prog_mk), prog_rk:f(o.prog_rk), prog_ml:f(o.prog_ml), prog_rl:f(o.prog_rl), prog_ko:f(o.prog_ko),
                         status: o.status || 'Töös'
@@ -647,31 +661,6 @@
             console.error(e);
             updateSyncStatus("❌ Ühenduse viga", "danger"); 
         }
-    }
-
-    // ANDMETE "TOLMUIMEJA"
-    function cleanAllocs(allocsObj) {
-        if (!allocsObj || typeof allocsObj !== 'object') return {};
-        let clean = {};
-        for (let dept in allocsObj) {
-            let deptHasData = false;
-            clean[dept] = {};
-            for (let date in allocsObj[dept]) {
-                let dateHasData = false;
-                clean[dept][date] = {};
-                for (let ws in allocsObj[dept][date]) {
-                    let h = parseFloat(allocsObj[dept][date][ws]) || 0;
-                    if (h > 0) {
-                        clean[dept][date][ws] = h;
-                        dateHasData = true;
-                        deptHasData = true;
-                    }
-                }
-                if (!dateHasData) delete clean[dept][date];
-            }
-            if (!deptHasData) delete clean[dept];
-        }
-        return clean;
     }
 
     // --- DÜNAAMILINE RAPORT ---
@@ -723,6 +712,9 @@
             let chkAh1El = document.getElementById('edit-chk-ah1'); if(chkAh1El) chkAh1El.checked = o.chk_ah1 === true;
             let chkAh2El = document.getElementById('edit-chk-ah2'); if(chkAh2El) chkAh2El.checked = o.chk_ah2 === true;
             let notesEl = document.getElementById('edit-chk-notes'); if(notesEl) notesEl.value = o.chk_notes || '';
+            
+            let ah1Notes = document.getElementById('edit-ah1-notes'); if(ah1Notes) ah1Notes.value = o.ah1_notes || '';
+            let ah2Notes = document.getElementById('edit-ah2-notes'); if(ah2Notes) ah2Notes.value = o.ah2_notes || '';
 
             if(mtEl) mtEl.disabled = !isAdmin; 
             if(clientEl) clientEl.disabled = !isAdmin;
@@ -737,6 +729,8 @@
             if(chkAh1El) chkAh1El.disabled = !isAdmin;
             if(chkAh2El) chkAh2El.disabled = !isAdmin;
             if(notesEl) notesEl.disabled = !isAdmin;
+            if(ah1Notes) ah1Notes.disabled = !isAdmin;
+            if(ah2Notes) ah2Notes.disabled = !isAdmin;
 
             let delBtn = document.getElementById('edit-delete-btn'); if(delBtn) delBtn.style.display = isAdmin && !isNewOrder ? "block" : "none";
             let saveBtn = document.getElementById('edit-save-btn'); if(saveBtn) saveBtn.style.display = isAdmin ? "block" : "none";
@@ -804,6 +798,8 @@
             let chkAh1El = document.getElementById('edit-chk-ah1'); if (chkAh1El) o.chk_ah1 = chkAh1El.checked;
             let chkAh2El = document.getElementById('edit-chk-ah2'); if (chkAh2El) o.chk_ah2 = chkAh2El.checked;
             let notesEl = document.getElementById('edit-chk-notes'); if (notesEl) o.chk_notes = notesEl.value;
+            let ah1NEl = document.getElementById('edit-ah1-notes'); if (ah1NEl) o.ah1_notes = ah1NEl.value;
+            let ah2NEl = document.getElementById('edit-ah2-notes'); if (ah2NEl) o.ah2_notes = ah2NEl.value;
 
             let statusEl = document.getElementById('edit-status');
             if (statusEl) {
@@ -857,7 +853,7 @@
                 sub1:0, sub2:0, ins:0, trei:0, must_k:0, rv_k:0, must_l:0, rv_l:0, kooste:0, 
                 prog_ins:0, prog_tr:0, prog_mk:0, prog_rk:0, prog_ml:0, prog_rl:0, prog_ko:0, 
                 done_ins:false, done_tr:false, done_mk:false, done_rk:false, done_ml:false, done_rl:false, done_ko:false,
-                chk_ost:false, chk_ah1:false, chk_ah2:false, chk_notes:"", allocs:{},
+                chk_ost:false, chk_ah1:false, chk_ah2:false, chk_notes:"", ah1_notes:"", ah2_notes:"", allocs:{},
                 progress:0, status:'Ootel'
             }); 
             currentMainTabFilter = 'active';
@@ -998,6 +994,7 @@
         const gV = document.getElementById('globalFilter').value.toLowerCase();
         let activeTotal = 0; let overdueTotal = 0;
         let remH = { ins:0, trei:0, must_k:0, rv_k:0, must_l:0, rv_l:0, kooste:0 };
+        let lateCounts = { ins:0, trei:0, must_k:0, rv_k:0, must_l:0, rv_l:0, kooste:0 };
         let todayTime = new Date(); todayTime.setHours(23, 59, 59, 999);
 
         orders.forEach(o => {
@@ -1006,28 +1003,36 @@
             if (matchText && (o.status === 'Töös' || o.status === 'Ootel')) {
                 activeTotal++;
                 let endD = new Date(o.end); endD.setHours(23, 59, 59, 999);
-                if (o.status === 'Töös' && endD.getTime() < todayTime.getTime()) overdueTotal++;
-                if(String(o.done_ins) !== 'true') remH.ins += Math.max(0, f(o.ins) - f(o.prog_ins));
-                if(String(o.done_tr) !== 'true') remH.trei += Math.max(0, f(o.trei) - f(o.prog_tr));
-                if(String(o.done_mk) !== 'true') remH.must_k += Math.max(0, f(o.must_k) - f(o.prog_mk));
-                if(String(o.done_rk) !== 'true') remH.rv_k += Math.max(0, f(o.rv_k) - f(o.prog_rk));
-                if(String(o.done_ml) !== 'true') remH.must_l += Math.max(0, f(o.must_l) - f(o.prog_ml));
-                if(String(o.done_rl) !== 'true') remH.rv_l += Math.max(0, f(o.rv_l) - f(o.prog_rl));
-                if(String(o.done_ko) !== 'true') remH.kooste += Math.max(0, f(o.kooste) - f(o.prog_ko));
+                let orderEndT = endD.getTime();
+                if (o.status === 'Töös' && orderEndT < todayTime.getTime()) overdueTotal++;
+                
+                let bnds = getPhaseDates(o, START_VIEW);
+                
+                Object.keys(CONFIG).forEach(k => {
+                    if(String(o[CONFIG[k].d]) !== 'true') {
+                        remH[k] += Math.max(0, f(o[k]) - f(o[CONFIG[k].p]));
+                        let myBnd = CONFIG[k].order === 0 ? bnds.ins : (CONFIG[k].order === 1 ? bnds.lukk : (CONFIG[k].order === 2 ? bnds.keev : bnds.kooste));
+                        if(myBnd.eDate.getTime() > orderEndT && f(o[k]) > 0) {
+                            lateCounts[k]++;
+                        }
+                    }
+                });
             }
         });
 
-        document.getElementById('dashboard-container').innerHTML = `
+        const genDashItem = (k) => {
+            let warnHtml = lateCounts[k] > 0 ? `<div style="color:var(--danger); font-weight:bold; font-size:11px; margin-top:5px; animation: blink 1.5s infinite;">⚠️ ${lateCounts[k]} tellimust hilinemas!</div>` : '';
+            return `<div class="dash-card" style="border-left-color:${CONFIG[k].color};"><h3>${CONFIG[k].l}</h3><div class="value">${remH[k].toFixed(1)} h</div><div class="sub-text">Filtreeritud järelejäänud tunnid</div>${warnHtml}</div>`;
+        };
+
+        let html = `
+            <style>@keyframes blink { 50% { opacity: 0.5; } }</style>
             <div class="dash-card" style="border-left-color:var(--success);"><h3>Aktiivsed Tööd</h3><div class="value">${activeTotal}</div><div class="sub-text">Filtreeritud ootel/töös tellimused</div></div>
             <div class="dash-card ${overdueTotal > 0 ? 'danger' : ''}" style="${overdueTotal === 0 ? 'border-left-color:#ccc;' : ''}"><h3 style="${overdueTotal > 0 ? 'color:var(--danger);' : ''}">Tähtaeg Ületatud</h3><div class="value" style="${overdueTotal > 0 ? 'color:var(--danger);' : 'color:#999;'}">${overdueTotal}</div><div class="sub-text">Filtreeritud tellimused, mille lõppkuupäev on möödas</div></div>
-            <div class="dash-card" style="border-left-color:${CONFIG.ins.color};"><h3>Inseneeria</h3><div class="value">${remH.ins.toFixed(1)} h</div><div class="sub-text">Filtreeritud järelejäänud tunnid</div></div>
-            <div class="dash-card" style="border-left-color:${CONFIG.trei.color};"><h3>Treial</h3><div class="value">${remH.trei.toFixed(1)} h</div><div class="sub-text">Filtreeritud järelejäänud tunnid</div></div>
-            <div class="dash-card" style="border-left-color:${CONFIG.must_k.color};"><h3>Must Keevitus</h3><div class="value">${remH.must_k.toFixed(1)} h</div><div class="sub-text">Filtreeritud järelejäänud tunnid</div></div>
-            <div class="dash-card" style="border-left-color:${CONFIG.rv_k.color};"><h3>RV Keevitus</h3><div class="value">${remH.rv_k.toFixed(1)} h</div><div class="sub-text">Filtreeritud järelejäänud tunnid</div></div>
-            <div class="dash-card" style="border-left-color:${CONFIG.must_l.color};"><h3>Must Lukksepp</h3><div class="value">${remH.must_l.toFixed(1)} h</div><div class="sub-text">Filtreeritud järelejäänud tunnid</div></div>
-            <div class="dash-card" style="border-left-color:${CONFIG.rv_l.color};"><h3>RV Lukksepp</h3><div class="value">${remH.rv_l.toFixed(1)} h</div><div class="sub-text">Filtreeritud järelejäänud tunnid</div></div>
-            <div class="dash-card" style="border-left-color:${CONFIG.kooste.color};"><h3>Kooste</h3><div class="value">${remH.kooste.toFixed(1)} h</div><div class="sub-text">Filtreeritud järelejäänud tunnid</div></div>
         `;
+        Object.keys(CONFIG).forEach(k => { html += genDashItem(k); });
+
+        document.getElementById('dashboard-container').innerHTML = html;
     }
 
     function renderMasterGantt(containerId) {
@@ -1092,6 +1097,55 @@
         if(bS && hS) { bS.onscroll = () => { hS.scrollLeft = bS.scrollLeft; }; setTimeout(() => { bS.scrollLeft = (tIdx * 45) - 160; }, 100); }
     }
 
+    function renderAHGantt(containerId, key) {
+        const gV = document.getElementById('globalFilter').value.toLowerCase();
+        const outer = document.getElementById(containerId); if(!outer) return;
+        const dayCount = 365; const tIdx = getDayIndexUTC(TODAY, START_VIEW);
+        let headerCols = "";
+        for(let d=0; d<dayCount; d++) {
+            let cur = new Date(START_VIEW.getTime() + d * 86400000);
+            headerCols += `<div class="h-col"><div class="h-week">${d%7===0?'W'+getWeek(cur):''}</div><div class="h-day" style="${d===tIdx?'color:red;font-weight:bold;':''}">${cur.getDate()}.${cur.getMonth()+1}</div></div>`;
+        }
+        let bodyHtml = `<div class="gantt-body" id="b-scroll-${key}">`;
+        
+        let filteredOrders = orders.filter(o => (key === 'ah1' ? f(o.sub1) > 0 && o.chk_ah1 !== true : f(o.sub2) > 0 && o.chk_ah2 !== true) && o.status !== 'Valmis' && o.mt !== 'SYS_SETTINGS');
+        if (gV) filteredOrders = filteredOrders.filter(o => (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)) || (o.kirjeldus && String(o.kirjeldus).toLowerCase().includes(gV)));
+        if (filteredOrders.length === 0) bodyHtml += `<div class="empty-state">ℹ️ Ühtegi aktiivset allhanget ei leitud.</div>`;
+
+        filteredOrders.forEach((o) => {
+            let gIdx = orders.indexOf(o); let bnds = getPhaseDates(o, START_VIEW);
+            let myBnd = key === 'ah1' ? bnds.ah1 : bnds.ah2;
+            let notes = key === 'ah1' ? o.ah1_notes : o.ah2_notes;
+            
+            let finalLeft = myBnd.s * 45; let taskDur = Math.max(1, myBnd.e - myBnd.s + 1);
+
+            let isOverdue = myBnd.eDate.getTime() > new Date(o.end).setHours(23,59,59,999);
+            let deptTitleStyle = isOverdue ? "background:#ffebee; color:#c62828; border-color:#f5c6cb;" : "background:#fff3cd; color:#856404; border-color:#ffeeba;";
+
+            bodyHtml += `<div class="gantt-row row-clickable" onclick="window.openEditModal(${gIdx})">
+                <div class="gantt-info">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div style="display:flex; flex-direction:column; overflow:hidden;"><b>${o.mt}</b><small>${o.client}</small></div>
+                    </div>
+                    <small style="color:#2980b9; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:3px;" title="${notes||''}">${notes ? '📝 ' + notes : 'Tegevused puuduvad'}</small>
+                    <div style="display:flex;gap:3px; align-items:center; margin-top:4px; flex-wrap:wrap;">
+                        <span style="font-size:10px; color:#555; font-weight:bold;">Tähtaeg:</span>
+                        <span style="font-size:10px; padding:1px 4px; border-radius:3px; border:1px solid; ${deptTitleStyle}" title="Selle allhanke tähtaeg">${safeISO(myBnd.eDate)}</span>
+                        <span style="font-size:10px; color:#aaa; margin-left:3px;" title="Kogu projekti lõpptähtaeg">(Üld: ${safeISO(o.end)})</span>
+                    </div>
+                </div>
+                <div class="gantt-bars-area" style="width:calc(var(--cell-w) * ${dayCount});">
+                    <div class="today-line" style="left:${tIdx * 45}px"></div>
+                    <div class="task-bar" style="left:${finalLeft}px; width:${taskDur * 45 - 5}px; background:#95a5a6;">
+                        <span style="position:relative; padding-left:5px; z-index:10;">${o.mt} (${key.toUpperCase()})</span>
+                    </div>
+                </div></div>`; 
+        });
+        outer.innerHTML = `<div class="gantt-header-wrapper"><div class="header-corner">MT / Klient / Allhanke tegevused</div><div class="header-scroll" id="h-scroll-${key}"><div class="header-grid">${headerCols}</div></div></div>` + bodyHtml + `</div>`;
+        const hS = document.getElementById(`h-scroll-${key}`), bS = document.getElementById(`b-scroll-${key}`);
+        if(bS && hS) { bS.onscroll = () => { hS.scrollLeft = bS.scrollLeft; }; setTimeout(() => { bS.scrollLeft = (tIdx * 45) - 160; }, 100); }
+    }
+
     function renderGantt(containerId, key) {
         const gV = document.getElementById('globalFilter').value.toLowerCase();
         const outer = document.getElementById(containerId); if(!outer) return;
@@ -1117,7 +1171,9 @@
             let fillW = Math.min(100, curProg);
             let overBg = curProg > 100 ? 'background: rgba(231, 76, 60, 0.7); border-right: 2px solid #c0392b;' : '';
 
+            let isOverdue = myBnd.eDate.getTime() > new Date(o.end).setHours(23,59,59,999);
             let deptEndStr = safeISO(myBnd.eDate);
+            let deptTitleStyle = isOverdue ? "background:#ffebee; color:#c62828; border-color:#f5c6cb;" : "background:#fff3cd; color:#856404; border-color:#ffeeba;";
 
             bodyHtml += `<div class="gantt-row row-clickable" onclick="window.openEditModal(${gIdx})">
                 <div class="gantt-info">
@@ -1132,7 +1188,7 @@
                     <small style="color:#777; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${o.kirjeldus||''}">${o.kirjeldus||''}</small>
                     <div style="display:flex;gap:3px; align-items:center; margin-top:2px; flex-wrap:wrap;">
                         <span style="font-size:10px; color:#555; font-weight:bold;">Osak. tähtaeg:</span>
-                        <span style="font-size:10px; background:#fff3cd; color:#856404; padding:1px 4px; border-radius:3px; border:1px solid #ffeeba;" title="Selle osakonna tähtaeg">${deptEndStr}</span>
+                        <span style="font-size:10px; padding:1px 4px; border-radius:3px; border:1px solid; ${deptTitleStyle}" title="Selle osakonna tähtaeg">${deptEndStr}</span>
                         <span style="font-size:10px; color:#aaa; margin-left:3px;" title="Kogu projekti lõpptähtaeg">(Üld: ${safeISO(o.end)})</span>
                     </div>
                 </div>
@@ -1182,6 +1238,15 @@
 
     function saveAllocationDirect(dept, dateStr, wsName, oIdx, h, append = false) {
         let o = orders[oIdx];
+        
+        let orderEnd = new Date(o.end).setHours(23,59,59,999);
+        let allocDate = new Date(dateStr).getTime();
+        if (allocDate > orderEnd) {
+            if(!confirm(`⚠️ HOIATUS!\nTellimuse tähtaeg on ${safeISO(o.end)}.\nSa proovid planeerida tööd ajale, mis on üle tähtaja!\n\nKas tahad kindlasti jätkata?`)) {
+                return; 
+            }
+        }
+
         if(!o.allocs) o.allocs = {}; if(!o.allocs[dept]) o.allocs[dept] = {}; if(!o.allocs[dept][dateStr]) o.allocs[dept][dateStr] = {};
         if (append && o.allocs[dept][dateStr][wsName]) o.allocs[dept][dateStr][wsName] = f(o.allocs[dept][dateStr][wsName]) + h;
         else o.allocs[dept][dateStr][wsName] = h;
@@ -1678,6 +1743,7 @@
                         prog_ins: o.prog_ins, prog_tr: o.prog_tr, prog_mk: o.prog_mk, prog_rk: o.prog_rk, prog_ml: o.prog_ml, prog_rl: o.prog_rl, prog_ko: o.prog_ko,
                         done_ins: o.done_ins, chk_ost: o.chk_ost, chk_ah1: o.chk_ah1, chk_ah2: o.chk_ah2,
                         chk_notes: o.chk_notes,
+                        ah1_notes: o.ah1_notes, ah2_notes: o.ah2_notes, // Uus AH Notes
                         allocs: JSON.stringify(cleanAllocs(o.allocs)) 
                     };
                 });
@@ -1689,7 +1755,7 @@
                     ins: 0, trei: 0, must_k: 0, rv_k: 0, must_l: 0, rv_l: 0, kooste: 0,
                     prog_ins: 0, prog_tr: 0, prog_mk: 0, prog_rk: 0, prog_ml: 0, prog_rl: 0, prog_ko: 0,
                     done_ins: false, chk_ost: false, chk_ah1: false, chk_ah2: false,
-                    chk_notes: "", allocs: "{}"
+                    chk_notes: "", ah1_notes: "", ah2_notes: "", allocs: "{}"
                 });
                 
                 await fetch(API_URL, {
@@ -1731,7 +1797,9 @@
         if (viewId === 'dashboard_view') renderDashboard();
         if (viewId === 'dispatcher_view') window.renderDispatcher();
         if (viewId === 'gantt_all') renderMasterGantt('out-all');
-        if (viewId.startsWith('gantt_') && viewId !== 'gantt_all') {
+        if (viewId === 'gantt_ah1') renderAHGantt('out-ah1', 'ah1');
+        if (viewId === 'gantt_ah2') renderAHGantt('out-ah2', 'ah2');
+        if (viewId.startsWith('gantt_') && viewId !== 'gantt_all' && viewId !== 'gantt_ah1' && viewId !== 'gantt_ah2') {
             let key = viewId.split('_')[1];
             let realKey = key === 'in' ? 'ins' : key === 'tr' ? 'trei' : key === 'mk' ? 'must_k' : key === 'rk' ? 'rv_k' : key === 'ml' ? 'must_l' : key === 'rl' ? 'rv_l' : 'kooste';
             renderGantt('out-' + key, realKey);
