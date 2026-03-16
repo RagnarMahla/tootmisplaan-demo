@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V137.0</title>
+    <title>TOCI Tootmisplaan V138.0</title>
     <style>
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -229,7 +229,7 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V137.0 (100% Salvestus & Lahendatud!)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V138.0 (Laseri Käsitsi Koormus)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI</button>
@@ -352,6 +352,18 @@
             </div>
             <div id="holidays-list" style="display:flex; flex-direction:column; gap:5px; max-height: 100px; overflow-y: auto;"></div>
         </div>
+        
+        <div id="laser-manager" style="flex:1; min-width:300px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #ddd;">
+            <h3 style="margin-top:0; color:#8e44ad;">⚡ Laseri Koormus (Manuaalne)</h3>
+            <p style="font-size:11px; color:#666; margin-top:-5px;">Sisesta päeva planeeritud tunnid (kuvatakse P. Graafikus).</p>
+            <div class="admin-only" style="display:none; margin-bottom: 15px; gap: 10px; align-items: center;">
+                <input type="date" id="laser-date" style="padding:6px; border-radius:4px; border:1px solid #ccc;">
+                <input type="number" id="laser-h" placeholder="Tunde" style="width:80px; padding:6px; border-radius:4px; border:1px solid #ccc;" min="0" step="0.5">
+                <button onclick="window.addLaserLoad()" style="padding:7px 15px; background:#8e44ad; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">+ LISA</button>
+            </div>
+            <div id="laser-list" style="display:flex; flex-direction:column; gap:5px; max-height: 100px; overflow-y: auto;"></div>
+        </div>
+
         <div id="ws-manager" style="width:350px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #ddd;">
             <h3 style="margin-top:0; color:#2980b9;">🏭 Töökohtade arv (Dispetšer)</h3>
             <p style="font-size:11px; color:#666; margin-top:-5px;">Määra, mitu paralleelset töökohta igas osakonnas tabelisse joonistatakse.</p>
@@ -400,11 +412,11 @@
     
     if (!customCap.holidays) customCap.holidays = [];
     if (!customCap.wsCounts) customCap.wsCounts = {};
+    if (!customCap.laser) customCap.laser = {}; // Uus mälupesa laseri jaoks!
     
     let orders = [];
     let currentMainTabFilter = 'active'; 
 
-    // AJUTINE MÄLU AH ÜLESANNETELE KAARDIL
     window.tempAHTasks = { ah1: [], ah2: [] };
 
     const f = (v) => parseFloat(v) || 0;
@@ -619,7 +631,7 @@
             }
             if(activeTab === 'paeva_koormus_graafik') renderDailyCharts();
             if(activeTab === 'paeva_koormus_tabel') renderDailyTable();
-            if(activeTab === 'voimekus_tab') { renderHolidays(); renderWSManager(); renderCapacity(); }
+            if(activeTab === 'voimekus_tab') { renderHolidays(); renderWSManager(); renderCapacity(); window.renderLaserManager(); }
             if(activeTab === 'dashboard_view') renderDashboard();
             if(activeTab === 'dispatcher_view') window.renderDispatcher();
         } catch(e) {
@@ -645,6 +657,7 @@
                             customCap = dbCap;
                             if (!customCap.holidays) customCap.holidays = [];
                             if (!customCap.wsCounts) customCap.wsCounts = {};
+                            if (!customCap.laser) customCap.laser = {};
                             localStorage.setItem('prod_cap_live', JSON.stringify(customCap)); 
                         }
                     } catch(e) {} 
@@ -668,12 +681,8 @@
                         } catch(e){} 
                     }
                     
-                    let ah1_tasks = [];
-                    let ah2_tasks = [];
-                    if (parsedAllocs.ah_tasks) {
-                        ah1_tasks = parsedAllocs.ah_tasks.ah1 || [];
-                        ah2_tasks = parsedAllocs.ah_tasks.ah2 || [];
-                    }
+                    let ah1_tasks = []; try { ah1_tasks = JSON.parse(o.ah1_tasks); if(!Array.isArray(ah1_tasks)) ah1_tasks=[]; } catch(e){}
+                    let ah2_tasks = []; try { ah2_tasks = JSON.parse(o.ah2_tasks); if(!Array.isArray(ah2_tasks)) ah2_tasks=[]; } catch(e){}
                     
                     let obj = {...o, kirjeldus: o.kirjeldus||'', chk_notes: o.chk_notes||'', 
                         ah1_tasks: ah1_tasks, 
@@ -705,7 +714,7 @@
         }
     }
 
-    // --- AH TASKIDE RENDERING (Nüüd saavad vaatajad klikkida!) ---
+    // --- AH TASKIDE RENDERING (Vaatajatele avatud) ---
     window.renderAHTasks = function(phase) {
         let list = document.getElementById(`${phase}-tasks-list`);
         if(!list) return;
@@ -834,6 +843,9 @@
 
             let delBtn = document.getElementById('edit-delete-btn'); if(delBtn) delBtn.style.display = isAdmin && !isNewOrder ? "block" : "none";
             
+            // NÄITAME "SALVESTA KÕIK" NUPPU KÕIGILE KASUTAJATELE
+            let saveBtn = document.getElementById('edit-save-btn'); if(saveBtn) saveBtn.style.display = "block";
+
             let deptsHtml = "";
             Object.keys(CONFIG).forEach(k => {
                 let c = CONFIG[k]; let pVal = f(o[k]); let aVal = f(o[c.p]); let isDone = String(o[c.d]) === 'true';
@@ -918,7 +930,7 @@
                 });
             } // Admin block end
 
-            // KÕIGILE LUBATUD MUUDATUSED (Vaataja saab AH asju märkida)
+            // KÕIGILE LUBATUD MUUDATUSED
             let chkAh1El = document.getElementById('edit-chk-ah1'); if (chkAh1El) o.chk_ah1 = chkAh1El.checked;
             let chkAh2El = document.getElementById('edit-chk-ah2'); if (chkAh2El) o.chk_ah2 = chkAh2El.checked;
             let notesEl = document.getElementById('edit-chk-notes'); if (notesEl) o.chk_notes = notesEl.value;
@@ -931,7 +943,7 @@
             
             document.getElementById('editModal').style.display = 'none';
             applyUIMode(); 
-            await window.save(true); // Vaataja tehtud muutused lähevad nüüd ilusasti pilve
+            await window.save(true); 
         } catch(e) {
             console.error("Salvestamise viga:", e);
             alert("Salvestamisel tekkis viga!");
@@ -957,7 +969,8 @@
                 sub1:0, sub2:0, ins:0, trei:0, must_k:0, rv_k:0, must_l:0, rv_l:0, kooste:0, 
                 prog_ins:0, prog_tr:0, prog_mk:0, prog_rk:0, prog_ml:0, prog_rl:0, prog_ko:0, 
                 done_ins:false, done_tr:false, done_mk:false, done_rk:false, done_ml:false, done_rl:false, done_ko:false,
-                chk_ost:false, chk_ah1:false, chk_ah2:false, chk_notes:"", ah1_tasks:[], ah2_tasks:[], allocs:{}
+                chk_ost:false, chk_ah1:false, chk_ah2:false, chk_notes:"", ah1_tasks:[], ah2_tasks:[], allocs:{},
+                progress:0, status:'Ootel'
             }); 
             currentMainTabFilter = 'active';
             isNewOrder = true; 
@@ -1692,6 +1705,29 @@
             }
             container.innerHTML += chartHtml + `</div></div>`;
         });
+        
+        // LASERI GRAAFIK (P. Graafik)
+        let lCount = (customCap.wsCounts && customCap.wsCounts['laser']) ? customCap.wsCounts['laser'] : 3;
+        let lCap = lCount * 8;
+        let laserHtml = `<div class="daily-chart-wrapper" onscroll="syncDailyScroll(event)"><h3>⚡ Laseri võimekus (Käsitsi planeeritud)</h3><div class="daily-chart-area">`;
+        for(let i=0; i<daysToShow; i++) {
+            let curDate = new Date(startDate.getTime() + i*86400000), dateStr = safeISO(curDate), isToday = curDate.toDateString() === TODAY.toDateString();
+            let isHol = isHoliday(curDate); let isWeekend = curDate.getDay() === 0 || curDate.getDay() === 6; let isRestDay = isWeekend || isHol;
+            let segmentsHtml = "", totalH = 0;
+            
+            let manualH = (customCap.laser && customCap.laser[dateStr]) ? customCap.laser[dateStr] : 0;
+
+            if (!isRestDay && manualH > 0) {
+                totalH = manualH;
+                segmentsHtml += `<div class="order-segment" style="height:${manualH * SCALE}px; background:#8e44ad;" title="Planeeritud koormus: ${manualH}h">${manualH}h</div>`;
+            }
+            
+            let limitLineHtml = isRestDay ? '' : `<div style="position:absolute; bottom:${lCap * SCALE}px; width:100%; border-top:2px dashed red; z-index:10; opacity:0.8; pointer-events:none;"></div>`;
+            let bgClass = isHol ? 'holiday-bg' : (isToday ? 'today-bg' : ''); let labelClass = isHol ? 'holiday-text' : (isWeekend ? 'weekend-label' : '');
+            laserHtml += `<div class="day-column ${bgClass}"> ${limitLineHtml} ${segmentsHtml} <div class="day-label ${labelClass}"><strong>${curDate.getDate()}.${curDate.getMonth()+1}</strong><br>${['P','E','T','K','N','R','L'][curDate.getDay()]}<br><span style="color:${totalH > lCap + 0.1 ? 'red' : '#666'}">${totalH > 0.1 ? totalH.toFixed(1)+'h' : ''}</span></div></div>`;
+        }
+        laserHtml += `</div></div>`;
+        container.innerHTML += laserHtml;
     }
 
     function renderDailyTable() {
@@ -1756,8 +1792,55 @@
                 <input type="number" class="ws-num-in" data-k="${k}" value="${count}" min="1" max="50" style="width:60px; padding:4px; font-weight:bold; text-align:center; border:1px solid #ccc; border-radius:3px;" ${disAttr}>
             </div>`;
         });
+        
+        let lCount = (customCap.wsCounts && customCap.wsCounts['laser']) ? customCap.wsCounts['laser'] : 3;
+        html += `<div style="display:flex; justify-content:space-between; align-items:center; background:#f3e5f5; padding:8px 12px; border-radius:4px; border:1px solid #e1bee7;">
+            <strong style="color:#8e44ad;">⚡ Laser (graafiku piir)</strong>
+            <input type="number" class="ws-num-in" data-k="laser" value="${lCount}" min="1" max="50" style="width:60px; padding:4px; font-weight:bold; text-align:center; border:1px solid #ccc; border-radius:3px;" ${disAttr}>
+        </div>`;
+        
         list.innerHTML = html;
     }
+
+    window.renderLaserManager = function() {
+        let list = document.getElementById('laser-list'); if(!list) return;
+        if(!customCap.laser) customCap.laser = {};
+        let html = "";
+        
+        let dates = Object.keys(customCap.laser).sort();
+        let todayTime = new Date().getTime() - 7*86400000; 
+        
+        dates.forEach(dStr => {
+            let dTime = new Date(dStr).getTime();
+            if(dTime < todayTime) return; 
+            
+            let h = customCap.laser[dStr];
+            html += `<div style="display:flex; justify-content:space-between; align-items:center; background:#f3e5f5; padding:5px 10px; border:1px solid #e1bee7; border-radius:4px; color:#6a1b9a;">
+                <div><strong>${dStr}</strong>: ${h} h</div>
+                <button class="admin-only" onclick="window.delLaserLoad('${dStr}')" style="color:white; background:#8e44ad; border:none; padding:3px 8px; border-radius:3px; cursor:pointer; font-weight:bold; ${isAdmin?'display:block':'display:none'}">X</button>
+            </div>`;
+        });
+        if(html === "") html = "<div style='color:#777; font-size:11px;'>Koormusi pole lisatud.</div>";
+        list.innerHTML = html;
+    };
+
+    window.addLaserLoad = function() {
+        if(!isAdmin) return;
+        let d = document.getElementById('laser-date').value;
+        let h = parseFloat(document.getElementById('laser-h').value);
+        if(!d || isNaN(h)) { alert("Vali kuupäev ja sisesta tunnid!"); return; }
+        if(!customCap.laser) customCap.laser = {};
+        customCap.laser[d] = h;
+        document.getElementById('laser-date').value = "";
+        document.getElementById('laser-h').value = "";
+        window.saveCapacity();
+    };
+
+    window.delLaserLoad = function(dStr) {
+        if(!isAdmin) return;
+        delete customCap.laser[dStr];
+        window.saveCapacity();
+    };
 
     function renderCapacity() {
         let disAttr = isAdmin ? "" : "disabled";
@@ -1794,7 +1877,7 @@
     window.saveCapacity = async function() {
         if(!isAdmin) return;
         
-        let newCap = { holidays: customCap.holidays || [], wsCounts: {} };
+        let newCap = { holidays: customCap.holidays || [], wsCounts: {}, laser: customCap.laser || {} };
         
         document.querySelectorAll('.ws-num-in').forEach(i => { 
             newCap.wsCounts[i.dataset.k] = parseInt(i.value) || 1; 
@@ -1815,7 +1898,6 @@
         alert("✅ Seaded ja puhkused salvestatud PILVE!");
     };
 
-    // Tolmuimeja, mis jätab ah_tasks rahule!
     window.cleanAllocs = function(allocsObj) {
         if (!allocsObj || typeof allocsObj !== 'object') return {};
         let clean = {};
@@ -1917,7 +1999,7 @@
         }
         if (viewId === 'paeva_koormus_graafik') renderDailyCharts();
         if (viewId === 'paeva_koormus_tabel') renderDailyTable();
-        if (viewId === 'voimekus_tab') { renderHolidays(); renderWSManager(); renderCapacity(); }
+        if (viewId === 'voimekus_tab') { renderHolidays(); renderWSManager(); renderCapacity(); window.renderLaserManager(); }
     };
     
     // Alustame tööga!
