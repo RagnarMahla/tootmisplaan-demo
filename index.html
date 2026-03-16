@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V141.0</title>
+    <title>TOCI Tootmisplaan V142.0</title>
     <style>
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -229,7 +229,7 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V141.0 (P. Graafiku Järjekorra Muudatus)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V142.0 (Kiiruse Optimeerimine)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI</button>
@@ -1151,7 +1151,9 @@
             <div class="dash-card" style="border-left-color:var(--success);"><h3>Aktiivsed Tööd</h3><div class="value">${activeTotal}</div><div class="sub-text">Filtreeritud ootel/töös tellimused</div></div>
             <div class="dash-card ${overdueTotal > 0 ? 'danger' : ''}" style="${overdueTotal === 0 ? 'border-left-color:#ccc;' : ''}"><h3 style="${overdueTotal > 0 ? 'color:var(--danger);' : ''}">Tähtaeg Ületatud</h3><div class="value" style="${overdueTotal > 0 ? 'color:var(--danger);' : 'color:#999;'}">${overdueTotal}</div><div class="sub-text">Filtreeritud tellimused, mille lõppkuupäev on möödas</div></div>
         `;
-        Object.keys(CONFIG).forEach(k => { html += genDashItem(k); });
+        // Dash kaardid samas järjekorras nagu uus graafik
+        const deptOrder = ['must_k', 'rv_k', 'trei', 'kooste', 'ins', 'must_l', 'rv_l'];
+        deptOrder.forEach(k => { html += genDashItem(k); });
 
         document.getElementById('dashboard-container').innerHTML = html;
     }
@@ -1236,7 +1238,7 @@
         filteredOrders.forEach((o) => {
             let gIdx = orders.indexOf(o); let bnds = getPhaseDates(o, START_VIEW);
             let myBnd = key === 'ah1' ? bnds.ah1 : bnds.ah2;
-            let tasks = o.allocs && o.allocs.ah_tasks ? (key === 'ah1' ? o.allocs.ah_tasks.ah1 : o.allocs.ah_tasks.ah2) : [];
+            let tasks = key === 'ah1' ? o.ah1_tasks : o.ah2_tasks;
             
             let finalLeft = myBnd.s * 45; let taskDur = Math.max(1, myBnd.e - myBnd.s + 1);
 
@@ -1499,6 +1501,167 @@
         return { tracker: dailyLoadTracker, autoAllocs: autoAllocations, wsTracker: wsTracker };
     }
 
+    window.renderDispatcher = function() {
+        let k = document.getElementById('disp-dept').value; 
+        let sDateStr = document.getElementById('disp-start').value || safeISO(TODAY); let sDate = new Date(sDateStr);
+        let gV = document.getElementById('globalFilter').value.toLowerCase();
+        let bankHtml = ""; let allocOptions = `<option value="">-- Vali tellimus --</option>`;
+        
+        let validBankOrders = orders.filter((o, i) => {
+            if(o.mt === 'SYS_SETTINGS' || o.status === 'Valmis' || String(o[CONFIG[k].d]) === 'true') return false;
+            let matchText = (!gV || (o.mt && String(o.mt).toLowerCase().includes(gV)) || (o.client && String(o.client).toLowerCase().includes(gV)));
+            if (!matchText) return false;
+            let planned = f(o[k]); if(planned === 0) return false;
+            return true;
+        });
+
+        validBankOrders.forEach(o => {
+            let i = orders.indexOf(o); let planned = f(o[k]); let allocated = getAllocated(o, k); let remaining = planned - allocated;
+            let rColor = remaining < 0 ? 'red' : (remaining === 0 ? 'var(--success)' : '#333');
+            let isBrush = activeBrushIdx === i;
+            
+            let bnds = getPhaseDates(o, START_VIEW);
+            let myBnd = CONFIG[k].order === 0 ? bnds.ins : (CONFIG[k].order === 1 ? bnds.lukk : (CONFIG[k].order === 2 ? bnds.keev : bnds.kooste));
+            let sD = myBnd.sDate, eD = myBnd.eDate;
+            let dRange = `${String(sD.getDate()).padStart(2,'0')}.${String(sD.getMonth()+1).padStart(2,'0')} - ${String(eD.getDate()).padStart(2,'0')}.${String(eD.getMonth()+1).padStart(2,'0')}`;
+
+            bankHtml += `<div class="disp-bank-item ${isBrush ? 'brush-active' : ''}" style="border-left:5px solid ${remaining === 0 ? 'var(--success)' : CONFIG[k].color}; opacity:${remaining===0 && !isBrush ? 0.5 : 1};" onclick="window.toggleBrush(${i})">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div style="font-weight:bold; font-size:14px; margin-bottom:2px; max-width:60%; overflow:hidden; text-overflow:ellipsis;">${o.mt}</div>
+                    <div style="font-size:9px; background:#e1f5fe; color:#0288d1; padding:2px 4px; border-radius:3px; border:1px solid #b3e5fc; white-space:nowrap;" title="Selle osakonna planeeritud ajavahemik">📅 ${dRange}</div>
+                </div>
+                <div style="color:#666; font-size:10px; margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${o.client || '-'}">${o.client || '-'}</div>
+                <div style="display:flex; justify-content:space-between; font-size:11px;"><span>Plaan: <b>${planned}h</b></span><span>Jagatud: <b>${allocated}h</b></span></div>
+                <div style="margin-top:5px; font-size:12px; text-align:right;">Jääk: <b style="color:${rColor}; font-size:14px;">${remaining}h</b></div>
+            </div>`;
+            
+            allocOptions += `<option value="${i}">${o.mt} (Jääk: ${remaining}h)</option>`;
+        });
+        
+        if(bankHtml === "") bankHtml = "<div style='color:#777; padding:10px;'>Ühtegi planeerimist vajavat tööd ei leitud.</div>";
+        document.getElementById('disp-bank').innerHTML = bankHtml;
+        window.currentAllocOptions = allocOptions;
+
+        let bStatus = document.getElementById('brush-status');
+        if(activeBrushIdx !== null) { bStatus.innerHTML = `Pintsel: <b style="color:var(--danger)">${orders[activeBrushIdx].mt}</b> (Vajuta uuesti, et tühistada)`; } else { bStatus.innerHTML = `Pintsel: <b style="color:#999">VÄLJAS</b>`; }
+
+        let allValidOrders = orders.filter(o => o.status !== 'Valmis' && o.mt !== 'SYS_SETTINGS');
+        allValidOrders.sort((a, b) => new Date(a.start) - new Date(b.start));
+        let smartLoad = calculateSmartDailyLoad(allValidOrders);
+
+        let daysToShow = 30;
+        let gridHtml = `<thead><tr><th style="position:sticky; left:0; top:0; z-index:30; background:#2c3e50; color:white; min-width:80px; padding:10px;">Töökoht</th>`;
+        for(let d=0; d<daysToShow; d++) {
+            let dObj = new Date(sDate.getTime() + d*86400000); let isW = dObj.getDay()===0||dObj.getDay()===6;
+            let isHol = isHoliday(dObj);
+            let headerBg = isHol ? '#c62828' : (isW ? '#34495e' : '#2c3e50');
+            gridHtml += `<th style="position:sticky; top:0; z-index:20; background:${headerBg}; color:white; min-width:80px; font-size:10px; text-align:center;">${dObj.getDate()}.${dObj.getMonth()+1}<br>${['P','E','T','K','N','R','L'][dObj.getDay()]}</th>`;
+        }
+        gridHtml += `</tr></thead><tbody class="${activeBrushIdx !== null ? 'grid-brush-mode' : ''}">`;
+        
+        let wsCount = (customCap.wsCounts && customCap.wsCounts[k]) ? customCap.wsCounts[k] : (CONFIG[k].ws || 3);
+        
+        for(let w=1; w<=wsCount; w++) {
+            let wsName = `${CONFIG[k].prefix}-${w}`;
+            gridHtml += `<tr><td style="position:sticky; left:0; background:#f4f7f6; font-weight:bold; border-right:2px solid #ccc; z-index:10; text-align:center;">${wsName}</td>`;
+            
+            for(let d=0; d<daysToShow; d++) {
+                let dObj = new Date(sDate.getTime() + d*86400000); let dStr = safeISO(dObj);
+                
+                let cellContent = ""; let totalCellH = 0; let cellBlocks = [];
+                
+                orders.forEach((o, i) => {
+                    if(o.allocs && o.allocs[k] && o.allocs[k][dStr] && o.allocs[k][dStr][wsName]) {
+                        let h = f(o.allocs[k][dStr][wsName]);
+                        if(h > 0) { cellBlocks.push({idx: i, mt: o.mt, client: o.client, h: h, isAuto: false}); totalCellH += h; }
+                    }
+                });
+                
+                smartLoad.autoAllocs.forEach(alloc => {
+                    if(alloc.depts[k] && alloc.depts[k][dStr] && alloc.depts[k][dStr][wsName]) {
+                        let h = alloc.depts[k][dStr][wsName];
+                        if(h > 0) { 
+                            let oIdx = orders.findIndex(o => o.mt === alloc.mt);
+                            cellBlocks.push({idx: oIdx, mt: alloc.mt, client: alloc.client, h: h, isAuto: true}); 
+                            totalCellH += h; 
+                        }
+                    }
+                });
+                
+                if(cellBlocks.length > 0) {
+                    cellContent = `<div style="display:flex; flex-direction:column; gap:2px; padding:2px; height:100%; min-height:40px;">`;
+                    cellBlocks.forEach(al => {
+                        let isSearchMatch = (!gV || (al.mt.toLowerCase().includes(gV)) || (al.client && al.client.toLowerCase().includes(gV)));
+                        let opacity = isSearchMatch ? "1" : "0.15";
+                        if (activeBrushIdx !== null && activeBrushIdx !== al.idx) opacity = "0.4";
+                        
+                        let bgClass = al.isAuto ? "striped-bg" : "";
+                        let titleEx = al.isAuto ? "(Automaatne soovitus)" : "(Käsitsi kinnitatud)";
+                        let clickAction = al.isAuto ? `window.handleCellClick('${k}', '${dStr}', '${wsName}')` : `window.handleInnerBlockClick(event, '${k}', '${dStr}', '${wsName}', ${al.idx}, ${al.h})`;
+                        
+                        cellContent += `<div class="disp-alloc ${bgClass}" style="background-color:${CONFIG[k].color}; opacity:${opacity};" title="${al.client} ${titleEx}" onclick="${clickAction}">${al.mt}<br>${al.h.toFixed(1)}h</div>`;
+                    });
+                    if(totalCellH < 8) cellContent += `<div style="color:#ccc; font-size:10px; margin-top:auto;">+</div>`;
+                    cellContent += `</div>`;
+                } else {
+                    cellContent = `<div style="color:#eee; font-size:16px; margin-top:2px;">+</div>`;
+                }
+                
+                let isHol = isHoliday(dObj);
+                let isWkend = (dObj.getDay()===0||dObj.getDay()===6);
+                let cellStyle = isHol ? "background: repeating-linear-gradient(45deg, #ffeeee, #ffebee 10px, #ffffff 10px, #ffffff 20px);" : (isWkend ? "background:#fafafa;" : "background:#fff;");
+                
+                if(totalCellH > 8) cellStyle += " border: 2px solid var(--danger); box-shadow: inset 0 0 5px rgba(231,76,60,0.5);";
+                
+                gridHtml += `<td class="disp-cell" style="${cellStyle}" onclick="window.handleCellClick('${k}', '${dStr}', '${wsName}')" ondblclick="window.openAllocModal('${k}', '${dStr}', '${wsName}', -1, 8)">${cellContent}</td>`;
+            }
+            gridHtml += `</tr>`;
+        }
+        gridHtml += `</tbody>`;
+        document.getElementById('disp-grid').innerHTML = gridHtml;
+    };
+
+    window.openAllocModal = function(dept, dateStr, wsName, currentOIdx, currentH) {
+        if(!isAdmin) { alert("Ainult Administraator saab töökohti planeerida!"); return; }
+        let dObj = new Date(dateStr); let estDate = dObj.getDate() + "." + (dObj.getMonth()+1) + "." + dObj.getFullYear();
+        document.getElementById('alloc-title').innerText = `${wsName} | ${estDate}`;
+        document.getElementById('alloc-dept').value = dept; document.getElementById('alloc-date').value = dateStr; document.getElementById('alloc-ws').value = wsName;
+        document.getElementById('alloc-old-idx').value = currentOIdx >= 0 ? currentOIdx : "";
+        
+        let sel = document.getElementById('alloc-mt'); 
+        sel.innerHTML = window.currentAllocOptions;
+        
+        if (currentOIdx >= 0) {
+            if (!sel.querySelector(`option[value="${currentOIdx}"]`)) {
+                let o = orders[currentOIdx];
+                sel.innerHTML += `<option value="${currentOIdx}">${o.mt} (Jääk: 0h)</option>`;
+            }
+            sel.value = currentOIdx; 
+            document.getElementById('alloc-h').value = currentH; 
+            document.getElementById('alloc-del-btn').style.display = 'block';
+        } else {
+            sel.value = ""; document.getElementById('alloc-h').value = 8; document.getElementById('alloc-del-btn').style.display = 'none';
+        }
+        document.getElementById('allocModal').style.display = 'block';
+    };
+    
+    window.saveAllocationModal = function() {
+        let dept = document.getElementById('alloc-dept').value; let dateStr = document.getElementById('alloc-date').value;
+        let wsName = document.getElementById('alloc-ws').value; let newIdx = document.getElementById('alloc-mt').value;
+        let oldIdx = document.getElementById('alloc-old-idx').value; let h = parseFloat(document.getElementById('alloc-h').value);
+        
+        if (oldIdx !== "") deleteAllocationDirect(dept, dateStr, wsName, parseInt(oldIdx));
+        if (newIdx !== "" && h > 0) saveAllocationDirect(dept, dateStr, wsName, parseInt(newIdx), h, false);
+        document.getElementById('allocModal').style.display = 'none';
+    };
+    
+    window.deleteAllocationModal = function() {
+        let dept = document.getElementById('alloc-dept').value; let dateStr = document.getElementById('alloc-date').value; let wsName = document.getElementById('alloc-ws').value;
+        let oldIdx = document.getElementById('alloc-old-idx').value;
+        if (oldIdx !== "") deleteAllocationDirect(dept, dateStr, wsName, parseInt(oldIdx));
+        document.getElementById('allocModal').style.display = 'none';
+    };
+
     function syncDailyScroll(e) {
         const scrollX = e.target.scrollLeft;
         document.querySelectorAll('.daily-chart-wrapper').forEach(w => { if (w !== e.target && w.scrollLeft !== scrollX) w.scrollLeft = scrollX; });
@@ -1513,7 +1676,6 @@
         allValidOrders.sort((a, b) => new Date(a.start) - new Date(b.start));
         let smartLoad = calculateSmartDailyLoad(allValidOrders);
 
-        // --- 1. LASERI GRAAFIK KÕIGE ETTE ---
         let lCount = (customCap.wsCounts && customCap.wsCounts['laser']) ? customCap.wsCounts['laser'] : 3;
         let lCap = lCount * 8;
         
@@ -1556,12 +1718,10 @@
         laserHtml += `</div></div>`;
         container.innerHTML += laserHtml;
 
-        // --- 2. TEISED OSAKONNAD SOOVITUD JÄRJEKORRAS ---
-        // Järjekord: Must keevitus, RV Keevitus, Treial, Kooste, Inseneeria, Must Lukksepp, RV Lukksepp
         const deptOrder = ['must_k', 'rv_k', 'trei', 'kooste', 'ins', 'must_l', 'rv_l'];
 
         deptOrder.forEach(k => {
-            if (!CONFIG[k]) return; // Ohutuse mõttes, kui keegi CONFIG-it muudab
+            if (!CONFIG[k]) return; 
 
             let chartHtml = `<div class="daily-chart-wrapper" onscroll="syncDailyScroll(event)"><h3>${CONFIG[k].l} (Päeva koormus)</h3><div class="daily-chart-area">`;
             for(let i=0; i<daysToShow; i++) {
@@ -1618,13 +1778,12 @@
         }
         html += `</tr></thead><tbody>`;
         
-        // Järjekord tabelis sama, mis graafikus
         const deptOrder = ['must_k', 'rv_k', 'trei', 'kooste', 'ins', 'must_l', 'rv_l'];
 
         deptOrder.forEach(k => {
             html += `<tr><td style="position:sticky; left:0; background:#f4f7f6; font-weight:bold; border-right:2px solid #ccc; z-index:10; color:${CONFIG[k].color};">${CONFIG[k].l}</td>`;
             for(let i=0; i<daysToShow; i++) {
-                let curDate = new Date(startDate.getTime() + i*86400000), dateStr = safeISO(curDate), isWeekend = curDate.getDay() === 0 || curDate.getDay() === 6, isToday = curDate.toDateString() === TODAY.toDateString();
+                let curDate = new Date(startDate.getTime() + i*86400000), dateStr = safeISO(curDate), wNo = getWeek(curDate), isWeekend = curDate.getDay() === 0 || curDate.getDay() === 6, isToday = curDate.toDateString() === TODAY.toDateString();
                 let isHol = isHoliday(curDate); 
                 let capCount = (customCap.wsCounts && customCap.wsCounts[k]) ? customCap.wsCounts[k] : CONFIG[k].ws;
                 let dailyCap = capCount * 8;
@@ -1659,7 +1818,6 @@
         let disAttr = isAdmin ? "" : "disabled";
         let html = "";
         
-        // Järjekord siin pole kriitiline, aga teeme loogiliseks
         const deptOrder = ['ins', 'trei', 'must_k', 'rv_k', 'must_l', 'rv_l', 'kooste'];
 
         deptOrder.forEach(k => {
@@ -1841,7 +1999,7 @@
         } else {
             hasPendingChanges = true; updateSyncStatus("⏳ Ootan...", "warning");
             clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(executeSave, 1500);
+            saveTimeout = setTimeout(executeSave, 500); // KIIREM OOTAMINE (oli 1500ms)
         }
     };
     
