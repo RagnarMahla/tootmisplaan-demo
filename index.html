@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V135.0</title>
+    <title>TOCI Tootmisplaan V136.0</title>
     <style>
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -46,6 +46,7 @@
         .edit-group label { display: block; font-size: 11px; font-weight: bold; color: #666; margin-bottom: 4px; }
         .edit-input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; font-family: inherit; }
         .edit-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2); }
+        .edit-input:disabled { background-color: #f1f1f1; cursor: not-allowed; }
         
         .dept-edit-row { display: grid; grid-template-columns: 100px 70px 70px 70px 70px; gap: 10px; align-items: center; padding: 8px; background: #f8f9fa; border-radius: 6px; margin-bottom: 6px; border: 1px solid #eee; }
         .dept-edit-row strong { font-size: 12px; color: #2c3e50; }
@@ -202,7 +203,7 @@
             </div>
             
             <div style="flex:3;">
-                <label style="display:block; font-size:11px; font-weight:bold; color:#666; margin-bottom:4px;">Märkmed / Kommentaarid (Materjal viibib vms):</label>
+                <label style="display:block; font-size:11px; font-weight:bold; color:#666; margin-bottom:4px;">Üldised Märkmed / Kommentaarid:</label>
                 <textarea id="edit-chk-notes" class="checklist-notes" placeholder="Kirjuta projekti üldine lisainfo siia..."></textarea>
             </div>
         </div>
@@ -228,7 +229,7 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V135.0 (Täielik Puhastus & AH Taskid)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V136.0 (Kõigile Avatud Ülesanded)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI</button>
@@ -667,12 +668,8 @@
                         } catch(e){} 
                     }
                     
-                    let ah1_tasks = [];
-                    let ah2_tasks = [];
-                    if (parsedAllocs.ah_tasks) {
-                        ah1_tasks = parsedAllocs.ah_tasks.ah1 || [];
-                        ah2_tasks = parsedAllocs.ah_tasks.ah2 || [];
-                    }
+                    let ah1_tasks = []; try { ah1_tasks = JSON.parse(o.ah1_tasks); if(!Array.isArray(ah1_tasks)) ah1_tasks=[]; } catch(e){}
+                    let ah2_tasks = []; try { ah2_tasks = JSON.parse(o.ah2_tasks); if(!Array.isArray(ah2_tasks)) ah2_tasks=[]; } catch(e){}
                     
                     let obj = {...o, kirjeldus: o.kirjeldus||'', chk_notes: o.chk_notes||'', 
                         ah1_tasks: ah1_tasks, ah2_tasks: ah2_tasks,
@@ -703,13 +700,12 @@
         }
     }
 
-    // --- AH TASKIDE RENDERING ---
+    // --- AH TASKIDE RENDERING (Vaatajatele avatud) ---
     window.renderAHTasks = function(phase) {
         let list = document.getElementById(`${phase}-tasks-list`);
         if(!list) return;
         let html = '';
         let tasks = window.tempAHTasks[phase];
-        let disAttr = isAdmin ? "" : "disabled";
         
         if (tasks.length === 0) {
             html = `<div style="font-size:10px; color:#999; text-align:center; padding:10px 0;">Ülesandeid pole lisatud</div>`;
@@ -718,12 +714,12 @@
                 html += `<div style="background:#fff; border:1px solid #ddd; border-radius:4px; padding:5px; margin-bottom:5px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
                         <label style="display:flex; align-items:center; gap:5px; font-size:11px; margin:0; cursor:pointer; width:80%;">
-                            <input type="checkbox" ${t.done ? 'checked' : ''} onchange="window.toggleAHTask('${phase}', ${idx}, this.checked)" ${disAttr} style="margin:0;"> 
+                            <input type="checkbox" ${t.done ? 'checked' : ''} onchange="window.toggleAHTask('${phase}', ${idx}, this.checked)" style="margin:0;"> 
                             <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; ${t.done ? 'text-decoration:line-through; color:#aaa;' : 'font-weight:bold; color:#333;'}">${t.name}</span>
                         </label>
                         ${isAdmin ? `<button onclick="window.deleteAHTask('${phase}', ${idx})" style="color:red; background:none; border:none; cursor:pointer; font-size:16px; padding:0; line-height:1;">&times;</button>` : ''}
                     </div>
-                    <input type="text" placeholder="Kommentaar..." value="${t.comment || ''}" onchange="window.updateAHTaskComment('${phase}', ${idx}, this.value)" style="width:100%; font-size:10px; padding:3px; border:1px solid #eee; border-radius:2px; box-sizing:border-box;" ${disAttr}>
+                    <input type="text" placeholder="Kommentaar..." value="${t.comment || ''}" onchange="window.updateAHTaskComment('${phase}', ${idx}, this.value)" style="width:100%; font-size:10px; padding:3px; border:1px solid #eee; border-radius:2px; box-sizing:border-box;">
                 </div>`;
             });
         }
@@ -811,6 +807,7 @@
             window.renderAHTasks('ah1');
             window.renderAHTasks('ah2');
 
+            // ADMINI KONTROLLID
             if(mtEl) mtEl.disabled = !isAdmin; 
             if(clientEl) clientEl.disabled = !isAdmin;
             if(descEl) descEl.disabled = !isAdmin; 
@@ -818,18 +815,21 @@
             if(ah1El) ah1El.disabled = !isAdmin;
             if(ah2El) ah2El.disabled = !isAdmin; 
             if(statusEl) statusEl.disabled = !isAdmin;
-            
             if(chkInsEl) chkInsEl.disabled = !isAdmin;
             if(chkOstEl) chkOstEl.disabled = !isAdmin;
-            if(chkAh1El) chkAh1El.disabled = !isAdmin;
-            if(chkAh2El) chkAh2El.disabled = !isAdmin;
-            if(notesEl) notesEl.disabled = !isAdmin;
             
+            // JÄRGNEVAD VÄLJAD ON AVATUD KÕIGILE (Ka vaatajatele)
+            if(chkAh1El) chkAh1El.disabled = false;
+            if(chkAh2El) chkAh2El.disabled = false;
+            if(notesEl) notesEl.disabled = false;
+
             let nt1 = document.getElementById('edit-ah1-new-task'); if(nt1) nt1.disabled = !isAdmin;
             let nt2 = document.getElementById('edit-ah2-new-task'); if(nt2) nt2.disabled = !isAdmin;
 
             let delBtn = document.getElementById('edit-delete-btn'); if(delBtn) delBtn.style.display = isAdmin && !isNewOrder ? "block" : "none";
-            let saveBtn = document.getElementById('edit-save-btn'); if(saveBtn) saveBtn.style.display = isAdmin ? "block" : "none";
+            
+            // NÄITAME "SALVESTA KÕIK" NUPPU KÕIGILE KASUTAJATELE
+            let saveBtn = document.getElementById('edit-save-btn'); if(saveBtn) saveBtn.style.display = "block";
 
             let deptsHtml = "";
             Object.keys(CONFIG).forEach(k => {
@@ -870,54 +870,58 @@
 
     window.saveEditModal = async function() {
         try {
-            if (!isAdmin) return; let i = currentEditIndex; 
-            
-            let mtEl = document.getElementById('edit-mt');
-            if (!mtEl) return;
-            let newMt = mtEl.value.trim();
-            if (newMt === "") { alert("MT Number on kohustuslik!"); return; }
-            
-            let isDuplicate = orders.some((o, idx) => idx !== i && String(o.mt).trim().toLowerCase() === newMt.toLowerCase());
-            if (isDuplicate) { alert(`⚠️ VIGA: MT number '${newMt}' on juba süsteemis olemas! Dublikaadid ei ole lubatud.`); return; }
-            
+            let i = currentEditIndex; 
             let o = orders[i];
-            o.mt = newMt; 
-            
-            let clientEl = document.getElementById('edit-client'); if (clientEl) o.client = clientEl.value; 
-            let descEl = document.getElementById('edit-desc'); if (descEl) o.kirjeldus = descEl.value;
-            let endEl = document.getElementById('edit-end'); if (endEl) o.end = endEl.value;
-            let ah1El = document.getElementById('edit-ah1'); if (ah1El) o.sub1 = f(ah1El.value); 
-            let ah2El = document.getElementById('edit-ah2'); if (ah2El) o.sub2 = f(ah2El.value);
-            
-            let chkOstEl = document.getElementById('edit-chk-ost'); if (chkOstEl) o.chk_ost = chkOstEl.checked;
-            let chkInsEl = document.getElementById('edit-chk-ins'); if (chkInsEl) o.done_ins = chkInsEl.checked;
+
+            // PÕHIANDMETE MUUTMINE AINULT ADMINILE
+            if (isAdmin) {
+                let mtEl = document.getElementById('edit-mt');
+                if (!mtEl) return;
+                let newMt = mtEl.value.trim();
+                if (newMt === "") { alert("MT Number on kohustuslik!"); return; }
+                
+                let isDuplicate = orders.some((o, idx) => idx !== i && String(o.mt).trim().toLowerCase() === newMt.toLowerCase());
+                if (isDuplicate) { alert(`⚠️ VIGA: MT number '${newMt}' on juba süsteemis olemas! Dublikaadid ei ole lubatud.`); return; }
+                
+                o.mt = newMt; 
+                let clientEl = document.getElementById('edit-client'); if (clientEl) o.client = clientEl.value; 
+                let descEl = document.getElementById('edit-desc'); if (descEl) o.kirjeldus = descEl.value;
+                let endEl = document.getElementById('edit-end'); if (endEl) o.end = endEl.value;
+                let ah1El = document.getElementById('edit-ah1'); if (ah1El) o.sub1 = f(ah1El.value); 
+                let ah2El = document.getElementById('edit-ah2'); if (ah2El) o.sub2 = f(ah2El.value);
+                
+                let chkOstEl = document.getElementById('edit-chk-ost'); if (chkOstEl) o.chk_ost = chkOstEl.checked;
+                let chkInsEl = document.getElementById('edit-chk-ins'); if (chkInsEl) o.done_ins = chkInsEl.checked;
+
+                let statusEl = document.getElementById('edit-status');
+                if (statusEl) {
+                    let oldStatus = o.status; o.status = statusEl.value;
+                    if (o.status === 'Valmis' && oldStatus !== 'Valmis') {
+                        let endD = new Date(o.end); endD.setHours(23, 59, 59, 999); let today = new Date();
+                        if (endD.getTime() < today.getTime()) {
+                            if (!o.kirjeldus.includes("LÕPETATUD HILINEMISEGA")) {
+                                let dateStr = today.getDate() + "." + (today.getMonth() + 1) + "." + today.getFullYear();
+                                o.kirjeldus = o.kirjeldus + " (⚠️ LÕPETATUD HILINEMISEGA: " + dateStr + ")";
+                            }
+                        }
+                    }
+                }
+
+                Object.keys(CONFIG).forEach(k => {
+                    let c = CONFIG[k];
+                    let pEl = document.getElementById(`edit-p-${k}`); if(pEl) o[k] = f(pEl.value);
+                    let aEl = document.getElementById(`edit-a-${c.p}`); if(aEl) o[c.p] = f(aEl.value);
+                    let dEl = document.getElementById(`edit-d-${c.d}`); if(dEl) o[c.d] = dEl.checked;
+                });
+            } // Admin block end
+
+            // KÕIGILE LUBATUD MUUDATUSED
             let chkAh1El = document.getElementById('edit-chk-ah1'); if (chkAh1El) o.chk_ah1 = chkAh1El.checked;
             let chkAh2El = document.getElementById('edit-chk-ah2'); if (chkAh2El) o.chk_ah2 = chkAh2El.checked;
             let notesEl = document.getElementById('edit-chk-notes'); if (notesEl) o.chk_notes = notesEl.value;
             
             o.ah1_tasks = window.tempAHTasks.ah1;
             o.ah2_tasks = window.tempAHTasks.ah2;
-
-            let statusEl = document.getElementById('edit-status');
-            if (statusEl) {
-                let oldStatus = o.status; o.status = statusEl.value;
-                if (o.status === 'Valmis' && oldStatus !== 'Valmis') {
-                    let endD = new Date(o.end); endD.setHours(23, 59, 59, 999); let today = new Date();
-                    if (endD.getTime() < today.getTime()) {
-                        if (!o.kirjeldus.includes("LÕPETATUD HILINEMISEGA")) {
-                            let dateStr = today.getDate() + "." + (today.getMonth() + 1) + "." + today.getFullYear();
-                            o.kirjeldus = o.kirjeldus + " (⚠️ LÕPETATUD HILINEMISEGA: " + dateStr + ")";
-                        }
-                    }
-                }
-            }
-
-            Object.keys(CONFIG).forEach(k => {
-                let c = CONFIG[k];
-                let pEl = document.getElementById(`edit-p-${k}`); if(pEl) o[k] = f(pEl.value);
-                let aEl = document.getElementById(`edit-a-${c.p}`); if(aEl) o[c.p] = f(aEl.value);
-                let dEl = document.getElementById(`edit-d-${c.d}`); if(dEl) o[c.d] = dEl.checked;
-            });
 
             o.progress = calcOverallProgress(o);
             isNewOrder = false; 
@@ -1809,12 +1813,11 @@
         alert("✅ Seaded ja puhkused salvestatud PILVE!");
     };
 
+    // ANDMETE "TOLMUIMEJA"
     window.cleanAllocs = function(allocsObj) {
         if (!allocsObj || typeof allocsObj !== 'object') return {};
         let clean = {};
         for (let dept in allocsObj) {
-            if (dept === 'ah_tasks') continue;
-            
             let deptHasData = false;
             clean[dept] = {};
             for (let date in allocsObj[dept]) {
@@ -1836,23 +1839,20 @@
     };
 
     window.save = async function(immediate = false) { 
-        if(!isAdmin) return; 
-        
         const executeSave = async () => {
             isSaving = true; updateSyncStatus("💾 Salvestan pilve...", "warning");
             try {
                 let cleanOrders = orders.filter(o => o.mt && String(o.mt).trim() !== '' && String(o.mt) !== 'SYS_SETTINGS').map(o => { 
-                    let safeAllocs = window.cleanAllocs(o.allocs);
-                    safeAllocs.ah_tasks = { ah1: o.ah1_tasks || [], ah2: o.ah2_tasks || [] };
-
                     return {
-                        mt: o.mt, client: o.client, kirjeldus: o.kirjeldus, start: o.start, end: o.end, 
+                        mt: o.mt, client: o.client, kirjeldus: o.kirjeldus, start: o.start, end: o.end,
                         sub1: o.sub1, sub2: o.sub2, status: o.status,
                         ins: o.ins, trei: o.trei, must_k: o.must_k, rv_k: o.rv_k, must_l: o.must_l, rv_l: o.rv_l, kooste: o.kooste,
                         prog_ins: o.prog_ins, prog_tr: o.prog_tr, prog_mk: o.prog_mk, prog_rk: o.prog_rk, prog_ml: o.prog_ml, prog_rl: o.prog_rl, prog_ko: o.prog_ko,
                         done_ins: o.done_ins, chk_ost: o.chk_ost, chk_ah1: o.chk_ah1, chk_ah2: o.chk_ah2,
                         chk_notes: o.chk_notes,
-                        allocs: JSON.stringify(safeAllocs) 
+                        ah1_tasks: JSON.stringify(o.ah1_tasks || []),
+                        ah2_tasks: JSON.stringify(o.ah2_tasks || []),
+                        allocs: JSON.stringify(window.cleanAllocs(o.allocs)) 
                     };
                 });
 
@@ -1862,7 +1862,7 @@
                     ins: 0, trei: 0, must_k: 0, rv_k: 0, must_l: 0, rv_l: 0, kooste: 0,
                     prog_ins: 0, prog_tr: 0, prog_mk: 0, prog_rk: 0, prog_ml: 0, prog_rl: 0, prog_ko: 0,
                     done_ins: false, chk_ost: false, chk_ah1: false, chk_ah2: false,
-                    chk_notes: "", allocs: "{}"
+                    chk_notes: "", ah1_tasks: "[]", ah2_tasks: "[]", allocs: "{}"
                 });
                 
                 await fetch(API_URL, {
@@ -1916,6 +1916,7 @@
         if (viewId === 'voimekus_tab') { renderHolidays(); renderWSManager(); renderCapacity(); }
     };
     
+    // Alustame tööga!
     fetchData();
 
 </script>
