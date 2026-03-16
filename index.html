@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V136.0</title>
+    <title>TOCI Tootmisplaan V137.0</title>
     <style>
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -222,14 +222,14 @@
             <button id="edit-delete-btn" onclick="deleteFromEdit()" style="padding:10px 20px; background:#e74c3c; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">🗑️ KUSTUTA TELLIMUS</button>
             <div style="display:flex; gap:10px;">
                 <button onclick="window.cancelEditModal()" style="padding:10px 20px; background:#95a5a6; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">TÜHISTA</button>
-                <button id="edit-save-btn" onclick="saveEditModal()" style="padding:10px 30px; background:var(--success); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer; font-size:14px;">💾 SALVESTA KÕIK</button>
+                <button id="edit-save-btn" onclick="window.saveEditModal()" style="padding:10px 30px; background:var(--success); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer; font-size:14px;">💾 SALVESTA KÕIK</button>
             </div>
         </div>
     </div>
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V136.0 (Kõigile Avatud Ülesanded)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V137.0 (100% Salvestus & Lahendatud!)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI</button>
@@ -668,11 +668,16 @@
                         } catch(e){} 
                     }
                     
-                    let ah1_tasks = []; try { ah1_tasks = JSON.parse(o.ah1_tasks); if(!Array.isArray(ah1_tasks)) ah1_tasks=[]; } catch(e){}
-                    let ah2_tasks = []; try { ah2_tasks = JSON.parse(o.ah2_tasks); if(!Array.isArray(ah2_tasks)) ah2_tasks=[]; } catch(e){}
+                    let ah1_tasks = [];
+                    let ah2_tasks = [];
+                    if (parsedAllocs.ah_tasks) {
+                        ah1_tasks = parsedAllocs.ah_tasks.ah1 || [];
+                        ah2_tasks = parsedAllocs.ah_tasks.ah2 || [];
+                    }
                     
                     let obj = {...o, kirjeldus: o.kirjeldus||'', chk_notes: o.chk_notes||'', 
-                        ah1_tasks: ah1_tasks, ah2_tasks: ah2_tasks,
+                        ah1_tasks: ah1_tasks, 
+                        ah2_tasks: ah2_tasks,
                         allocs: parsedAllocs,
                         ins:f(o.ins), trei:f(o.trei), must_k:f(o.must_k), rv_k:f(o.rv_k), must_l:f(o.must_l), rv_l:f(o.rv_l), kooste:f(o.kooste), 
                         prog_ins:f(o.prog_ins), prog_tr:f(o.prog_tr), prog_mk:f(o.prog_mk), prog_rk:f(o.prog_rk), prog_ml:f(o.prog_ml), prog_rl:f(o.prog_rl), prog_ko:f(o.prog_ko),
@@ -700,7 +705,7 @@
         }
     }
 
-    // --- AH TASKIDE RENDERING (Vaatajatele avatud) ---
+    // --- AH TASKIDE RENDERING (Nüüd saavad vaatajad klikkida!) ---
     window.renderAHTasks = function(phase) {
         let list = document.getElementById(`${phase}-tasks-list`);
         if(!list) return;
@@ -807,7 +812,7 @@
             window.renderAHTasks('ah1');
             window.renderAHTasks('ah2');
 
-            // ADMINI KONTROLLID
+            // ADMINI KONTROLLID - ainult olulistele andmetele
             if(mtEl) mtEl.disabled = !isAdmin; 
             if(clientEl) clientEl.disabled = !isAdmin;
             if(descEl) descEl.disabled = !isAdmin; 
@@ -815,6 +820,7 @@
             if(ah1El) ah1El.disabled = !isAdmin;
             if(ah2El) ah2El.disabled = !isAdmin; 
             if(statusEl) statusEl.disabled = !isAdmin;
+            
             if(chkInsEl) chkInsEl.disabled = !isAdmin;
             if(chkOstEl) chkOstEl.disabled = !isAdmin;
             
@@ -828,9 +834,6 @@
 
             let delBtn = document.getElementById('edit-delete-btn'); if(delBtn) delBtn.style.display = isAdmin && !isNewOrder ? "block" : "none";
             
-            // NÄITAME "SALVESTA KÕIK" NUPPU KÕIGILE KASUTAJATELE
-            let saveBtn = document.getElementById('edit-save-btn'); if(saveBtn) saveBtn.style.display = "block";
-
             let deptsHtml = "";
             Object.keys(CONFIG).forEach(k => {
                 let c = CONFIG[k]; let pVal = f(o[k]); let aVal = f(o[c.p]); let isDone = String(o[c.d]) === 'true';
@@ -915,7 +918,7 @@
                 });
             } // Admin block end
 
-            // KÕIGILE LUBATUD MUUDATUSED
+            // KÕIGILE LUBATUD MUUDATUSED (Vaataja saab AH asju märkida)
             let chkAh1El = document.getElementById('edit-chk-ah1'); if (chkAh1El) o.chk_ah1 = chkAh1El.checked;
             let chkAh2El = document.getElementById('edit-chk-ah2'); if (chkAh2El) o.chk_ah2 = chkAh2El.checked;
             let notesEl = document.getElementById('edit-chk-notes'); if (notesEl) o.chk_notes = notesEl.value;
@@ -928,7 +931,7 @@
             
             document.getElementById('editModal').style.display = 'none';
             applyUIMode(); 
-            await window.save(true); 
+            await window.save(true); // Vaataja tehtud muutused lähevad nüüd ilusasti pilve
         } catch(e) {
             console.error("Salvestamise viga:", e);
             alert("Salvestamisel tekkis viga!");
@@ -954,8 +957,7 @@
                 sub1:0, sub2:0, ins:0, trei:0, must_k:0, rv_k:0, must_l:0, rv_l:0, kooste:0, 
                 prog_ins:0, prog_tr:0, prog_mk:0, prog_rk:0, prog_ml:0, prog_rl:0, prog_ko:0, 
                 done_ins:false, done_tr:false, done_mk:false, done_rk:false, done_ml:false, done_rl:false, done_ko:false,
-                chk_ost:false, chk_ah1:false, chk_ah2:false, chk_notes:"", ah1_tasks:[], ah2_tasks:[], allocs:{},
-                progress:0, status:'Ootel'
+                chk_ost:false, chk_ah1:false, chk_ah2:false, chk_notes:"", ah1_tasks:[], ah2_tasks:[], allocs:{}
             }); 
             currentMainTabFilter = 'active';
             isNewOrder = true; 
@@ -1813,11 +1815,12 @@
         alert("✅ Seaded ja puhkused salvestatud PILVE!");
     };
 
-    // ANDMETE "TOLMUIMEJA"
+    // Tolmuimeja, mis jätab ah_tasks rahule!
     window.cleanAllocs = function(allocsObj) {
         if (!allocsObj || typeof allocsObj !== 'object') return {};
         let clean = {};
         for (let dept in allocsObj) {
+            if (dept === 'ah_tasks') continue;
             let deptHasData = false;
             clean[dept] = {};
             for (let date in allocsObj[dept]) {
@@ -1843,6 +1846,9 @@
             isSaving = true; updateSyncStatus("💾 Salvestan pilve...", "warning");
             try {
                 let cleanOrders = orders.filter(o => o.mt && String(o.mt).trim() !== '' && String(o.mt) !== 'SYS_SETTINGS').map(o => { 
+                    let safeAllocs = window.cleanAllocs(o.allocs);
+                    safeAllocs.ah_tasks = { ah1: o.ah1_tasks || [], ah2: o.ah2_tasks || [] };
+
                     return {
                         mt: o.mt, client: o.client, kirjeldus: o.kirjeldus, start: o.start, end: o.end,
                         sub1: o.sub1, sub2: o.sub2, status: o.status,
@@ -1850,9 +1856,7 @@
                         prog_ins: o.prog_ins, prog_tr: o.prog_tr, prog_mk: o.prog_mk, prog_rk: o.prog_rk, prog_ml: o.prog_ml, prog_rl: o.prog_rl, prog_ko: o.prog_ko,
                         done_ins: o.done_ins, chk_ost: o.chk_ost, chk_ah1: o.chk_ah1, chk_ah2: o.chk_ah2,
                         chk_notes: o.chk_notes,
-                        ah1_tasks: JSON.stringify(o.ah1_tasks || []),
-                        ah2_tasks: JSON.stringify(o.ah2_tasks || []),
-                        allocs: JSON.stringify(window.cleanAllocs(o.allocs)) 
+                        allocs: JSON.stringify(safeAllocs) 
                     };
                 });
 
@@ -1862,7 +1866,7 @@
                     ins: 0, trei: 0, must_k: 0, rv_k: 0, must_l: 0, rv_l: 0, kooste: 0,
                     prog_ins: 0, prog_tr: 0, prog_mk: 0, prog_rk: 0, prog_ml: 0, prog_rl: 0, prog_ko: 0,
                     done_ins: false, chk_ost: false, chk_ah1: false, chk_ah2: false,
-                    chk_notes: "", ah1_tasks: "[]", ah2_tasks: "[]", allocs: "{}"
+                    chk_notes: "", allocs: "{}"
                 });
                 
                 await fetch(API_URL, {
