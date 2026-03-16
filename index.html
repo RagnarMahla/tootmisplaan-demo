@@ -2,7 +2,7 @@
 <html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>TOCI Tootmisplaan V138.0</title>
+    <title>TOCI Tootmisplaan V140.0</title>
     <style>
         :root { --primary: #1a252f; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; --today: #ff4757; --cell-w: 45px; --sub-bg: #95a5a6; }
         *, *:before, *:after { box-sizing: border-box; }
@@ -173,8 +173,8 @@
                         <div id="ah1-tasks-list" style="max-height:160px; overflow-y:auto; margin-bottom:8px;"></div>
                         
                         <div style="display:flex; gap:5px; margin-top:auto;">
-                            <input type="text" id="edit-ah1-new-task" class="edit-input" placeholder="Uus tegevus..." style="font-size:11px; padding:4px;">
-                            <button onclick="window.addAHTask('ah1')" style="background:var(--accent); color:white; border:none; border-radius:3px; cursor:pointer; padding:0 8px; font-weight:bold;">+</button>
+                            <input type="text" id="edit-ah1-new-task" class="edit-input admin-only" placeholder="Uus tegevus..." style="font-size:11px; padding:4px;">
+                            <button onclick="window.addAHTask('ah1')" class="admin-only" style="background:var(--accent); color:white; border:none; border-radius:3px; cursor:pointer; padding:0 8px; font-weight:bold;">+</button>
                         </div>
                         
                         <label class="checklist-item" style="padding:6px; margin:8px 0 0 0; background:#e8f5e9; border-color:#c8e6c9; justify-content:center;">
@@ -191,8 +191,8 @@
                         <div id="ah2-tasks-list" style="max-height:160px; overflow-y:auto; margin-bottom:8px;"></div>
                         
                         <div style="display:flex; gap:5px; margin-top:auto;">
-                            <input type="text" id="edit-ah2-new-task" class="edit-input" placeholder="Uus tegevus..." style="font-size:11px; padding:4px;">
-                            <button onclick="window.addAHTask('ah2')" style="background:var(--accent); color:white; border:none; border-radius:3px; cursor:pointer; padding:0 8px; font-weight:bold;">+</button>
+                            <input type="text" id="edit-ah2-new-task" class="edit-input admin-only" placeholder="Uus tegevus..." style="font-size:11px; padding:4px;">
+                            <button onclick="window.addAHTask('ah2')" class="admin-only" style="background:var(--accent); color:white; border:none; border-radius:3px; cursor:pointer; padding:0 8px; font-weight:bold;">+</button>
                         </div>
                         
                         <label class="checklist-item" style="padding:6px; margin:8px 0 0 0; background:#e8f5e9; border-color:#c8e6c9; justify-content:center;">
@@ -229,7 +229,7 @@
 </div>
 
 <div class="top-bar">
-    <div>🚀 <strong>TOCI TOOTMISPLAAN V138.0 (Laseri Käsitsi Koormus)</strong></div>
+    <div>🚀 <strong>TOCI TOOTMISPLAAN V140.0 (Automaatne Laseri Järjekord)</strong></div>
     <div style="display:flex; gap:15px; align-items:center;">
         <input type="text" id="globalFilter" placeholder="Otsi (MT, klient)..." oninput="applyUIMode()" style="padding:6px 10px; border-radius:4px; border:none; width:200px; font-weight:bold;">
         <button onclick="smartExport()" style="padding:6px 12px; background:#16a085; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">📥 EKSPORDI</button>
@@ -354,12 +354,11 @@
         </div>
         
         <div id="laser-manager" style="flex:1; min-width:300px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #ddd;">
-            <h3 style="margin-top:0; color:#8e44ad;">⚡ Laseri Koormus (Manuaalne)</h3>
-            <p style="font-size:11px; color:#666; margin-top:-5px;">Sisesta päeva planeeritud tunnid (kuvatakse P. Graafikus).</p>
+            <h3 style="margin-top:0; color:#8e44ad;">⚡ Laseri Koormus (Järjekord)</h3>
+            <p style="font-size:11px; color:#666; margin-top:-5px;">Sisesta kogu planeeritud laseri tundide jääk. Süsteem jagab selle automaatselt tänasest alates vabadele päevadele.</p>
             <div class="admin-only" style="display:none; margin-bottom: 15px; gap: 10px; align-items: center;">
-                <input type="date" id="laser-date" style="padding:6px; border-radius:4px; border:1px solid #ccc;">
-                <input type="number" id="laser-h" placeholder="Tunde" style="width:80px; padding:6px; border-radius:4px; border:1px solid #ccc;" min="0" step="0.5">
-                <button onclick="window.addLaserLoad()" style="padding:7px 15px; background:#8e44ad; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">+ LISA</button>
+                <input type="number" id="laser-total-h" placeholder="Kogu jääk (h)" style="width:120px; padding:6px; border-radius:4px; border:1px solid #ccc;" min="0" step="0.5">
+                <button onclick="window.saveLaserBacklog()" style="padding:7px 15px; background:#8e44ad; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">💾 SALVESTA JÄÄK</button>
             </div>
             <div id="laser-list" style="display:flex; flex-direction:column; gap:5px; max-height: 100px; overflow-y: auto;"></div>
         </div>
@@ -412,7 +411,7 @@
     
     if (!customCap.holidays) customCap.holidays = [];
     if (!customCap.wsCounts) customCap.wsCounts = {};
-    if (!customCap.laser) customCap.laser = {}; // Uus mälupesa laseri jaoks!
+    if (!customCap.laserBacklog) customCap.laserBacklog = { hours: 0, dateSet: safeISO(TODAY) };
     
     let orders = [];
     let currentMainTabFilter = 'active'; 
@@ -657,7 +656,7 @@
                             customCap = dbCap;
                             if (!customCap.holidays) customCap.holidays = [];
                             if (!customCap.wsCounts) customCap.wsCounts = {};
-                            if (!customCap.laser) customCap.laser = {};
+                            if (!customCap.laserBacklog) customCap.laserBacklog = { hours: 0, dateSet: safeISO(TODAY) };
                             localStorage.setItem('prod_cap_live', JSON.stringify(customCap)); 
                         }
                     } catch(e) {} 
@@ -681,8 +680,15 @@
                         } catch(e){} 
                     }
                     
-                    let ah1_tasks = []; try { ah1_tasks = JSON.parse(o.ah1_tasks); if(!Array.isArray(ah1_tasks)) ah1_tasks=[]; } catch(e){}
-                    let ah2_tasks = []; try { ah2_tasks = JSON.parse(o.ah2_tasks); if(!Array.isArray(ah2_tasks)) ah2_tasks=[]; } catch(e){}
+                    let ah1_tasks = [];
+                    let ah2_tasks = [];
+                    if (parsedAllocs.ah_tasks) {
+                        ah1_tasks = parsedAllocs.ah_tasks.ah1 || [];
+                        ah2_tasks = parsedAllocs.ah_tasks.ah2 || [];
+                    } else {
+                        try { ah1_tasks = JSON.parse(o.ah1_tasks); if(!Array.isArray(ah1_tasks)) ah1_tasks=[]; } catch(e){}
+                        try { ah2_tasks = JSON.parse(o.ah2_tasks); if(!Array.isArray(ah2_tasks)) ah2_tasks=[]; } catch(e){}
+                    }
                     
                     let obj = {...o, kirjeldus: o.kirjeldus||'', chk_notes: o.chk_notes||'', 
                         ah1_tasks: ah1_tasks, 
@@ -821,7 +827,7 @@
             window.renderAHTasks('ah1');
             window.renderAHTasks('ah2');
 
-            // ADMINI KONTROLLID - ainult olulistele andmetele
+            // ADMINI KONTROLLID
             if(mtEl) mtEl.disabled = !isAdmin; 
             if(clientEl) clientEl.disabled = !isAdmin;
             if(descEl) descEl.disabled = !isAdmin; 
@@ -833,7 +839,7 @@
             if(chkInsEl) chkInsEl.disabled = !isAdmin;
             if(chkOstEl) chkOstEl.disabled = !isAdmin;
             
-            // JÄRGNEVAD VÄLJAD ON AVATUD KÕIGILE (Ka vaatajatele)
+            // JÄRGNEVAD VÄLJAD ON AVATUD KÕIGILE
             if(chkAh1El) chkAh1El.disabled = false;
             if(chkAh2El) chkAh2El.disabled = false;
             if(notesEl) notesEl.disabled = false;
@@ -843,7 +849,6 @@
 
             let delBtn = document.getElementById('edit-delete-btn'); if(delBtn) delBtn.style.display = isAdmin && !isNewOrder ? "block" : "none";
             
-            // NÄITAME "SALVESTA KÕIK" NUPPU KÕIGILE KASUTAJATELE
             let saveBtn = document.getElementById('edit-save-btn'); if(saveBtn) saveBtn.style.display = "block";
 
             let deptsHtml = "";
@@ -1617,7 +1622,7 @@
     window.openAllocModal = function(dept, dateStr, wsName, currentOIdx, currentH) {
         if(!isAdmin) { alert("Ainult Administraator saab töökohti planeerida!"); return; }
         let dObj = new Date(dateStr); let estDate = dObj.getDate() + "." + (dObj.getMonth()+1) + "." + dObj.getFullYear();
-        document.getElementById('alloc-title').innerText = `${wsName} | ${estDate}`;
+        document.getElementById('alloc-title').innerText = `${wsName} | estDate`;
         document.getElementById('alloc-dept').value = dept; document.getElementById('alloc-date').value = dateStr; document.getElementById('alloc-ws').value = wsName;
         document.getElementById('alloc-old-idx').value = currentOIdx >= 0 ? currentOIdx : "";
         
@@ -1709,17 +1714,37 @@
         // LASERI GRAAFIK (P. Graafik)
         let lCount = (customCap.wsCounts && customCap.wsCounts['laser']) ? customCap.wsCounts['laser'] : 3;
         let lCap = lCount * 8;
-        let laserHtml = `<div class="daily-chart-wrapper" onscroll="syncDailyScroll(event)"><h3>⚡ Laseri võimekus (Käsitsi planeeritud)</h3><div class="daily-chart-area">`;
+        
+        let laserDist = {};
+        if (customCap.laserBacklog && customCap.laserBacklog.hours > 0) {
+            let remainingH = customCap.laserBacklog.hours;
+            let curD = new Date(customCap.laserBacklog.dateSet);
+            let safety = 0;
+            while(remainingH > 0 && safety < 730) {
+                let dStr = safeISO(curD);
+                let isWkend = curD.getDay() === 0 || curD.getDay() === 6;
+                let isHol = isHoliday(curD);
+                if (!isWkend && !isHol) {
+                    let toAllocate = Math.min(remainingH, lCap);
+                    laserDist[dStr] = toAllocate;
+                    remainingH -= toAllocate;
+                }
+                curD.setDate(curD.getDate() + 1);
+                safety++;
+            }
+        }
+
+        let laserHtml = `<div class="daily-chart-wrapper" onscroll="syncDailyScroll(event)"><h3>⚡ Laseri võimekus (Automaatne järjekord)</h3><div class="daily-chart-area">`;
         for(let i=0; i<daysToShow; i++) {
             let curDate = new Date(startDate.getTime() + i*86400000), dateStr = safeISO(curDate), isToday = curDate.toDateString() === TODAY.toDateString();
             let isHol = isHoliday(curDate); let isWeekend = curDate.getDay() === 0 || curDate.getDay() === 6; let isRestDay = isWeekend || isHol;
             let segmentsHtml = "", totalH = 0;
             
-            let manualH = (customCap.laser && customCap.laser[dateStr]) ? customCap.laser[dateStr] : 0;
+            let manualH = laserDist[dateStr] || 0;
 
             if (!isRestDay && manualH > 0) {
                 totalH = manualH;
-                segmentsHtml += `<div class="order-segment" style="height:${manualH * SCALE}px; background:#8e44ad;" title="Planeeritud koormus: ${manualH}h">${manualH}h</div>`;
+                segmentsHtml += `<div class="order-segment" style="height:${manualH * SCALE}px; background:#8e44ad;" title="Planeeritud koormus: ${manualH.toFixed(1)}h">${manualH.toFixed(1)}h</div>`;
             }
             
             let limitLineHtml = isRestDay ? '' : `<div style="position:absolute; bottom:${lCap * SCALE}px; width:100%; border-top:2px dashed red; z-index:10; opacity:0.8; pointer-events:none;"></div>`;
@@ -1804,41 +1829,31 @@
 
     window.renderLaserManager = function() {
         let list = document.getElementById('laser-list'); if(!list) return;
-        if(!customCap.laser) customCap.laser = {};
         let html = "";
-        
-        let dates = Object.keys(customCap.laser).sort();
-        let todayTime = new Date().getTime() - 7*86400000; 
-        
-        dates.forEach(dStr => {
-            let dTime = new Date(dStr).getTime();
-            if(dTime < todayTime) return; 
-            
-            let h = customCap.laser[dStr];
-            html += `<div style="display:flex; justify-content:space-between; align-items:center; background:#f3e5f5; padding:5px 10px; border:1px solid #e1bee7; border-radius:4px; color:#6a1b9a;">
-                <div><strong>${dStr}</strong>: ${h} h</div>
-                <button class="admin-only" onclick="window.delLaserLoad('${dStr}')" style="color:white; background:#8e44ad; border:none; padding:3px 8px; border-radius:3px; cursor:pointer; font-weight:bold; ${isAdmin?'display:block':'display:none'}">X</button>
+        if (customCap.laserBacklog && customCap.laserBacklog.hours > 0) {
+            html += `<div style="display:flex; justify-content:space-between; align-items:center; background:#f3e5f5; padding:8px 10px; border:1px solid #e1bee7; border-radius:4px; color:#6a1b9a;">
+                <div><strong>Aktiivne jääk:</strong> ${customCap.laserBacklog.hours} h<br><small style="color:#888;">Sisestatud: ${customCap.laserBacklog.dateSet}</small></div>
+                <button class="admin-only" onclick="window.clearLaserBacklog()" style="color:white; background:#8e44ad; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-weight:bold; ${isAdmin?'display:block':'display:none'}">KUSTUTA</button>
             </div>`;
-        });
-        if(html === "") html = "<div style='color:#777; font-size:11px;'>Koormusi pole lisatud.</div>";
+        } else {
+            html = "<div style='color:#777; font-size:11px;'>Järjekorda pole sisestatud.</div>";
+        }
         list.innerHTML = html;
     };
 
-    window.addLaserLoad = function() {
+    window.saveLaserBacklog = function() {
         if(!isAdmin) return;
-        let d = document.getElementById('laser-date').value;
-        let h = parseFloat(document.getElementById('laser-h').value);
-        if(!d || isNaN(h)) { alert("Vali kuupäev ja sisesta tunnid!"); return; }
-        if(!customCap.laser) customCap.laser = {};
-        customCap.laser[d] = h;
-        document.getElementById('laser-date').value = "";
-        document.getElementById('laser-h').value = "";
+        let h = parseFloat(document.getElementById('laser-total-h').value);
+        if(isNaN(h) || h < 0) { alert("Sisesta korrektne tundide arv!"); return; }
+        if(!customCap.laserBacklog) customCap.laserBacklog = {};
+        customCap.laserBacklog = { hours: h, dateSet: safeISO(new Date()) };
+        document.getElementById('laser-total-h').value = "";
         window.saveCapacity();
     };
 
-    window.delLaserLoad = function(dStr) {
+    window.clearLaserBacklog = function() {
         if(!isAdmin) return;
-        delete customCap.laser[dStr];
+        customCap.laserBacklog = { hours: 0, dateSet: safeISO(new Date()) };
         window.saveCapacity();
     };
 
@@ -1877,7 +1892,7 @@
     window.saveCapacity = async function() {
         if(!isAdmin) return;
         
-        let newCap = { holidays: customCap.holidays || [], wsCounts: {}, laser: customCap.laser || {} };
+        let newCap = { holidays: customCap.holidays || [], wsCounts: {}, laserBacklog: customCap.laserBacklog || { hours: 0, dateSet: safeISO(TODAY) } };
         
         document.querySelectorAll('.ws-num-in').forEach(i => { 
             newCap.wsCounts[i.dataset.k] = parseInt(i.value) || 1; 
@@ -1902,7 +1917,10 @@
         if (!allocsObj || typeof allocsObj !== 'object') return {};
         let clean = {};
         for (let dept in allocsObj) {
-            if (dept === 'ah_tasks') continue;
+            if (dept === 'ah_tasks') {
+                clean[dept] = allocsObj[dept]; 
+                continue;
+            }
             let deptHasData = false;
             clean[dept] = {};
             for (let date in allocsObj[dept]) {
